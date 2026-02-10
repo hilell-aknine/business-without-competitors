@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>עסק ללא מתחרים - מודול</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/shared.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="../hub.html" class="navbar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-rocket"></i></div>
+            עסק <span>ללא מתחרים</span>
+        </a>
+        <div class="navbar-links" id="navLinks">
+            <a href="../hub.html#seminars">סמינרים</a>
+            <a href="../hub.html#modules">מודולים</a>
+            <a href="../index.html" class="navbar-cta">
+                <i class="fa-solid fa-play"></i>
+                כניסה לתוכנית
+            </a>
+        </div>
+        <button class="navbar-mobile-toggle" onclick="toggleNav()">
+            <i class="fa-solid fa-bars" id="navToggleIcon"></i>
+        </button>
+    </nav>
+
+    <!-- Page Hero -->
+    <section class="page-hero" id="pageHero">
+        <!-- Populated by JS -->
+    </section>
+
+    <!-- Resources Bar -->
+    <div class="resources-bar" id="resourcesBar">
+        <!-- Populated by JS -->
+    </div>
+
+    <!-- Weeks Content -->
+    <div id="weeksContent">
+        <!-- Populated by JS -->
+    </div>
+
+    <!-- Page Navigation -->
+    <nav class="page-nav" id="pageNav">
+        <!-- Populated by JS -->
+    </nav>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-brand">
+            <i class="fa-solid fa-rocket"></i>
+            עסק ללא מתחרים
+        </div>
+        <p>תוכנית ההכשרה המלאה לבניית עסק ללא מתחרים</p>
+    </footer>
+
+    <script src="../js/course-data.js"></script>
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    const moduleId = parseInt(params.get('id'));
+
+    if (isNaN(moduleId) || moduleId < 0 || moduleId >= MODULES.length) {
+        window.location.href = '../hub.html';
+    }
+
+    const mod = MODULES[moduleId];
+    const lessonCount = getModuleLessonCount(mod);
+    const weekCount = getModuleWeekCount(mod);
+
+    // Update page title
+    document.title = `${mod.title} - עסק ללא מתחרים`;
+
+    // Render hero
+    document.getElementById('pageHero').innerHTML = `
+        <div class="hero-icon"><i class="fa-solid ${mod.icon}"></i></div>
+        <div class="hero-badge">
+            <span>מודול ${moduleId + 1} מתוך ${MODULES.length}</span>
+        </div>
+        <h1><span class="gold">${mod.title}</span></h1>
+        <p>${mod.description}</p>
+        <div class="page-hero-stats">
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-video"></i>
+                <span><strong>${lessonCount}</strong> שיעורים</span>
+            </div>
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-calendar-week"></i>
+                <span><strong>${weekCount}</strong> שבועות</span>
+            </div>
+            ${mod.aiCoachUrl ? `
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-robot"></i>
+                <span><strong>מאמן AI</strong> אישי</span>
+            </div>` : ''}
+        </div>
+    `;
+
+    // Render resources bar
+    let resourcesHtml = '';
+    if (mod.presentationUrl) {
+        resourcesHtml += `<a href="${mod.presentationUrl}" target="_blank" class="resource-link"><i class="fa-solid fa-file-powerpoint"></i> מצגת המודול</a>`;
+    }
+    if (mod.aiCoachUrl) {
+        resourcesHtml += `<a href="${mod.aiCoachUrl}" target="_blank" class="resource-link gold-link"><i class="fa-solid fa-robot"></i> מאמן AI אישי</a>`;
+    }
+    if (mod.extraTools) {
+        mod.extraTools.forEach(tool => {
+            resourcesHtml += `<a href="${tool.url}" target="_blank" class="resource-link gold-link"><i class="fa-solid ${tool.icon}"></i> ${tool.label}</a>`;
+        });
+    }
+    document.getElementById('resourcesBar').innerHTML = resourcesHtml;
+
+    // Render weeks
+    const weeksContainer = document.getElementById('weeksContent');
+    weeksContainer.innerHTML = mod.weeks.map((week, wi) => {
+        const lessonsHtml = week.days.map((day, di) => {
+            if (!day.videoId && day.aiToolUrl) {
+                return `
+                    <a href="${day.aiToolUrl}" target="_blank" class="lesson-card">
+                        <div class="lesson-thumb" style="background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05)); display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-robot" style="font-size: 1.5rem; color: var(--gold);"></i>
+                        </div>
+                        <div class="lesson-info">
+                            <h4>${day.aiToolLabel || day.title}</h4>
+                            <p>כלי AI</p>
+                        </div>
+                    </a>
+                `;
+            }
+            const thumbUrl = day.videoId ? `https://img.youtube.com/vi/${day.videoId}/mqdefault.jpg` : '';
+            return `
+                <a href="../index.html?module=${moduleId}&week=${wi}&day=${di}" class="lesson-card">
+                    <div class="lesson-thumb">
+                        ${day.videoId ? `<img src="${thumbUrl}" alt="${day.title}" loading="lazy">` : ''}
+                        <div class="play-icon"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                    <div class="lesson-info">
+                        <h4>${day.title}</h4>
+                        <p>${mod.title} · ${week.title}</p>
+                    </div>
+                </a>
+            `;
+        }).join('');
+
+        return `
+            <div class="week-section">
+                <div class="week-title">
+                    <i class="fa-solid fa-calendar-week"></i>
+                    ${week.title}
+                    <span style="margin-right: auto; font-size: 0.8rem; font-weight: 400; color: rgba(255,255,255,0.5);">${week.days.length} שיעורים</span>
+                </div>
+                <div class="lesson-grid">
+                    ${lessonsHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Render page navigation
+    const prevMod = moduleId > 0 ? MODULES[moduleId - 1] : null;
+    const nextMod = moduleId < MODULES.length - 1 ? MODULES[moduleId + 1] : null;
+
+    document.getElementById('pageNav').innerHTML = `
+        <a href="${nextMod ? `module.html?id=${moduleId + 1}` : '#'}" class="page-nav-btn ${!nextMod ? 'disabled' : ''}">
+            <i class="fa-solid fa-arrow-right"></i>
+            ${nextMod ? `מודול ${moduleId + 2}: ${nextMod.title}` : ''}
+        </a>
+        <a href="../hub.html#modules" class="page-nav-center">
+            <i class="fa-solid fa-th-large"></i>
+            חזרה לכל המודולים
+        </a>
+        <a href="${prevMod ? `module.html?id=${moduleId - 1}` : '#'}" class="page-nav-btn ${!prevMod ? 'disabled' : ''}">
+            ${prevMod ? `מודול ${moduleId}: ${prevMod.title}` : ''}
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    `;
+
+    // Start learning CTA - jump to first lesson
+    function startModule() {
+        window.location.href = `../index.html?module=${moduleId}&week=0&day=0`;
+    }
+
+    // Mobile nav toggle
+    function toggleNav() {
+        const links = document.getElementById('navLinks');
+        const icon = document.getElementById('navToggleIcon');
+        links.classList.toggle('open');
+        icon.className = links.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
+    }
+    </script>
+</body>
+</html>

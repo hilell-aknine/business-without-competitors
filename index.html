@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>עסק ללא מתחרים - תוכנית ההכשרה המלאה</title>
+    <meta name="description" content="תוכנית ההכשרה המלאה ״עסק ללא מתחרים״ - 8 מודולים, 120+ שיעורי וידאו, 7 סמינרים חיים וכלי AI">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://img.youtube.com">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <style>
+        :root {
+            --sidebar-dark: #002b33;
+            --sidebar-hover: #003d47;
+            --sidebar-active: #00454f;
+            --deep-petrol: #003B46;
+            --muted-teal: #00606B;
+            --dusty-aqua: #2F8592;
+            --frost-white: #E8F1F2;
+            --pure-white: #FFFFFF;
+            --light-gray: #f8f9fa;
+            --border-light: #e9ecef;
+            --text-dark: #2d3436;
+            --text-muted: #636e72;
+            --gold: #D4AF37;
+            --gold-light: #e6c65a;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --success: #00b894;
+            --gradient-gold: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ===== Top Navigation Bar ===== */
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 380px;
+            height: 60px;
+            background: var(--deep-petrol);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 150;
+            border-bottom: 1px solid rgba(47, 133, 146, 0.3);
+        }
+
+        .top-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--frost-white);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .brand-link i { color: var(--gold); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--frost-white);
+            font-size: 0.85rem;
+        }
+
+        .breadcrumb .separator { opacity: 0.5; }
+        .breadcrumb .current { color: var(--gold); font-weight: 500; }
+
+        .top-nav-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .transcripts-link {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--frost-white);
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            opacity: 0.8;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .transcripts-link:hover {
+            background: rgba(255,255,255,0.15);
+            opacity: 1;
+        }
+
+        /* ===== LMS Layout ===== */
+        .lms-container {
+            display: flex;
+            min-height: 100vh;
+            padding-top: 60px;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: 380px;
+            background: var(--sidebar-dark);
+            color: var(--pure-white);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 60px;
+            bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 40px; height: 40px;
+            background: var(--gradient-gold);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--sidebar-dark);
+        }
+
+        .sidebar-logo .logo-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .sidebar-logo .logo-text span { color: var(--gold); }
+
+        .course-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            flex-wrap: wrap;
+        }
+
+        .course-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .progress-label { color: rgba(255, 255, 255, 0.8); }
+        .progress-percent { color: var(--gold); font-weight: 600; }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        /* Syllabus */
+        .syllabus {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem 0;
+        }
+
+        .syllabus::-webkit-scrollbar { width: 6px; }
+        .syllabus::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
+        .syllabus::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 3px; }
+
+        /* Section Header (Seminars / Modules) */
+        .section-label {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gold);
+            background: rgba(212, 175, 55, 0.08);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        /* Module Accordion */
+        .module {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .module-header {
+            padding: 0.9rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .module-header:hover { background: var(--sidebar-hover); }
+
+        .module-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .module-number {
+            width: 28px; height: 28px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gold);
+            flex-shrink: 0;
+        }
+
+        .module.seminar-module .module-number {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.25);
+        }
+
+        .module-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .module-toggle {
+            color: rgba(255, 255, 255, 0.5);
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            margin-right: 0.5rem;
+        }
+
+        .module.open .module-toggle { transform: rotate(180deg); }
+
+        .module-lessons {
+            display: none;
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        .module.open .module-lessons { display: block; }
+
+        /* Week Header (Level 2) */
+        .week-header {
+            padding: 0.6rem 1.5rem 0.6rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.1);
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .week-header:hover { background: rgba(0, 0, 0, 0.2); }
+
+        .week-toggle {
+            font-size: 0.65rem;
+            transition: transform 0.3s;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .week-group.open .week-toggle { transform: rotate(180deg); }
+
+        .week-lessons {
+            display: none;
+        }
+
+        .week-group.open .week-lessons { display: block; }
+
+        /* Lesson Item (Level 3) */
+        .lesson-item {
+            padding: 0.7rem 1.5rem 0.7rem 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-right: 3px solid transparent;
+        }
+
+        .lesson-item:hover { background: var(--sidebar-hover); }
+
+        .lesson-item.active {
+            background: var(--sidebar-active);
+            border-right-color: var(--gold);
+        }
+
+        .lesson-item.completed .lesson-status {
+            background: var(--success);
+            color: white;
+        }
+
+        .lesson-status {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        .lesson-item.active .lesson-status {
+            background: var(--gold);
+            color: var(--sidebar-dark);
+        }
+
+        .lesson-title {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lesson-item.active .lesson-title {
+            color: var(--pure-white);
+            font-weight: 500;
+        }
+
+        /* Resource link inside sidebar */
+        .sidebar-resource {
+            padding: 0.6rem 1.5rem 0.6rem 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+        }
+
+        .sidebar-resource:hover {
+            background: var(--sidebar-hover);
+            color: var(--gold);
+        }
+
+        .sidebar-resource i { font-size: 0.75rem; }
+
+        /* ===== Main Content ===== */
+        .main-content {
+            flex: 1;
+            margin-right: 380px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: var(--pure-white);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-light);
+            position: sticky;
+            top: 60px;
+            z-index: 50;
+        }
+
+        .current-lesson-info { flex: 1; min-width: 0; }
+
+        .current-lesson-info h2 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .current-lesson-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-light);
+            background: var(--pure-white);
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--light-gray);
+            border-color: var(--dusty-aqua);
+        }
+
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .nav-btn.primary {
+            background: var(--gradient-gold);
+            border: none;
+            color: var(--sidebar-dark);
+        }
+
+        .nav-btn.primary:hover:not(:disabled) {
+            box-shadow: 0 4px 15px var(--gold-glow);
+        }
+
+        /* Video Area */
+        .video-section {
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .video-wrapper {
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            position: relative;
+            padding-top: 56.25%;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--deep-petrol) 0%, var(--sidebar-dark) 100%);
+            color: var(--pure-white);
+        }
+
+        .video-placeholder i { font-size: 4rem; color: var(--gold); margin-bottom: 1rem; }
+        .video-placeholder p { font-size: 1.2rem; opacity: 0.9; }
+
+        .video-thumbnail {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            cursor: pointer;
+            display: none;
+        }
+
+        .video-thumbnail img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+        }
+
+        .video-thumbnail .play-btn {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px; height: 80px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--sidebar-dark);
+            box-shadow: 0 8px 30px var(--gold-glow);
+            transition: all 0.3s;
+        }
+
+        .video-thumbnail:hover .play-btn {
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 12px 40px var(--gold-glow);
+        }
+
+        .video-thumbnail .play-btn i { margin-right: -4px; }
+
+        .video-loading {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--deep-petrol) 0%, var(--sidebar-dark) 100%);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--pure-white);
+        }
+
+        .video-loading.active { display: flex; }
+
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Variant Selector */
+        .variant-selector {
+            display: none;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .variant-selector.active { display: flex; }
+
+        .variant-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            border: 2px solid var(--border-light);
+            background: var(--pure-white);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-dark);
+        }
+
+        .variant-btn.active {
+            background: var(--gradient-gold);
+            border-color: var(--gold);
+            color: var(--sidebar-dark);
+        }
+
+        .variant-btn:hover:not(.active) {
+            border-color: var(--dusty-aqua);
+        }
+
+        /* Resources Section Below Video */
+        .module-resources {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .resource-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid var(--border-light);
+            background: var(--pure-white);
+            color: var(--text-dark);
+        }
+
+        .resource-btn:hover {
+            border-color: var(--dusty-aqua);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .resource-btn i { color: var(--dusty-aqua); }
+
+        .resource-btn.gold {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .resource-btn.gold i { color: var(--gold); }
+
+        .resource-btn.gold:hover {
+            background: rgba(212, 175, 55, 0.15);
+            border-color: var(--gold);
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: var(--pure-white);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .welcome-section h3 {
+            font-size: 1.3rem;
+            color: var(--deep-petrol);
+            margin-bottom: 0.8rem;
+        }
+
+        .welcome-section p {
+            color: var(--text-muted);
+            max-width: 550px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 43, 51, 0.7);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.active { display: block; }
+
+        /* Mobile Toggle */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 56px; height: 56px;
+            background: var(--gradient-gold);
+            border-radius: 50%;
+            border: none;
+            color: var(--sidebar-dark);
+            font-size: 1.3rem;
+            cursor: pointer;
+            z-index: 200;
+            box-shadow: 0 4px 20px var(--gold-glow);
+            transition: all 0.3s;
+        }
+
+        .mobile-toggle:hover { transform: scale(1.05); }
+
+        .mobile-toggle.active {
+            background: var(--sidebar-dark);
+            color: var(--gold);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .top-nav { right: 0; }
+            .sidebar { transform: translateX(100%); top: 60px; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-right: 0; }
+            .mobile-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .transcripts-link { display: none; }
+        }
+
+        @media (max-width: 768px) {
+            .top-nav { padding: 0 0.8rem; height: 50px; }
+            .brand-link { font-size: 0.85rem; }
+            .breadcrumb { display: none; }
+            .lms-container { padding-top: 50px; flex-direction: column; }
+            .sidebar { width: 100%; top: 50px; bottom: 0; }
+            .sidebar-header { padding: 1rem; }
+            .course-title { font-size: 1rem; }
+            .module-header { padding: 0.8rem 1rem; }
+            .lesson-item { padding: 0.6rem 1rem 0.6rem 2rem; }
+            .week-header { padding: 0.5rem 1rem 0.5rem 1.5rem; }
+            .top-bar {
+                padding: 0.8rem;
+                top: 50px;
+                gap: 0.5rem;
+            }
+            .current-lesson-info h2 { font-size: 0.9rem; }
+            .current-lesson-info p { font-size: 0.75rem; }
+            .top-bar-actions { gap: 0.4rem; }
+            .nav-btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+            .nav-btn span { display: none; }
+            .video-section { padding: 0.5rem; }
+            .video-wrapper { border-radius: 10px; }
+            .video-thumbnail .play-btn { width: 60px; height: 60px; font-size: 1.5rem; }
+            .module-resources { gap: 0.5rem; }
+            .resource-btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+            .welcome-section { padding: 1.5rem; margin-top: 0.5rem; border-radius: 10px; }
+            .mobile-toggle { bottom: 1rem; right: 1rem; width: 50px; height: 50px; font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+        <div class="top-nav-right">
+            <a href="hub.html" class="brand-link">
+                <i class="fa-solid fa-rocket"></i>
+                עסק ללא מתחרים
+            </a>
+            <div class="breadcrumb">
+                <span class="separator">|</span>
+                <span class="current">תוכנית ההכשרה המלאה</span>
+            </div>
+        </div>
+        <div class="top-nav-left">
+            <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" class="transcripts-link">
+                <i class="fa-solid fa-folder-open"></i>
+                תמלולים מלאים
+            </a>
+        </div>
+    </nav>
+
+    <div class="lms-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon"><i class="fa-solid fa-rocket"></i></div>
+                    <div class="logo-text">עסק <span>ללא מתחרים</span></div>
+                </div>
+                <h1 class="course-title">תוכנית ההכשרה המלאה</h1>
+                <div class="course-meta">
+                    <span><i class="fa-solid fa-video"></i> 120+ שיעורים</span>
+                    <span><i class="fa-solid fa-layer-group"></i> 8 מודולים</span>
+                    <span><i class="fa-solid fa-users"></i> 7 סמינרים</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span class="progress-label">התקדמות בקורס</span>
+                    <span class="progress-percent" id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <nav class="syllabus" id="syllabus">
+                <!-- Populated by JS -->
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="current-lesson-info">
+                    <h2 id="currentLessonTitle">ברוכים הבאים לתוכנית ההכשרה</h2>
+                    <p id="currentLessonMeta">בחרו שיעור מהתפריט כדי להתחיל</p>
+                </div>
+                <div class="top-bar-actions">
+                    <button class="nav-btn" id="prevLessonBtn" onclick="navigateLesson(-1)" disabled>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>הקודם</span>
+                    </button>
+                    <button class="nav-btn primary" id="nextLessonBtn" onclick="navigateLesson(1)">
+                        <span>הבא</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="video-section">
+                <div class="video-wrapper">
+                    <div class="video-placeholder" id="videoPlaceholder">
+                        <i class="fa-solid fa-play-circle"></i>
+                        <p>בחרו שיעור מהתפריט כדי להתחיל</p>
+                    </div>
+                    <div class="video-thumbnail" id="videoThumbnail" onclick="playVideo()">
+                        <img id="thumbnailImg" src="" alt="Video thumbnail">
+                        <div class="play-btn">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                    </div>
+                    <div class="video-loading" id="videoLoading">
+                        <div class="spinner"></div>
+                        <p>טוען את הסרטון...</p>
+                    </div>
+                    <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display: none;"></iframe>
+                </div>
+
+                <div class="variant-selector" id="variantSelector"></div>
+
+                <div class="module-resources" id="moduleResources"></div>
+
+                <div class="welcome-section" id="welcomeSection">
+                    <h3>ברוכים הבאים לתוכנית ״עסק ללא מתחרים״!</h3>
+                    <p>תוכנית הכשרה מקיפה עם 8 מודולים, 7 סמינרים חיים, וכלי AI מתקדמים. בחרו שיעור מהתפריט מימין כדי להתחיל את המסע שלכם להפוך לאוטוריטה חדשנית בתחומכם.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fa-solid fa-list"></i>
+    </button>
+
+    <script src="js/course-data.js"></script>
+    <script>
+    // ===== State =====
+    let currentType = null;   // 'seminar' or 'module'
+    let currentModuleIndex = -1;
+    let currentWeekIndex = -1;
+    let currentDayIndex = -1;
+    let currentSeminarIndex = -1;
+    let currentPartIndex = -1;
+    let currentVideoId = null;
+    let completedLessons = JSON.parse(localStorage.getItem('bwc_completed') || '[]');
+
+    // Build flat list for navigation
+    let flatLessons = [];
+    function buildFlatList() {
+        flatLessons = [];
+        SEMINARS.forEach((sem, si) => {
+            sem.parts.forEach((part, pi) => {
+                flatLessons.push({ type: 'seminar', si, pi, videoId: part.videoId, title: `${sem.title} - ${part.title}` });
+            });
+        });
+        MODULES.forEach((mod, mi) => {
+            mod.weeks.forEach((week, wi) => {
+                week.days.forEach((day, di) => {
+                    flatLessons.push({ type: 'module', mi, wi, di, videoId: day.videoId, title: `${mod.title} - ${week.title} - ${day.title}` });
+                });
+            });
+        });
+    }
+
+    function getFlatIndex() {
+        if (currentType === 'seminar') {
+            return flatLessons.findIndex(l => l.type === 'seminar' && l.si === currentSeminarIndex && l.pi === currentPartIndex);
+        } else if (currentType === 'module') {
+            return flatLessons.findIndex(l => l.type === 'module' && l.mi === currentModuleIndex && l.wi === currentWeekIndex && l.di === currentDayIndex);
+        }
+        return -1;
+    }
+
+    function getLessonKey(item) {
+        if (item.type === 'seminar') return `s${item.si}-${item.pi}`;
+        return `m${item.mi}-${item.wi}-${item.di}`;
+    }
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', () => {
+        buildFlatList();
+        renderSyllabus();
+        updateProgress();
+
+        // Deep link support: ?module=M&week=W&day=D or ?seminar=S&part=P
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('module')) {
+            const mi = parseInt(params.get('module'));
+            const wi = parseInt(params.get('week') || '0');
+            const di = parseInt(params.get('day') || '0');
+            if (mi >= 0 && mi < MODULES.length) {
+                const mod = MODULES[mi];
+                if (wi < mod.weeks.length && di < mod.weeks[wi].days.length) {
+                    selectLesson(mi, wi, di);
+                }
+            }
+        } else if (params.has('seminar')) {
+            const si = parseInt(params.get('seminar'));
+            const pi = parseInt(params.get('part') || '0');
+            if (si >= 0 && si < SEMINARS.length && pi < SEMINARS[si].parts.length) {
+                selectSeminar(si, pi);
+            }
+        }
+    });
+
+    // ===== Render Syllabus =====
+    function renderSyllabus() {
+        const syllabus = document.getElementById('syllabus');
+        let html = '';
+
+        // Seminars Section
+        html += '<div class="section-label"><i class="fa-solid fa-users"></i> סמינרים חיים</div>';
+        SEMINARS.forEach((sem, si) => {
+            const isOpen = currentType === 'seminar' && currentSeminarIndex === si;
+            html += `<div class="module seminar-module ${isOpen ? 'open' : ''}" data-sem="${si}">
+                <div class="module-header" onclick="toggleSeminar(${si})">
+                    <div class="module-info">
+                        <div class="module-number"><i class="fa-solid fa-video"></i></div>
+                        <div class="module-title">${sem.title}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down module-toggle"></i>
+                </div>
+                <div class="module-lessons">
+                    ${sem.parts.map((part, pi) => {
+                        const key = `s${si}-${pi}`;
+                        const isActive = currentType === 'seminar' && currentSeminarIndex === si && currentPartIndex === pi;
+                        const isCompleted = completedLessons.includes(key);
+                        return `<div class="lesson-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}"
+                                     onclick="selectSeminar(${si}, ${pi})">
+                            <div class="lesson-status">
+                                ${isCompleted ? '<i class="fa-solid fa-check"></i>' : isActive ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-circle"></i>'}
+                            </div>
+                            <span class="lesson-title">${part.title}</span>
+                        </div>`;
+                    }).join('')}
+                    ${sem.presentationUrl ? `<a href="${sem.presentationUrl}" target="_blank" class="sidebar-resource"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>` : ''}
+                </div>
+            </div>`;
+        });
+
+        // Modules Section
+        html += '<div class="section-label"><i class="fa-solid fa-graduation-cap"></i> מודולי ההכשרה</div>';
+        MODULES.forEach((mod, mi) => {
+            const isOpen = currentType === 'module' && currentModuleIndex === mi;
+            html += `<div class="module ${isOpen ? 'open' : ''}" data-mod="${mi}">
+                <div class="module-header" onclick="toggleMod(${mi})">
+                    <div class="module-info">
+                        <div class="module-number">${mi + 1}</div>
+                        <div class="module-title">${mod.title}</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-down module-toggle"></i>
+                </div>
+                <div class="module-lessons">
+                    ${mod.weeks.map((week, wi) => {
+                        const weekOpen = currentType === 'module' && currentModuleIndex === mi && currentWeekIndex === wi;
+                        return `<div class="week-group ${weekOpen ? 'open' : ''}" data-mod="${mi}" data-week="${wi}">
+                            <div class="week-header" onclick="toggleWeek(${mi}, ${wi})">
+                                <span><i class="fa-solid fa-calendar-week" style="margin-left:0.4rem;opacity:0.5;font-size:0.7rem"></i>${week.title}</span>
+                                <i class="fa-solid fa-chevron-down week-toggle"></i>
+                            </div>
+                            <div class="week-lessons">
+                                ${week.days.map((day, di) => {
+                                    const key = `m${mi}-${wi}-${di}`;
+                                    const isActive = currentType === 'module' && currentModuleIndex === mi && currentWeekIndex === wi && currentDayIndex === di;
+                                    const isCompleted = completedLessons.includes(key);
+                                    const isAiOnly = !day.videoId && day.aiToolUrl;
+                                    return isAiOnly ?
+                                        `<a href="${day.aiToolUrl}" target="_blank" class="sidebar-resource"><i class="fa-solid fa-robot"></i> ${day.aiToolLabel || day.title}</a>` :
+                                        `<div class="lesson-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}"
+                                              onclick="selectLesson(${mi}, ${wi}, ${di})">
+                                            <div class="lesson-status">
+                                                ${isCompleted ? '<i class="fa-solid fa-check"></i>' : isActive ? '<i class="fa-solid fa-play"></i>' : '<i class="fa-solid fa-circle"></i>'}
+                                            </div>
+                                            <span class="lesson-title">${day.title}</span>
+                                        </div>`;
+                                }).join('')}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        });
+
+        syllabus.innerHTML = html;
+    }
+
+    // ===== Toggle Functions =====
+    function toggleSeminar(si) {
+        const el = document.querySelector(`.module[data-sem="${si}"]`);
+        el.classList.toggle('open');
+    }
+
+    function toggleMod(mi) {
+        const el = document.querySelector(`.module[data-mod="${mi}"]`);
+        el.classList.toggle('open');
+    }
+
+    function toggleWeek(mi, wi) {
+        const el = document.querySelector(`.week-group[data-mod="${mi}"][data-week="${wi}"]`);
+        el.classList.toggle('open');
+        event.stopPropagation();
+    }
+
+    // ===== Select Seminar Part =====
+    function selectSeminar(si, pi) {
+        currentType = 'seminar';
+        currentSeminarIndex = si;
+        currentPartIndex = pi;
+        currentModuleIndex = -1;
+
+        const sem = SEMINARS[si];
+        const part = sem.parts[pi];
+        currentVideoId = part.videoId;
+
+        loadThumbnail(part.videoId);
+        document.getElementById('currentLessonTitle').textContent = `${sem.title} - ${part.title}`;
+        document.getElementById('currentLessonMeta').textContent = `סמינר ${si + 1} מתוך ${SEMINARS.length}`;
+        document.getElementById('welcomeSection').style.display = 'none';
+
+        // Resources
+        let resHtml = '';
+        if (sem.presentationUrl) {
+            resHtml += `<a href="${sem.presentationUrl}" target="_blank" class="resource-btn"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>`;
+        }
+        document.getElementById('moduleResources').innerHTML = resHtml;
+        document.getElementById('variantSelector').classList.remove('active');
+
+        updateNavButtons();
+        renderSyllabus();
+        closeMobileSidebar();
+    }
+
+    // ===== Select Module Lesson =====
+    function selectLesson(mi, wi, di) {
+        currentType = 'module';
+        currentModuleIndex = mi;
+        currentWeekIndex = wi;
+        currentDayIndex = di;
+        currentSeminarIndex = -1;
+
+        const mod = MODULES[mi];
+        const day = mod.weeks[wi].days[di];
+
+        if (day.variants) {
+            currentVideoId = day.variants[0].videoId;
+            showVariants(day.variants);
+        } else {
+            currentVideoId = day.videoId;
+            document.getElementById('variantSelector').classList.remove('active');
+        }
+
+        loadThumbnail(currentVideoId);
+        document.getElementById('currentLessonTitle').textContent = `${day.title}`;
+        document.getElementById('currentLessonMeta').textContent = `${mod.title} • ${mod.weeks[wi].title}`;
+        document.getElementById('welcomeSection').style.display = 'none';
+
+        // Module resources
+        let resHtml = '';
+        if (mod.presentationUrl) {
+            resHtml += `<a href="${mod.presentationUrl}" target="_blank" class="resource-btn"><i class="fa-solid fa-file-powerpoint"></i> מצגת המודול</a>`;
+        }
+        if (mod.aiCoachUrl) {
+            resHtml += `<a href="${mod.aiCoachUrl}" target="_blank" class="resource-btn gold"><i class="fa-solid fa-robot"></i> מאמן AI</a>`;
+        }
+        if (mod.extraTools) {
+            mod.extraTools.forEach(tool => {
+                resHtml += `<a href="${tool.url}" target="_blank" class="resource-btn gold"><i class="fa-solid ${tool.icon}"></i> ${tool.label}</a>`;
+            });
+        }
+        document.getElementById('moduleResources').innerHTML = resHtml;
+
+        updateNavButtons();
+        renderSyllabus();
+        closeMobileSidebar();
+    }
+
+    // ===== Variant Selector =====
+    function showVariants(variants) {
+        const container = document.getElementById('variantSelector');
+        container.innerHTML = variants.map((v, i) =>
+            `<button class="variant-btn ${i === 0 ? 'active' : ''}" onclick="switchVariant(${i}, this)">${v.label}</button>`
+        ).join('');
+        container.classList.add('active');
+        container._variants = variants;
+    }
+
+    function switchVariant(index, btn) {
+        const container = document.getElementById('variantSelector');
+        const variants = container._variants;
+        currentVideoId = variants[index].videoId;
+        loadThumbnail(currentVideoId);
+        container.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    // ===== Load Thumbnail =====
+    function loadThumbnail(videoId) {
+        if (!videoId) return;
+        const player = document.getElementById('videoPlayer');
+        const placeholder = document.getElementById('videoPlaceholder');
+        const thumbnail = document.getElementById('videoThumbnail');
+        const thumbnailImg = document.getElementById('thumbnailImg');
+        const loading = document.getElementById('videoLoading');
+
+        player.style.display = 'none';
+        player.src = '';
+        placeholder.style.display = 'none';
+        loading.classList.remove('active');
+
+        thumbnailImg.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        thumbnailImg.onerror = () => {
+            thumbnailImg.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        };
+        thumbnail.style.display = 'block';
+    }
+
+    // ===== Play Video =====
+    function playVideo() {
+        if (!currentVideoId) return;
+        const player = document.getElementById('videoPlayer');
+        const thumbnail = document.getElementById('videoThumbnail');
+        const loading = document.getElementById('videoLoading');
+
+        thumbnail.style.display = 'none';
+        loading.classList.add('active');
+
+        player.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&rel=0`;
+        player.onload = () => {
+            loading.classList.remove('active');
+            player.style.display = 'block';
+            // Mark as completed after 30 seconds
+            setTimeout(() => markCompleted(), 30000);
+        };
+    }
+
+    // ===== Mark Completed =====
+    function markCompleted() {
+        const idx = getFlatIndex();
+        if (idx < 0) return;
+        const key = getLessonKey(flatLessons[idx]);
+        if (!completedLessons.includes(key)) {
+            completedLessons.push(key);
+            localStorage.setItem('bwc_completed', JSON.stringify(completedLessons));
+            updateProgress();
+            renderSyllabus();
+        }
+    }
+
+    // ===== Navigate =====
+    function navigateLesson(direction) {
+        const idx = getFlatIndex();
+        let newIdx = idx + direction;
+        // Skip AI-only items (no videoId)
+        while (newIdx >= 0 && newIdx < flatLessons.length && !flatLessons[newIdx].videoId) {
+            newIdx += direction;
+        }
+        if (newIdx < 0 || newIdx >= flatLessons.length) return;
+        const item = flatLessons[newIdx];
+        if (item.type === 'seminar') {
+            selectSeminar(item.si, item.pi);
+        } else {
+            selectLesson(item.mi, item.wi, item.di);
+        }
+    }
+
+    // ===== Update Nav Buttons =====
+    function updateNavButtons() {
+        const idx = getFlatIndex();
+        document.getElementById('prevLessonBtn').disabled = idx <= 0;
+        document.getElementById('nextLessonBtn').disabled = idx >= flatLessons.length - 1;
+    }
+
+    // ===== Update Progress =====
+    function updateProgress() {
+        const total = flatLessons.filter(l => l.videoId).length;
+        const completed = completedLessons.length;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        document.getElementById('progressPercent').textContent = `${percent}%`;
+        document.getElementById('progressFill').style.width = `${percent}%`;
+    }
+
+    // ===== Mobile Sidebar =====
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.querySelector('.mobile-toggle');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('open');
+        toggleBtn.classList.toggle('active');
+        overlay.classList.toggle('active');
+
+        const icon = toggleBtn.querySelector('i');
+        if (sidebar.classList.contains('open')) {
+            icon.className = 'fa-solid fa-times';
+            document.body.style.overflow = 'hidden';
+        } else {
+            icon.className = 'fa-solid fa-list';
+            document.body.style.overflow = '';
+        }
+    }
+
+    function closeMobileSidebar() {
+        if (window.innerWidth <= 1024) {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            const toggleBtn = document.querySelector('.mobile-toggle');
+            if (toggleBtn) {
+                toggleBtn.classList.remove('active');
+                toggleBtn.querySelector('i').className = 'fa-solid fa-list';
+            }
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') navigateLesson(1);
+        if (e.key === 'ArrowRight') navigateLesson(-1);
+    });
+    </script>
+</body>
+</html>

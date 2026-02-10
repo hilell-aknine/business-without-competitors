@@ -1,0 +1,90 @@
+*** CLAUDE CODE INSTRUCTIONS ***
+
+CONTEXT:
+You are an expert Full Stack Developer and AI Architect. You are tasked with building a specialized Learning Management System (LMS) called "Business Without Competitors".
+This system is unique because it uses multiple AI Agents to simulate a human coaching experience.
+
+YOUR MISSION:
+Read the technical specification below and initialize the project structure.
+Follow the architecture strictly (FastAPI + Next.js + PostgreSQL + Claude 3.5 Sonnet).
+
+--- BEGIN SPECIFICATION ---
+
+# אפיון טכני סופי: מערכת למידה מבוססת AI - "עסק ללא מתחרים"
+
+## 1. תקציר מנהלים (Executive Summary)
+פיתוח פלטפורמת LMS לימודית המשלבת מנגנוני AI מתקדמים. המערכת מבוססת על תהליך לינארי (שיעור רודף שיעור) ומציעה לסטודנט מעטפת של סוכנים חכמים וכלים ייעודיים ("ארסנל") לביצוע המשימות. הדגש הוא על אוטומציה מלאה של הזנת התוכן (ללא עריכת אדם) ופרסונליזציה עמוקה.
+
+## 2. ארכיטקטורה טכנולוגית (Tech Stack)
+
+### צד שרת (Backend) & Data
+* **Language:** Python 3.11+ (FastAPI).
+* **Database:** PostgreSQL.
+    * `UserProgress`: טבלה לניהול נעילת שיעורים (Gating logic).
+    * `ChatHistory`: שמירת שיחות בחלוקה לפי `lesson_id` ו-`user_id`.
+    * `UserProfile`: שדה JSON המכיל את נתוני הסטודנט (נישה, מטרות).
+* **AI Engine:** Claude 3.5 Sonnet.
+* **Transcription:** OpenAI Whisper (אוטומטי מלא, ללא ממשק עריכה).
+* **Vector/Chunking:** מנגנון פנימי לחלוקת תמלולים ארוכים (Chunks) ושליפת החלק הרלוונטי לפי הקשר השאלה (RAG פשוט), כדי לא להעמיס על חלון הזיכרון.
+
+### צד לקוח (Frontend)
+* **Framework:** Next.js (React).
+* **UI Components:** Tailwind CSS.
+* **States:** אין צורך ב-Streaming (כתיבה בזמן אמת). שימוש ב-Loading Spinner סטנדרטי בזמן המתנה לתשובה.
+
+## 3. מסע המשתמש (User Flow)
+
+### א. כניסה והגדרה (Onboarding)
+1.  **שאלון הכרות (The Setup Wizard):**
+    בכניסה הראשונה, המשתמש חייב למלא 3 שדות: נישה עסקית, קהל יעד, ומטרה עסקית נוכחית. מידע זה נשמר מיידית ל-JSON הפרופיל.
+2.  **Dashboard:**
+    * מציג את מפת הקורס.
+    * **Logic:** שיעור 2 נעול (Greyscale/Locked Icon) כל עוד שיעור 1 לא סומן כ"הושלם".
+
+### ב. ממשק השיעור (The Lesson Interface)
+מסך מפוצל. צד ימין וידאו (YouTube Embed), צד שמאל מערכת ה-AI.
+
+#### 1. בורר הסוכנים (The Trinity)
+המשתמש בוחר במוד העבודה הרצוי מתוך תפריט/טאבים:
+
+* **מוד 1: המאמן האישי (The Coach)**
+    * **אישיות:** דינמית. אם השיעור מועבר ע"י צביקה – אנרגטי וחד. אם ע"י תמר – רגשי ומכיל.
+    * **גבולות גזרה:** *מסרב לבצע את העבודה עבור הסטודנט*. ("אני לא אכתוב לך את הפוסט, אבל בוא נחשוב מה המסר המרכזי...").
+    * **זיכרון:** השיחה נשמרת תחת השיעור הספציפי. חזרה לשיעור = המשך השיחה מאותה נקודה. מעבר שיעור = שיחה חדשה.
+
+* **מוד 2: מאיץ הלמידה (10X AI)**
+    * **אישיות:** קר, אנליטי, "מהנדס". מומחה ל-Reverse Engineering.
+    * **גבולות גזרה:** *מבצע*. מפרק שיטות לצ'ק-ליסטים, בונה פרוטוקולים, מחלץ מודלים.
+
+* **מוד 3: ארסנל הכלים (Tools Arsenal)**
+    * תפריט נפתח של כלים ייעודיים (Hardcoded Prompts) הזמינים בכל עת, ללא קשר לשיעור:
+        * "מוצא הקייסים"
+        * "קופירייטר למסע לקוח"
+        * "מאמן שיח מנהיגות"
+
+## 4. מוח ה-AI: לוגיקה עסקית
+
+### א. ניהול פרופיל (Smart Profile)
+הפרופיל מתעדכן אוטומטית ברקע, אבל הבסיס שלו מגיע משאלון ההתחלה. כל הסוכנים (המאמן, ה-10X והכלים) מושכים מידע מהפרופיל הזה כדי להתאים את התשובה (למשל: קופירייטר יכתוב פוסט שמותאם לנישה שהוגדרה בשאלון).
+
+### ב. טיפול בוידאו (Transcript Handling)
+מכיוון שהסרטונים ארוכים:
+1.  המערכת מורידה אודיו (yt-dlp) ושולחת ל-Whisper API.
+2.  הטקסט נשמר ב-DB.
+3.  בזמן שאילתה: המערכת לא שולחת את *כל* השעה ל-AI, אלא מאתרת מילות מפתח בשאלה ומביאה את ה"צ'אנק" (קטע הטקסט) הרלוונטי + סיכום כללי של השיעור.
+
+## 5. תוכנית עבודה (Development Roadmap)
+
+1.  **Setup:** Initialize FastAPI project structure with SQLModel (PostgreSQL). Define tables: User, Lesson, ChatSession, UserProfile.
+2.  **Ingestion Script:** Create a Python script `ingest_course.py` that takes a YouTube playlist/list of links, downloads audio, transcribes via Whisper, and populates the DB.
+3.  **Core Logic:**
+    * Implement `get_agent_response(user_input, agent_type, lesson_id)` function.
+    * Implement Gating logic (check previous lesson status).
+4.  **Frontend:** Scaffold Next.js app with Split Screen layout and Agent Toggle tabs.
+
+--- END SPECIFICATION ---
+
+ACTION ITEMS FOR CLAUDE CODE:
+1. Initialize the Python environment and FastAPI structure.
+2. Create the SQLModel database models based on the specs above.
+3. Create the `ai_engine.py` file with the logic for switching between "Coach" and "10X" personas.

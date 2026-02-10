@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>סמינרים חיים - עסק ללא מתחרים</title>
+    <meta name="description" content="7 סמינרים חיים מעמיקים - תוכנית ההכשרה ״עסק ללא מתחרים״">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../css/shared.css">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="../hub.html" class="navbar-brand">
+            <div class="brand-icon"><i class="fa-solid fa-rocket"></i></div>
+            עסק <span>ללא מתחרים</span>
+        </a>
+        <div class="navbar-links" id="navLinks">
+            <a href="../hub.html#seminars">סמינרים</a>
+            <a href="../hub.html#modules">מודולים</a>
+            <a href="../index.html" class="navbar-cta">
+                <i class="fa-solid fa-play"></i>
+                כניסה לתוכנית
+            </a>
+        </div>
+        <button class="navbar-mobile-toggle" onclick="toggleNav()">
+            <i class="fa-solid fa-bars" id="navToggleIcon"></i>
+        </button>
+    </nav>
+
+    <!-- Page Hero -->
+    <section class="page-hero">
+        <div class="hero-icon"><i class="fa-solid fa-users"></i></div>
+        <h1>סמינרים <span class="gold">חיים</span></h1>
+        <p>7 סמינרים מעמיקים שמעשירים את המסע שלכם בתוכנית עם תובנות, כלים ותרגולים חיים שמרחיבים את הפרספקטיבה</p>
+        <div class="page-hero-stats">
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-users"></i>
+                <span><strong>7</strong> סמינרים</span>
+            </div>
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-video"></i>
+                <span id="totalParts"><strong>16</strong> חלקים</span>
+            </div>
+            <div class="page-hero-stat">
+                <i class="fa-solid fa-file-powerpoint"></i>
+                <span><strong>6</strong> מצגות</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Seminars Content -->
+    <div id="seminarsContent">
+        <!-- Populated by JS -->
+    </div>
+
+    <!-- Back to hub -->
+    <div style="text-align: center; padding: 2rem;">
+        <a href="../hub.html" class="hero-cta" style="display: inline-flex;">
+            <i class="fa-solid fa-th-large"></i>
+            חזרה לדף הראשי
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-brand">
+            <i class="fa-solid fa-rocket"></i>
+            עסק ללא מתחרים
+        </div>
+        <p>תוכנית ההכשרה המלאה לבניית עסק ללא מתחרים</p>
+    </footer>
+
+    <script src="../js/course-data.js"></script>
+    <script>
+    // Compute total parts
+    const totalParts = SEMINARS.reduce((sum, s) => sum + s.parts.length, 0);
+    document.getElementById('totalParts').innerHTML = `<strong>${totalParts}</strong> חלקים`;
+
+    // Render seminars
+    const container = document.getElementById('seminarsContent');
+    container.innerHTML = SEMINARS.map((sem, si) => {
+        const partsHtml = sem.parts.map((part, pi) => {
+            const thumbUrl = `https://img.youtube.com/vi/${part.videoId}/mqdefault.jpg`;
+            return `
+                <a href="../index.html?seminar=${si}&part=${pi}" class="lesson-card">
+                    <div class="lesson-thumb">
+                        <img src="${thumbUrl}" alt="${part.title}" loading="lazy">
+                        <div class="play-icon"><i class="fa-solid fa-play"></i></div>
+                    </div>
+                    <div class="lesson-info">
+                        <h4>${part.title}</h4>
+                        <p>${sem.title}</p>
+                    </div>
+                </a>
+            `;
+        }).join('');
+
+        const resourcesHtml = sem.presentationUrl
+            ? `<div style="margin-top: 1rem;">
+                <a href="${sem.presentationUrl}" target="_blank" class="resource-link">
+                    <i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר
+                </a>
+              </div>`
+            : '';
+
+        return `
+            <div class="seminar-section" id="seminar-${si}">
+                <div class="seminar-header">
+                    <div class="seminar-icon"><i class="fa-solid ${sem.icon}"></i></div>
+                    <div class="seminar-header-text">
+                        <h3>${sem.title}</h3>
+                        <p>${sem.description}</p>
+                    </div>
+                </div>
+                <div class="lesson-grid">
+                    ${partsHtml}
+                </div>
+                ${resourcesHtml}
+            </div>
+        `;
+    }).join('');
+
+    // Scroll to anchor on load
+    if (window.location.hash) {
+        setTimeout(() => {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    }
+
+    // Mobile nav toggle
+    function toggleNav() {
+        const links = document.getElementById('navLinks');
+        const icon = document.getElementById('navToggleIcon');
+        links.classList.toggle('open');
+        icon.className = links.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
+    }
+    </script>
+</body>
+</html>
