@@ -23,7 +23,7 @@
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/shared.css">
 </head>
@@ -49,7 +49,7 @@
     </nav>
 
     <!-- Hero -->
-    <section class="hero">
+    <section class="hero reveal">
         <div class="hero-badge">
             <i class="fa-solid fa-rocket"></i>
             תוכנית ההכשרה המלאה
@@ -83,7 +83,7 @@
     </section>
 
     <!-- Seminars Section -->
-    <section class="section" id="seminars">
+    <section class="section reveal" id="seminars">
         <div class="section-header">
             <h2><i class="fa-solid fa-users" style="color: var(--gold); margin-left: 0.5rem;"></i> סמינרים <span class="gold">חיים</span></h2>
             <p>7 סמינרים מעמיקים שמעשירים את המסע שלכם עם תובנות, כלים ותרגולים חיים</p>
@@ -94,7 +94,7 @@
     </section>
 
     <!-- Modules Section -->
-    <section class="section" id="modules">
+    <section class="section reveal" id="modules">
         <div class="section-header">
             <h2><i class="fa-solid fa-graduation-cap" style="color: var(--gold); margin-left: 0.5rem;"></i> מודולי <span class="gold">ההכשרה</span></h2>
             <p>8 מודולים מובנים שלוקחים אתכם צעד אחר צעד מהתשתית ועד לאופטימיזציה מלאה</p>
@@ -105,7 +105,7 @@
     </section>
 
     <!-- Quick Access -->
-    <section class="quick-access">
+    <section class="quick-access reveal">
         <div class="quick-access-inner">
             <h3><i class="fa-solid fa-play-circle" style="color: var(--gold); margin-left: 0.5rem;"></i> מוכנים להתחיל?</h3>
             <p>היכנסו ישירות לסביבת הלמידה המלאה עם כל השיעורים, הסמינרים וכלי ה-AI</p>
@@ -215,6 +215,17 @@
     renderSeminars();
     renderModules();
     updateStats();
+
+    // Scroll-reveal observer
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                revealObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
     </script>
 </body>
 </html>

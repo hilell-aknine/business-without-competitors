@@ -26,7 +26,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://img.youtube.com">
-    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <style>
         :root {
@@ -52,11 +52,31 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Heebo', sans-serif;
+            font-family: 'Rubik', 'Heebo', sans-serif;
             background: var(--light-gray);
             color: var(--text-dark);
-            line-height: 1.6;
+            line-height: 1.7;
             overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Heebo', 'Rubik', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        /* Focus styles */
+        a:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--dusty-aqua);
+            outline-offset: 2px;
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
         }
 
         /* ===== Top Navigation Bar ===== */
@@ -365,8 +385,9 @@
             align-items: center;
             gap: 0.7rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 150ms ease;
             border-right: 3px solid transparent;
+            min-height: 44px;
         }
 
         .lesson-item:hover { background: var(--sidebar-hover); }
@@ -490,8 +511,9 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            transition: all 0.2s;
+            transition: all 150ms ease;
             font-family: inherit;
+            min-height: 44px;
         }
 
         .nav-btn:hover:not(:disabled) {
@@ -737,6 +759,7 @@
         }
 
         .mobile-toggle:hover { transform: scale(1.05); }
+        .mobile-toggle:active { transform: scale(0.95); }
 
         .mobile-toggle.active {
             background: var(--sidebar-dark);
