@@ -26,6 +26,325 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/shared.css">
+    <style>
+        /* ===== Home Page Specific Styles ===== */
+
+        /* Problem Section */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .problem-card {
+            padding: 2rem;
+            background: rgba(239, 68, 68, 0.04);
+            border: 1px solid rgba(239, 68, 68, 0.12);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            transition: all var(--transition-base);
+        }
+
+        .problem-card:hover {
+            background: rgba(239, 68, 68, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .problem-card .problem-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.3rem;
+            color: #f87171;
+        }
+
+        .problem-card h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-heading);
+        }
+
+        .problem-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.7;
+        }
+
+        /* Pillar / Solution Section */
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pillar-card {
+            padding: 2rem;
+            background: rgba(212, 175, 55, 0.04);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: var(--radius-xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+        }
+
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            left: -1px;
+            height: 3px;
+            background: var(--gradient-gold);
+        }
+
+        .pillar-card:hover {
+            background: rgba(212, 175, 55, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .pillar-card .pillar-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.2rem;
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+
+        .pillar-card h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.3rem;
+            font-family: var(--font-heading);
+        }
+
+        .pillar-card .pillar-modules {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 0.8rem;
+        }
+
+        .pillar-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.7;
+        }
+
+        /* How It Works */
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            counter-reset: step;
+        }
+
+        .step-card {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+            counter-increment: step;
+        }
+
+        .step-card .step-number {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-gold);
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--color-primary-900);
+            font-family: var(--font-heading);
+        }
+
+        .step-card .step-icon {
+            font-size: 1.8rem;
+            color: var(--gold);
+            margin-bottom: 0.8rem;
+        }
+
+        .step-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            font-family: var(--font-heading);
+        }
+
+        .step-card p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+        }
+
+        /* AI Agents Section */
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .agent-card {
+            padding: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-xl);
+            backdrop-filter: blur(10px);
+            transition: all var(--transition-base);
+        }
+
+        .agent-card:hover {
+            border-color: var(--card-hover-border);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-large);
+        }
+
+        .agent-card .agent-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-card.coach .agent-icon {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #34d399;
+        }
+
+        .agent-card.accelerator .agent-icon {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+            color: #60a5fa;
+        }
+
+        .agent-card.arsenal .agent-icon {
+            background: rgba(212, 175, 55, 0.12);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            color: var(--gold);
+        }
+
+        .agent-card h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            font-family: var(--font-heading);
+        }
+
+        .agent-card .agent-role {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 0.8rem;
+        }
+
+        .agent-card p {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.7;
+        }
+
+        /* Outcomes Section */
+        .outcomes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .outcome-card {
+            padding: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .outcome-card .outcome-check {
+            width: 36px;
+            height: 36px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #34d399;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .outcome-card h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            font-family: var(--font-heading);
+        }
+
+        .outcome-card p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.6;
+        }
+
+        /* Section divider */
+        .section-divider {
+            width: 60px;
+            height: 3px;
+            background: var(--gradient-gold);
+            border-radius: 2px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .section-header .section-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--gold);
+            margin-bottom: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .problem-grid,
+            .pillars-grid,
+            .agents-grid { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: repeat(2, 1fr); }
+            .outcomes-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .steps-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
@@ -36,8 +355,9 @@
             עסק <span>ללא מתחרים</span>
         </a>
         <div class="navbar-links" id="navLinks">
-            <a href="#seminars">סמינרים</a>
+            <a href="#method">השיטה</a>
             <a href="#modules">מודולים</a>
+            <a href="#seminars">סמינרים</a>
             <a href="index.html" class="navbar-cta">
                 <i class="fa-solid fa-play"></i>
                 כניסה לתוכנית
@@ -48,14 +368,14 @@
         </button>
     </nav>
 
-    <!-- Hero -->
+    <!-- ========== 1. HERO ========== -->
     <section class="hero reveal">
         <div class="hero-badge">
             <i class="fa-solid fa-rocket"></i>
-            תוכנית ההכשרה המלאה
+            השיטה האטומית לצמיחה עסקית
         </div>
-        <h1>הפכו לאוטוריטה<br><span class="gold">עסק ללא מתחרים</span></h1>
-        <p>תוכנית הכשרה מקיפה שמלמדת אתכם לבנות עסק שמתנהל מחוץ לתחרות — עם שיטה מוכחת, כלי AI מתקדמים, ותמיכה צמודה</p>
+        <h1>הפסיקו להתחרות.<br><span class="gold">התחילו להוביל.</span></h1>
+        <p>תוכנית ההכשרה ״עסק ללא מתחרים״ מלמדת בעלי עסקים להפוך לאוטוריטה בתחומם — עם שיטה מובנית, כלי AI מתקדמים, וליווי אישי שמוביל לתוצאות אמיתיות</p>
 
         <div class="hero-stats">
             <div class="hero-stat">
@@ -78,40 +398,200 @@
 
         <a href="index.html" class="hero-cta">
             <i class="fa-solid fa-play"></i>
-            התחילו ללמוד עכשיו
+            התחילו את המסע
         </a>
     </section>
 
-    <!-- Seminars Section -->
-    <section class="section reveal" id="seminars">
+    <!-- ========== 2. PROBLEM ========== -->
+    <section class="section reveal" id="problem">
         <div class="section-header">
-            <h2><i class="fa-solid fa-users" style="color: var(--gold); margin-left: 0.5rem;"></i> סמינרים <span class="gold">חיים</span></h2>
-            <p>7 סמינרים מעמיקים שמעשירים את המסע שלכם עם תובנות, כלים ותרגולים חיים</p>
+            <span class="section-label">הבעיה</span>
+            <h2>הבעיה שכל בעל עסק <span class="gold">מכיר</span></h2>
+            <p>רוב בעלי העסקים נלחמים באותה מלחמה — תחרות אינסופית שגורמת לשחיקה, ירידה ברווחיות, ותחושת מבוי סתום</p>
         </div>
-        <div class="card-grid card-grid-3" id="seminarsGrid">
-            <!-- Populated by JS -->
+        <div class="problem-grid">
+            <div class="problem-card">
+                <div class="problem-icon"><i class="fa-solid fa-arrow-down-wide-short"></i></div>
+                <h4>מלחמת מחירים</h4>
+                <p>כשאתם נראים כמו כולם, הלקוחות בוחרים לפי מחיר. אתם מורידים מחירים, הרווחיות נשחקת, ונשארים עובדים יותר קשה בשביל פחות.</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                <h4>שיווק שלא מייצר תוצאות</h4>
+                <p>משקיעים בפרסום, תוכן ורשתות חברתיות — אבל הלידים שמגיעים לא מספיק איכותיים, וההמרה נמוכה. מרגישים שצועקים לחלל.</p>
+            </div>
+            <div class="problem-card">
+                <div class="problem-icon"><i class="fa-solid fa-battery-quarter"></i></div>
+                <h4>שחיקה ותחושת תקיעות</h4>
+                <p>עובדים שעות ארוכות בלי לראות צמיחה אמיתית. מרגישים שהעסק תלוי בכם לבד, ושאין דרך לצאת מהלופ הזה.</p>
+            </div>
         </div>
     </section>
 
-    <!-- Modules Section -->
+    <!-- ========== 3. SOLUTION — THE ATOMIC METHOD ========== -->
+    <section class="section reveal" id="method">
+        <div class="section-header">
+            <span class="section-label">הפתרון</span>
+            <h2>השיטה <span class="gold">האטומית</span></h2>
+            <p>שיטה מובנית שמחברת שלושה עמודי תווך לבניית עסק שמתנהל מחוץ לתחרות — לא על ידי עבודה קשה יותר, אלא על ידי חשיבה שונה לחלוטין</p>
+        </div>
+        <div class="pillars-grid">
+            <div class="pillar-card">
+                <div class="pillar-icon"><i class="fa-solid fa-crown"></i></div>
+                <h4>זהות ומנהיגות</h4>
+                <div class="pillar-modules">מודולים 1-2: הכנה + מנהיגות אטומית</div>
+                <p>בניית תשתית עסקית יציבה, הגדרת זהות ייחודית, ופיתוח קול מנהיגותי שמושך אליו אנשים בצורה טבעית</p>
+            </div>
+            <div class="pillar-card">
+                <div class="pillar-icon"><i class="fa-solid fa-gem"></i></div>
+                <h4>חדשנות ומוצר</h4>
+                <div class="pillar-modules">מודולים 3-5: חדשנות + מוצר + פיצוח</div>
+                <p>חשיבה חדשנית, בניית מוצר שהלקוחות מרגישים שהם חייבים, ומציאת נקודת המנוף שמשנה את כל המשחק</p>
+            </div>
+            <div class="pillar-card">
+                <div class="pillar-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h4>השפעה והמרה</h4>
+                <div class="pillar-modules">מודולים 6-8: השפעה + המרה + אופטימיזציה</div>
+                <p>יצירת נוכחות דיגיטלית חזקה, בניית מנגנון מכירות אוטומטי, ושיפור מתמיד של כל חלק במערכת</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 4. HOW IT WORKS ========== -->
+    <section class="section reveal">
+        <div class="section-header">
+            <span class="section-label">איך זה עובד</span>
+            <h2>תהליך למידה <span class="gold">מובנה</span></h2>
+            <p>ארבעה שלבים שחוזרים על עצמם בכל מודול — צפייה, תרגול, העמקה, ויישום</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon"><i class="fa-solid fa-video"></i></div>
+                <h4>צפו בשיעורים</h4>
+                <p>120+ שיעורי וידאו קצרים וממוקדים, מחולקים לימים ושבועות — קל לעקוב ולהתקדם בקצב שלכם</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon"><i class="fa-solid fa-robot"></i></div>
+                <h4>תרגלו עם מאמני AI</h4>
+                <p>שלושה סוכני AI אישיים שמלווים אתכם — מאמן, מאיץ למידה, וארסנל כלים שעובדים בשבילכם</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon"><i class="fa-solid fa-users"></i></div>
+                <h4>העמיקו בסמינרים</h4>
+                <p>7 סמינרים חיים עם תובנות, תרגולים מעשיים, ודיונים שמחברים את התיאוריה לפרקטיקה</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-icon"><i class="fa-solid fa-rocket"></i></div>
+                <h4>יישמו בעסק</h4>
+                <p>כל מודול נגמר במשימת הטמעה שמוודאת שאתם מיישמים את מה שלמדתם ישירות בעסק שלכם</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 5. MODULES ========== -->
     <section class="section reveal" id="modules">
         <div class="section-header">
-            <h2><i class="fa-solid fa-graduation-cap" style="color: var(--gold); margin-left: 0.5rem;"></i> מודולי <span class="gold">ההכשרה</span></h2>
-            <p>8 מודולים מובנים שלוקחים אתכם צעד אחר צעד מהתשתית ועד לאופטימיזציה מלאה</p>
+            <span class="section-label">8 מודולים</span>
+            <h2>מפת המסע <span class="gold">שלכם</span></h2>
+            <p>שמונה מודולים שבנויים בסדר מדויק — כל מודול בונה על הקודם ומקדם אתכם צעד נוסף אל מחוץ לתחרות</p>
         </div>
         <div class="card-grid" id="modulesGrid">
             <!-- Populated by JS -->
         </div>
     </section>
 
-    <!-- Quick Access -->
+    <!-- ========== 6. SEMINARS ========== -->
+    <section class="section reveal" id="seminars">
+        <div class="section-header">
+            <span class="section-label">7 סמינרים</span>
+            <h2>סמינרים <span class="gold">חיים</span></h2>
+            <p>סמינרים מעמיקים שמעשירים את המסע שלכם עם תובנות, ניתוחי מקרים, וכלים פרקטיים שמיישמים ביום שאחרי</p>
+        </div>
+        <div class="card-grid card-grid-3" id="seminarsGrid">
+            <!-- Populated by JS -->
+        </div>
+    </section>
+
+    <!-- ========== 7. AI COACHES ========== -->
+    <section class="section reveal" id="ai">
+        <div class="section-header">
+            <span class="section-label">טכנולוגיה</span>
+            <h2>מערכת AI שמלווה <span class="gold">אתכם</span></h2>
+            <p>שלושה סוכנים חכמים שתוכננו במיוחד לתוכנית — כל אחד עם תפקיד ייחודי שמאיץ את הלמידה והיישום</p>
+        </div>
+        <div class="agents-grid">
+            <div class="agent-card coach">
+                <div class="agent-icon"><i class="fa-solid fa-heart"></i></div>
+                <h4>המאמן האישי</h4>
+                <div class="agent-role">The Coach</div>
+                <p>מלווה אישי שמנחה אתכם דרך כל שיעור. שואל שאלות, נותן משוב, ומאתגר אתכם לחשוב עמוק יותר — בלי לעשות את העבודה במקומכם. כי הצמיחה האמיתית קורה כשאתם עושים.</p>
+            </div>
+            <div class="agent-card accelerator">
+                <div class="agent-icon"><i class="fa-solid fa-bolt"></i></div>
+                <h4>מאיץ הלמידה 10X</h4>
+                <div class="agent-role">10X Accelerator</div>
+                <p>מומחה לפירוק שיטות ובניית מודלים. הופך כל תוכן לצ׳ק-ליסטים, פרוטוקולים ותבניות מוכנות ליישום — חוסך לכם שעות של עבודה ומאיץ את ההטמעה.</p>
+            </div>
+            <div class="agent-card arsenal">
+                <div class="agent-icon"><i class="fa-solid fa-toolbox"></i></div>
+                <h4>ארסנל הכלים</h4>
+                <div class="agent-role">Tools Arsenal</div>
+                <p>מגוון כלים ייעודיים שזמינים בכל רגע: מוצא קייסים, קופירייטר למסע לקוח, מאמן שיח מנהיגות — כל כלי בנוי לביצוע משימה ספציפית בצורה חדה ומדויקת.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 8. OUTCOMES ========== -->
+    <section class="section reveal">
+        <div class="section-header">
+            <span class="section-label">תוצאות</span>
+            <h2>מה תשיגו בסוף <span class="gold">התוכנית</span></h2>
+            <p>בוגרי התוכנית יוצאים עם מערכת עסקית שלמה שעובדת בשבילם — לא נגד המתחרים, אלא מעבר להם</p>
+        </div>
+        <div class="outcomes-grid">
+            <div class="outcome-card">
+                <div class="outcome-check"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <h4>בידול אמיתי</h4>
+                    <p>מיצוב ייחודי שגורם ללקוחות לבחור בכם — לא בגלל המחיר, אלא בגלל מי שאתם</p>
+                </div>
+            </div>
+            <div class="outcome-card">
+                <div class="outcome-check"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <h4>סמכות מנהיגותית</h4>
+                    <p>נוכחות שמושכת אליה את הקהל הנכון — בלי למכור, בלי לשכנע, פשוט להוביל</p>
+                </div>
+            </div>
+            <div class="outcome-card">
+                <div class="outcome-check"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <h4>מנגנון מכירות אוטומטי</h4>
+                    <p>מערכת שמובילה לקוחות מגילוי ועד רכישה בצורה טבעית — ללא לחץ וללא מניפולציה</p>
+                </div>
+            </div>
+            <div class="outcome-card">
+                <div class="outcome-check"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <h4>צמיחה מתמדת</h4>
+                    <p>כלים למדידה, שיפור וחידוד של כל חלק בעסק — מכונה שמשתפרת בכל יום</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== 9. FINAL CTA ========== -->
     <section class="quick-access reveal">
         <div class="quick-access-inner">
-            <h3><i class="fa-solid fa-play-circle" style="color: var(--gold); margin-left: 0.5rem;"></i> מוכנים להתחיל?</h3>
-            <p>היכנסו ישירות לסביבת הלמידה המלאה עם כל השיעורים, הסמינרים וכלי ה-AI</p>
+            <h3><i class="fa-solid fa-rocket" style="color: var(--gold); margin-left: 0.5rem;"></i> מוכנים לצאת מהתחרות?</h3>
+            <p>היכנסו לסביבת הלמידה המלאה — כל השיעורים, הסמינרים, וכלי ה-AI מחכים לכם</p>
             <a href="index.html" class="hero-cta" style="margin-top: 0.5rem;">
-                <i class="fa-solid fa-rocket"></i>
-                כניסה לתוכנית ההכשרה
+                <i class="fa-solid fa-play"></i>
+                התחילו את המסע עכשיו
             </a>
         </div>
     </section>
@@ -204,7 +684,6 @@
             if (target) {
                 e.preventDefault();
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                // Close mobile nav
                 document.getElementById('navLinks').classList.remove('open');
                 document.getElementById('navToggleIcon').className = 'fa-solid fa-bars';
             }
