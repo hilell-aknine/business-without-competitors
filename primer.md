@@ -3,13 +3,14 @@
 
 ## Current State
 - **Status:** Active
-- **Last task completed:** Quiz/game system — module-level quizzes (8 modules × 5 questions = 40 questions). Standalone page at `pages/quiz.html` with module selector, question flow with explanations, results review, localStorage scoring. Linked from portal top-nav as "מבחנים".
-- **Next planned task:** Wire portal sidebar progress to also reflect quiz completion (passed quizzes as additional milestones), or add per-lesson transcripts to enable lesson-level questions.
-- **Blocking issues:** Per-lesson questions still need more transcripts. Module-level quiz path was unblocked and shipped using existing course descriptions.
+- **Last task completed:** Liquid Glass portal candidate (`index-glass.html`) — V1 "balanced" variation from the בית המטפלים design system, fully rebranded to עסק ללא מתחרים and wired to our 8 modules + 7 seminars + quiz system. Awaits user review before swapping with `index.html`.
+- **Next planned task:** User reviews `index-glass.html` → decision to (a) replace `index.html`, (b) keep both as alternatives, or (c) iterate on glass design first.
+- **Blocking issues:** None for current path. (Per-lesson quiz questions still need more transcripts, but module-level quiz already shipped.)
 
 ## Recent Changes
 | Date | What Changed | Files Affected |
 |------|-------------|----------------|
+| 2026-04-28 | Liquid Glass portal V1 (Apple visionOS-style) — atmospheric mesh BG with floating blobs/grain, frosted glass cards, gold+petrol palette, Frank Ruhl Libre display + Heebo body. Wired to MODULES/SEMINARS/QUIZZES. Dark-only by design. Standalone file, doesn't affect existing portal. | `index-glass.html` (new) |
 | 2026-04-28 | Quiz/game system: 8 module quizzes, 5 questions each, with explanations, scoring, retry, localStorage tracking. Nav link added in top-nav. Mobile: nav links collapse to icons. | `js/quiz-data.js` (new), `pages/quiz.html` (new), `index.html` (nav + mobile rule) |
 | 2026-04-26 | Portal UX redesign — proposed version (continue hero, split view, stats, 3 tabs, focus mode, lesson end panel) | `index.html`, `css/theme.css`, `js/theme-toggle.js` |
 | 2026-04-26 | Phase 1-5 features: tabs, notes, search, AI tab, dark mode, lesson counter, 45s completion | `index.html`, `css/theme.css` (new), `js/theme-toggle.js` (new) |
@@ -21,7 +22,8 @@
 ## Architecture Quick Reference
 
 ### Static Portal (primary)
-- `index.html` — Main learning portal (proposed UX version with split view, continue hero, stats)
+- `index.html` — Main learning portal (current production: split view, continue hero, stats, dark/light)
+- `index-glass.html` — Liquid Glass V1 candidate (Apple visionOS-style, dark-only). Self-contained file. Pending review.
 - `hub.html` — Marketing/landing page
 - `pages/module.html` — Module detail page
 - `pages/seminars.html` — Seminars page
