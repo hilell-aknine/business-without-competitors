@@ -28,6 +28,12 @@
     <link rel="preconnect" href="https://img.youtube.com">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <script>
+        // FOUC prevention: apply theme before paint
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="css/theme.css">
+    <script src="js/theme-toggle.js" defer></script>
     <style>
         :root {
             --sidebar-dark: #002b33;
@@ -71,6 +77,12 @@
             outline-offset: 2px;
         }
 
+        /* Gold shimmer on progress bar */
+        @keyframes goldShimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
         /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -86,7 +98,9 @@
             left: 0;
             right: 380px;
             height: 60px;
-            background: var(--deep-petrol);
+            background: rgba(0, 59, 70, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -148,6 +162,293 @@
             background: rgba(255,255,255,0.15);
             opacity: 1;
         }
+
+        /* Header Progress Pill */
+        .header-progress-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: rgba(255,255,255,0.1);
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+        }
+        .header-progress-pct { color: var(--gold); font-weight: 700; }
+        .header-progress-bar { width: 50px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden; }
+        .header-progress-fill { height: 100%; width: 0%; background: var(--gold); border-radius: 2px; transition: width 0.5s; }
+        .header-progress-label { color: rgba(255,255,255,0.6); }
+
+        /* Continue Button in Header */
+        .continue-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--deep-petrol);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--frost-white);
+            padding: 0.4rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .continue-btn i { color: var(--gold); font-size: 0.85rem; }
+        .continue-btn:hover { background: var(--muted-teal); border-color: var(--dusty-aqua); }
+        .continue-btn-text { text-align: right; }
+        .continue-btn-title { display: block; font-size: 0.8rem; font-weight: 600; }
+        .continue-btn-subtitle { display: block; font-size: 0.65rem; opacity: 0.7; }
+
+        /* Auth Outline Button */
+        .auth-outline {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--gold);
+            background: transparent;
+            border: 1.5px solid var(--gold);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .auth-outline:hover {
+            background: rgba(212,175,55,0.1);
+        }
+
+        /* Jump to Current Button */
+        .jump-to-current {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            margin: 0.5rem 1rem;
+            padding: 0.4rem;
+            background: rgba(47,133,146,0.15);
+            border: 1px solid rgba(47,133,146,0.3);
+            border-radius: 999px;
+            color: var(--dusty-aqua);
+            font-family: inherit;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .jump-to-current:hover { background: rgba(47,133,146,0.25); }
+        .jump-to-current i { font-size: 0.6rem; }
+
+        /* ===== Continue Learning Hero ===== */
+        .continue-hero {
+            background: linear-gradient(135deg, var(--deep-petrol) 0%, #004d5a 100%);
+            border-radius: 16px;
+            padding: 1.8rem;
+            color: var(--pure-white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 35px rgba(0,59,70,0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .continue-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -30%;
+            width: 60%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+        }
+        .continue-hero-content { position: relative; z-index: 1; }
+        .continue-label { font-size: 0.72rem; color: var(--gold); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+        .continue-hero h3 { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .continue-meta { font-size: 0.8rem; opacity: 0.7; }
+        .continue-progress { font-size: 0.72rem; opacity: 0.5; margin-top: 0.5rem; }
+        .continue-hero-action { position: relative; z-index: 1; }
+        .btn-continue {
+            background: var(--gradient-gold);
+            color: var(--sidebar-dark);
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 15px rgba(212,175,55,0.4);
+            transition: all 0.2s;
+        }
+        .btn-continue:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212,175,55,0.5); }
+
+        /* ===== Stats Row ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+            margin-bottom: 1.2rem;
+        }
+        .stat-card {
+            background: var(--pure-white);
+            border-radius: 12px;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .stat-icon {
+            width: 42px; height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .stat-icon.fire { background: rgba(248,81,73,0.1); color: #F85149; }
+        .stat-icon.time { background: rgba(212,175,55,0.1); color: var(--gold); }
+        .stat-icon.module-stat { background: rgba(47,133,146,0.1); color: var(--dusty-aqua); }
+        .stat-value { font-size: 1.1rem; font-weight: 700; color: var(--text-dark); }
+        .stat-label { font-size: 0.72rem; color: var(--text-muted); }
+
+        /* ===== Split View ===== */
+        .split-view {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+        }
+        .split-video { flex: 2; }
+        .split-notes {
+            flex: 1;
+            background: var(--pure-white);
+            border-radius: 12px;
+            padding: 0.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .split-notes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--deep-petrol);
+        }
+        .split-notes .notes-textarea {
+            flex: 1;
+            min-height: 180px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            padding: 0.8rem;
+        }
+        .notes-hint { font-size: 0.65rem; color: var(--text-muted); }
+        .notes-hint i { color: var(--gold); }
+
+        /* ===== Focus Mode ===== */
+        .focus-mode-btn {
+            position: absolute;
+            top: 0.8rem;
+            left: 0.8rem;
+            background: rgba(0,0,0,0.6);
+            color: var(--pure-white);
+            border: none;
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            z-index: 5;
+            transition: all 0.2s;
+        }
+        .focus-mode-btn:hover { background: rgba(0,0,0,0.8); }
+
+        body.focus-mode .sidebar,
+        body.focus-mode .top-nav,
+        body.focus-mode .continue-hero,
+        body.focus-mode .stats-row,
+        body.focus-mode .lesson-end-panel,
+        body.focus-mode .tabs-section,
+        body.focus-mode .keyboard-hint,
+        body.focus-mode .mobile-toggle,
+        body.focus-mode .sidebar-overlay { display: none !important; }
+        body.focus-mode .main-content { margin-right: 0; padding-top: 0.5rem; }
+        body.focus-mode .lms-container { padding-top: 0; }
+        body.focus-mode .top-bar { display: none !important; }
+
+        /* ===== Lesson End Panel ===== */
+        .lesson-end-panel {
+            background: var(--pure-white);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .lesson-end-nav { display: flex; align-items: center; gap: 0.5rem; }
+        .lesson-end-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: var(--pure-white);
+            font-family: inherit;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+        .lesson-end-btn:hover:not(:disabled) { border-color: var(--dusty-aqua); }
+        .lesson-end-btn:disabled { opacity: 0.4; cursor: default; }
+        .lesson-end-btn.next {
+            background: var(--gradient-gold);
+            color: var(--sidebar-dark);
+            border: none;
+            font-weight: 600;
+        }
+        .mark-complete-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--success);
+            border-radius: 8px;
+            background: rgba(0,184,148,0.05);
+            color: var(--success);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mark-complete-btn:hover { background: rgba(0,184,148,0.15); }
+
+        /* Keyboard Hint */
+        .keyboard-hint {
+            text-align: center;
+            padding: 0.6rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: rgba(0,59,70,0.03);
+            border-radius: 8px;
+            margin-top: 0.5rem;
+        }
+        .keyboard-hint i { color: var(--gold); margin-left: 0.3rem; }
 
         /* ===== LMS Layout ===== */
         .lms-container {
@@ -250,10 +551,12 @@
 
         .progress-fill {
             height: 100%;
-            background: var(--gradient-gold);
+            background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold), var(--gold-light), var(--gold));
+            background-size: 200% 100%;
             border-radius: 3px;
             transition: width 0.5s ease;
             width: 0%;
+            animation: goldShimmer 3s ease infinite;
         }
 
         /* Syllabus */
@@ -706,6 +1009,349 @@
             border-color: var(--gold);
         }
 
+        /* Lesson Counter */
+        .lesson-counter {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            min-width: 4rem;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Sidebar Search */
+        .sidebar-search {
+            padding: 0.8rem 1.5rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-search-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 0.5rem 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.2s;
+        }
+
+        .sidebar-search-wrap:focus-within {
+            border-color: var(--gold);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .sidebar-search-wrap i {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+        }
+
+        .sidebar-search-wrap input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--pure-white);
+            font-family: inherit;
+            font-size: 0.85rem;
+            width: 100%;
+            direction: rtl;
+        }
+
+        .sidebar-search-wrap input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .search-no-results {
+            display: none;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+
+        .search-no-results i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.4;
+        }
+
+        /* ===== Tabs System ===== */
+        .tabs-section {
+            margin-top: 1.5rem;
+            background: var(--pure-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid var(--border-light);
+            background: var(--light-gray);
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.9rem 1rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--deep-petrol);
+            background: rgba(0, 59, 70, 0.04);
+        }
+
+        .tab-btn.active {
+            color: var(--deep-petrol);
+            font-weight: 600;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            background: var(--gradient-gold);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-panel {
+            display: none;
+            padding: 1.5rem;
+            animation: fadeInUp 0.2s ease;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        /* About Tab */
+        .about-content h3 {
+            font-size: 1.1rem;
+            color: var(--deep-petrol);
+            margin-bottom: 0.5rem;
+        }
+
+        .about-content p {
+            color: var(--text-muted);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .about-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .about-meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.8rem;
+            background: rgba(0, 59, 70, 0.06);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--deep-petrol);
+        }
+
+        .about-meta-tag i { color: var(--gold); font-size: 0.7rem; }
+
+        /* Notes Tab */
+        .notes-container { position: relative; }
+
+        .notes-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: var(--text-dark);
+            background: var(--light-gray);
+            resize: vertical;
+            direction: rtl;
+            transition: border-color 0.2s;
+        }
+
+        .notes-textarea:focus {
+            outline: none;
+            border-color: var(--dusty-aqua);
+            background: var(--pure-white);
+        }
+
+        .notes-textarea::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        .notes-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .notes-saved-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: opacity 0.3s;
+        }
+
+        .notes-saved-indicator.saved { color: var(--success); }
+        .notes-saved-indicator.saving { color: var(--gold); }
+
+        /* Resources Tab */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .resource-card {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: var(--light-gray);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        .resource-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .resource-card i {
+            font-size: 1.3rem;
+            color: var(--gold);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .resource-card-text { font-size: 0.85rem; font-weight: 500; }
+
+        /* AI Tab */
+        .ai-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .ai-card {
+            padding: 1.2rem;
+            background: linear-gradient(135deg, rgba(0, 59, 70, 0.04) 0%, rgba(212, 175, 55, 0.04) 100%);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .ai-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .ai-card-icon {
+            width: 48px; height: 48px;
+            background: var(--gradient-gold);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.8rem;
+            font-size: 1.2rem;
+            color: var(--sidebar-dark);
+        }
+
+        .ai-card h4 {
+            font-size: 0.95rem;
+            color: var(--deep-petrol);
+            margin-bottom: 0.4rem;
+        }
+
+        .ai-card p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            line-height: 1.5;
+        }
+
+        .ai-card-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            background: var(--deep-petrol);
+            color: var(--pure-white);
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .ai-card-btn:hover {
+            background: var(--muted-teal);
+            transform: translateY(-1px);
+        }
+
+        .ai-placeholder {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        .ai-placeholder i {
+            font-size: 2rem;
+            color: var(--gold);
+            opacity: 0.4;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
         /* Welcome Section */
         .welcome-section {
             background: var(--pure-white);
@@ -777,7 +1423,17 @@
                 align-items: center;
                 justify-content: center;
             }
-            .transcripts-link { display: none; }
+            .transcripts-link span { display: none; }
+            .transcripts-link { padding: 0.4rem 0.6rem; }
+            .auth-outline span { display: none; }
+            .auth-outline { padding: 0.4rem 0.5rem; }
+            .continue-btn { display: none; }
+            .header-progress-pill { display: none; }
+            .split-view { flex-direction: column; }
+            .split-notes { min-height: auto; }
+            .stats-row { grid-template-columns: 1fr; }
+            .continue-hero { flex-direction: column; text-align: center; gap: 1rem; }
+            .lesson-end-panel { flex-direction: column; gap: 0.8rem; }
         }
 
         @media (max-width: 768px) {
@@ -806,8 +1462,15 @@
             .video-thumbnail .play-btn { width: 60px; height: 60px; font-size: 1.5rem; }
             .module-resources { gap: 0.5rem; }
             .resource-btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
-            .welcome-section { padding: 1.5rem; margin-top: 0.5rem; border-radius: 10px; }
+            .continue-hero { padding: 1.2rem; border-radius: 10px; }
+            .btn-continue { padding: 0.7rem 1.2rem; font-size: 0.85rem; }
+            .focus-mode-btn span { display: none; }
             .mobile-toggle { bottom: 1rem; right: 1rem; width: 50px; height: 50px; font-size: 1.1rem; }
+            .tabs-section { margin-top: 0.5rem; border-radius: 10px; }
+            .tab-btn { padding: 0.7rem 0.5rem; font-size: 0.78rem; gap: 0.3rem; }
+            .tab-panel { padding: 1rem; }
+            .notes-textarea { min-height: 150px; }
+            .ai-cards, .resources-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -819,16 +1482,33 @@
                 <i class="fa-solid fa-rocket"></i>
                 עסק ללא מתחרים
             </a>
-            <div class="breadcrumb">
-                <span class="separator">|</span>
-                <span class="current">תוכנית ההכשרה המלאה</span>
+            <div class="header-progress-pill">
+                <span class="header-progress-pct" id="headerProgressPct">0%</span>
+                <div class="header-progress-bar"><div class="header-progress-fill" id="headerProgressFill"></div></div>
+                <span class="header-progress-label">התקדמות</span>
             </div>
+            <button class="continue-btn" id="headerContinueBtn" onclick="goToNextLesson()">
+                <i class="fa-solid fa-play"></i>
+                <div class="continue-btn-text">
+                    <span class="continue-btn-title">המשך בשיעור הבא</span>
+                    <span class="continue-btn-subtitle" id="headerContinueSubtitle">פתיחה לתוכנית ההכשרה</span>
+                </div>
+            </button>
         </div>
         <div class="top-nav-left">
-            <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" class="transcripts-link">
-                <i class="fa-solid fa-folder-open"></i>
-                תמלולים מלאים
+            <a href="pages/quiz.html" class="transcripts-link" title="מבחני הבנה">
+                <i class="fa-solid fa-circle-question"></i>
+                <span>מבחנים</span>
             </a>
+            <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" class="transcripts-link" title="תמלולים מלאים">
+                <i class="fa-solid fa-folder-open"></i>
+                <span>תמלולים</span>
+            </a>
+            <!-- Theme toggle injected here by theme-toggle.js -->
+            <button class="auth-outline" onclick="alert('מערכת ההתחברות תהיה זמינה בקרוב!')">
+                <i class="fa-solid fa-user"></i>
+                <span>התחברות</span>
+            </button>
         </div>
     </nav>
 
@@ -858,6 +1538,21 @@
                 </div>
             </div>
 
+            <div class="sidebar-search">
+                <div class="sidebar-search-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="lessonSearch" placeholder="חפש שיעור..." oninput="filterLessons(this.value)">
+                </div>
+            </div>
+            <div class="search-no-results" id="searchNoResults">
+                <i class="fa-solid fa-search"></i>
+                לא נמצאו שיעורים
+            </div>
+
+            <button class="jump-to-current" id="jumpToCurrent" onclick="jumpToCurrentLesson()">
+                <i class="fa-solid fa-arrow-down"></i> קפיצה לשיעור הנוכחי
+            </button>
+
             <nav class="syllabus" id="syllabus">
                 <!-- Populated by JS -->
             </nav>
@@ -865,7 +1560,46 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="top-bar">
+            <!-- Continue Learning Hero (visible when no lesson selected) -->
+            <div class="continue-hero" id="continueHero">
+                <div class="continue-hero-content">
+                    <div class="continue-label"><i class="fa-solid fa-arrow-left"></i> השיעור הבא שלך</div>
+                    <h3 id="continueTitle">פתיחה לתוכנית ההכשרה</h3>
+                    <div class="continue-meta" id="continueMeta">מודול 1: הכנה אטומית • סרטון פתיחה</div>
+                    <div class="continue-progress" id="continueProgress">השלמת 0 מתוך 131 שיעורים • 0%</div>
+                </div>
+                <div class="continue-hero-action">
+                    <button class="btn-continue" onclick="goToNextLesson()"><i class="fa-solid fa-play"></i> המשך ללמוד</button>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row" id="statsRow">
+                <div class="stat-card">
+                    <div class="stat-icon fire"><i class="fa-solid fa-fire"></i></div>
+                    <div>
+                        <div class="stat-value" id="statStreak">0 ימים</div>
+                        <div class="stat-label">רצף למידה</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon time"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <div class="stat-value" id="statTimeLeft">~40 שעות</div>
+                        <div class="stat-label">זמן שנותר בקורס</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon module-stat"><i class="fa-solid fa-layer-group"></i></div>
+                    <div>
+                        <div class="stat-value" id="statModule">0/11</div>
+                        <div class="stat-label" id="statModuleLabel">במודול הכנה אטומית</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Bar (visible when lesson selected) -->
+            <header class="top-bar" id="topBar" style="display:none">
                 <div class="current-lesson-info">
                     <h2 id="currentLessonTitle">ברוכים הבאים לתוכנית ההכשרה</h2>
                     <p id="currentLessonMeta">בחרו שיעור מהתפריט כדי להתחיל</p>
@@ -875,6 +1609,7 @@
                         <i class="fa-solid fa-arrow-right"></i>
                         <span>הקודם</span>
                     </button>
+                    <span class="lesson-counter" id="lessonCounter"></span>
                     <button class="nav-btn primary" id="nextLessonBtn" onclick="navigateLesson(1)">
                         <span>הבא</span>
                         <i class="fa-solid fa-arrow-left"></i>
@@ -882,32 +1617,93 @@
                 </div>
             </header>
 
-            <div class="video-section">
-                <div class="video-wrapper">
-                    <div class="video-placeholder" id="videoPlaceholder">
-                        <i class="fa-solid fa-play-circle"></i>
-                        <p>בחרו שיעור מהתפריט כדי להתחיל</p>
+            <div class="video-section" id="videoSection" style="display:none">
+                <!-- Split View: Video + Notes -->
+                <div class="split-view">
+                    <div class="split-video">
+                        <div class="video-wrapper">
+                            <button class="focus-mode-btn" onclick="toggleFocusMode()" title="מצב ריכוז">
+                                <i class="fa-solid fa-expand"></i> <span>מצב ריכוז</span>
+                            </button>
+                            <div class="video-placeholder" id="videoPlaceholder">
+                                <i class="fa-solid fa-play-circle"></i>
+                                <p>בחרו שיעור מהתפריט כדי להתחיל</p>
+                            </div>
+                            <div class="video-thumbnail" id="videoThumbnail" onclick="playVideo()">
+                                <img id="thumbnailImg" src="" alt="Video thumbnail">
+                                <div class="play-btn">
+                                    <i class="fa-solid fa-play"></i>
+                                </div>
+                            </div>
+                            <div class="video-loading" id="videoLoading">
+                                <div class="spinner"></div>
+                                <p>טוען את הסרטון...</p>
+                            </div>
+                            <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display: none;"></iframe>
+                        </div>
+
+                        <div class="variant-selector" id="variantSelector"></div>
                     </div>
-                    <div class="video-thumbnail" id="videoThumbnail" onclick="playVideo()">
-                        <img id="thumbnailImg" src="" alt="Video thumbnail">
-                        <div class="play-btn">
-                            <i class="fa-solid fa-play"></i>
+
+                    <div class="split-notes">
+                        <div class="split-notes-header">
+                            <span><i class="fa-solid fa-pen-to-square"></i> הערות אישיות</span>
+                            <span id="notesSavedIndicator" class="notes-saved-indicator"></span>
+                        </div>
+                        <textarea id="notesTextarea" class="notes-textarea" placeholder="כתבו הערות תוך כדי צפייה..." oninput="handleNotesInput()"></textarea>
+                        <div class="notes-footer">
+                            <span class="notes-hint"><i class="fa-solid fa-lightbulb"></i> Ctrl+S לחותמת זמן</span>
+                            <span id="notesCharCount">0 תווים</span>
                         </div>
                     </div>
-                    <div class="video-loading" id="videoLoading">
-                        <div class="spinner"></div>
-                        <p>טוען את הסרטון...</p>
-                    </div>
-                    <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display: none;"></iframe>
                 </div>
 
-                <div class="variant-selector" id="variantSelector"></div>
+                <!-- Lesson End Panel -->
+                <div class="lesson-end-panel" id="lessonEndPanel">
+                    <div class="lesson-end-nav">
+                        <button class="lesson-end-btn" id="lessonPrevBtn" onclick="navigateLesson(-1)" disabled>
+                            <i class="fa-solid fa-arrow-right"></i>
+                            <span id="lessonPrevName">שיעור קודם</span>
+                        </button>
+                        <button class="lesson-end-btn next" id="lessonNextBtn" onclick="navigateLesson(1)">
+                            <span id="lessonNextName">שיעור הבא</span>
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </div>
+                    <button class="mark-complete-btn" onclick="markCompleted()">
+                        <i class="fa-solid fa-check"></i> סמן כהושלם
+                    </button>
+                </div>
 
-                <div class="module-resources" id="moduleResources"></div>
+                <!-- Reduced Tabs (3 tabs: About, Resources, AI) -->
+                <div class="tabs-section" id="tabsSection">
+                    <div class="tabs-header" role="tablist">
+                        <button class="tab-btn active" onclick="switchTab('about')" role="tab" aria-selected="true">
+                            <i class="fa-solid fa-info-circle"></i> אודות
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('resources')" role="tab" aria-selected="false">
+                            <i class="fa-solid fa-download"></i> חומרים
+                        </button>
+                        <button class="tab-btn" onclick="switchTab('ai')" role="tab" aria-selected="false">
+                            <i class="fa-solid fa-robot"></i> מאמן AI
+                        </button>
+                    </div>
+                    <div class="tabs-content">
+                        <div class="tab-panel active" id="aboutPanel" role="tabpanel">
+                            <div class="about-content" id="aboutContent"></div>
+                        </div>
+                        <div class="tab-panel" id="resourcesPanel" role="tabpanel">
+                            <div class="resources-grid" id="resourcesGrid"></div>
+                        </div>
+                        <div class="tab-panel" id="aiPanel" role="tabpanel">
+                            <div id="aiContent"></div>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="welcome-section" id="welcomeSection">
-                    <h3>ברוכים הבאים לתוכנית ״עסק ללא מתחרים״!</h3>
-                    <p>תוכנית הכשרה מקיפה עם 8 מודולים, 7 סמינרים חיים, וכלי AI מתקדמים. בחרו שיעור מהתפריט מימין כדי להתחיל את המסע שלכם להפוך לאוטוריטה חדשנית בתחומכם.</p>
+                <!-- Keyboard Shortcuts Hint -->
+                <div class="keyboard-hint">
+                    <i class="fa-solid fa-keyboard"></i> קיצורי מקלדת: <strong>←</strong> שיעור הבא | <strong>→</strong> שיעור קודם | <strong>רווח</strong> הפעלה/עצירה
                 </div>
             </div>
         </main>
@@ -932,6 +1728,10 @@
     let currentPartIndex = -1;
     let currentVideoId = null;
     let completedLessons = JSON.parse(localStorage.getItem('bwc_completed') || '[]');
+    let completionTimer = null;
+    let notesDebounceTimer = null;
+    let activeTab = 'about';
+    let focusMode = false;
 
     // Build flat list for navigation
     let flatLessons = [];
@@ -965,11 +1765,18 @@
         return `m${item.mi}-${item.wi}-${item.di}`;
     }
 
+    function getCurrentLessonKey() {
+        const idx = getFlatIndex();
+        return idx >= 0 ? getLessonKey(flatLessons[idx]) : null;
+    }
+
     // ===== Init =====
     document.addEventListener('DOMContentLoaded', () => {
         buildFlatList();
         renderSyllabus();
         updateProgress();
+        updateContinueHero();
+        updateStats();
 
         // Deep link support: ?module=M&week=W&day=D or ?seminar=S&part=P
         const params = new URLSearchParams(window.location.search);
@@ -1101,20 +1908,19 @@
         const part = sem.parts[pi];
         currentVideoId = part.videoId;
 
+        if (completionTimer) clearTimeout(completionTimer);
         loadThumbnail(part.videoId);
         document.getElementById('currentLessonTitle').textContent = `${sem.title} - ${part.title}`;
         document.getElementById('currentLessonMeta').textContent = `סמינר ${si + 1} מתוך ${SEMINARS.length}`;
-        document.getElementById('welcomeSection').style.display = 'none';
-
-        // Resources
-        let resHtml = '';
-        if (sem.presentationUrl) {
-            resHtml += `<a href="${sem.presentationUrl}" target="_blank" class="resource-btn"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>`;
-        }
-        document.getElementById('moduleResources').innerHTML = resHtml;
         document.getElementById('variantSelector').classList.remove('active');
 
+        showLessonView();
+        updateAboutTab();
+        updateResourcesTab();
+        updateAiTab();
+        loadNotes();
         updateNavButtons();
+        updateLessonEndPanel();
         renderSyllabus();
         closeMobileSidebar();
     }
@@ -1130,6 +1936,8 @@
         const mod = MODULES[mi];
         const day = mod.weeks[wi].days[di];
 
+        if (completionTimer) clearTimeout(completionTimer);
+
         if (day.variants) {
             currentVideoId = day.variants[0].videoId;
             showVariants(day.variants);
@@ -1141,26 +1949,353 @@
         loadThumbnail(currentVideoId);
         document.getElementById('currentLessonTitle').textContent = `${day.title}`;
         document.getElementById('currentLessonMeta').textContent = `${mod.title} • ${mod.weeks[wi].title}`;
-        document.getElementById('welcomeSection').style.display = 'none';
 
-        // Module resources
-        let resHtml = '';
-        if (mod.presentationUrl) {
-            resHtml += `<a href="${mod.presentationUrl}" target="_blank" class="resource-btn"><i class="fa-solid fa-file-powerpoint"></i> מצגת המודול</a>`;
-        }
-        if (mod.aiCoachUrl) {
-            resHtml += `<a href="${mod.aiCoachUrl}" target="_blank" class="resource-btn gold"><i class="fa-solid fa-robot"></i> מאמן AI</a>`;
-        }
-        if (mod.extraTools) {
-            mod.extraTools.forEach(tool => {
-                resHtml += `<a href="${tool.url}" target="_blank" class="resource-btn gold"><i class="fa-solid ${tool.icon}"></i> ${tool.label}</a>`;
-            });
-        }
-        document.getElementById('moduleResources').innerHTML = resHtml;
-
+        showLessonView();
+        updateAboutTab();
+        updateResourcesTab();
+        updateAiTab();
+        loadNotes();
         updateNavButtons();
+        updateLessonEndPanel();
         renderSyllabus();
         closeMobileSidebar();
+    }
+
+    // ===== View Management =====
+    function showLessonView() {
+        document.getElementById('continueHero').style.display = 'none';
+        document.getElementById('statsRow').style.display = 'none';
+        document.getElementById('topBar').style.display = '';
+        document.getElementById('videoSection').style.display = '';
+    }
+
+    function showHomeView() {
+        document.getElementById('continueHero').style.display = '';
+        document.getElementById('statsRow').style.display = '';
+        document.getElementById('topBar').style.display = 'none';
+        document.getElementById('videoSection').style.display = 'none';
+    }
+
+    // ===== Continue Hero =====
+    function updateContinueHero() {
+        const nextLesson = getNextUncompletedLesson();
+        if (!nextLesson) return;
+        document.getElementById('continueTitle').textContent = nextLesson.title.split(' - ').pop();
+        document.getElementById('continueMeta').textContent = nextLesson.title.split(' - ').slice(0, -1).join(' • ');
+        document.getElementById('headerContinueSubtitle').textContent = nextLesson.title.split(' - ').pop();
+
+        const total = flatLessons.filter(l => l.videoId).length;
+        const completed = completedLessons.length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        document.getElementById('continueProgress').textContent = `השלמת ${completed} מתוך ${total} שיעורים • ${pct}%`;
+    }
+
+    function getNextUncompletedLesson() {
+        for (const item of flatLessons) {
+            if (!item.videoId) continue;
+            const key = getLessonKey(item);
+            if (!completedLessons.includes(key)) return item;
+        }
+        return flatLessons[0];
+    }
+
+    function goToNextLesson() {
+        const next = getNextUncompletedLesson();
+        if (!next) return;
+        if (next.type === 'seminar') {
+            selectSeminar(next.si, next.pi);
+        } else {
+            selectLesson(next.mi, next.wi, next.di);
+        }
+    }
+
+    // ===== Stats =====
+    function updateStats() {
+        const total = flatLessons.filter(l => l.videoId).length;
+        const completed = completedLessons.length;
+        const hoursLeft = Math.round((total - completed) * 18 / 60); // ~18min avg
+        document.getElementById('statTimeLeft').textContent = `~${hoursLeft} שעות`;
+
+        // Streak
+        const lastDate = localStorage.getItem('bwc_last_learn_date');
+        const today = new Date().toDateString();
+        let streak = parseInt(localStorage.getItem('bwc_streak') || '0');
+        document.getElementById('statStreak').textContent = `${streak} ימים`;
+
+        // Current module progress
+        const next = getNextUncompletedLesson();
+        if (next && next.type === 'module') {
+            const mod = MODULES[next.mi];
+            const modTotal = mod.weeks.reduce((s, w) => s + w.days.filter(d => d.videoId).length, 0);
+            const modCompleted = mod.weeks.reduce((s, w, wi) => {
+                return s + w.days.filter((d, di) => completedLessons.includes(`m${next.mi}-${wi}-${di}`)).length;
+            }, 0);
+            document.getElementById('statModule').textContent = `${modCompleted}/${modTotal}`;
+            document.getElementById('statModuleLabel').textContent = `במודול ${mod.title}`;
+        }
+    }
+
+    // ===== Focus Mode =====
+    function toggleFocusMode() {
+        focusMode = !focusMode;
+        document.body.classList.toggle('focus-mode', focusMode);
+    }
+
+    // ===== Lesson End Panel =====
+    function updateLessonEndPanel() {
+        const idx = getFlatIndex();
+        const prevBtn = document.getElementById('lessonPrevBtn');
+        const nextBtn = document.getElementById('lessonNextBtn');
+
+        // Find prev video lesson
+        let prevIdx = idx - 1;
+        while (prevIdx >= 0 && !flatLessons[prevIdx].videoId) prevIdx--;
+        prevBtn.disabled = prevIdx < 0;
+        document.getElementById('lessonPrevName').textContent = prevIdx >= 0
+            ? flatLessons[prevIdx].title.split(' - ').pop()
+            : 'שיעור קודם';
+
+        // Find next video lesson
+        let nextIdx = idx + 1;
+        while (nextIdx < flatLessons.length && !flatLessons[nextIdx].videoId) nextIdx++;
+        nextBtn.disabled = nextIdx >= flatLessons.length;
+        document.getElementById('lessonNextName').textContent = nextIdx < flatLessons.length
+            ? flatLessons[nextIdx].title.split(' - ').pop()
+            : 'שיעור הבא';
+    }
+
+    // ===== Jump to Current =====
+    function jumpToCurrentLesson() {
+        const active = document.querySelector('#syllabus .lesson-item.active');
+        if (active) {
+            active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // ===== Tabs System =====
+    function switchTab(tabName) {
+        activeTab = tabName;
+        document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+            const tabs = ['about', 'resources', 'ai'];
+            const isActive = tabs[i] === tabName;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive);
+        });
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.id === tabName + 'Panel');
+        });
+    }
+
+    // ===== About Tab =====
+    function updateAboutTab() {
+        const container = document.getElementById('aboutContent');
+        let html = '';
+
+        if (currentType === 'seminar') {
+            const sem = SEMINARS[currentSeminarIndex];
+            html = `
+                <h3>${sem.title}</h3>
+                <p>${sem.description || sem.shortDescription || ''}</p>
+                <div class="about-meta">
+                    <span class="about-meta-tag"><i class="fa-solid fa-video"></i> ${sem.parts.length} חלקים</span>
+                    <span class="about-meta-tag"><i class="fa-solid fa-users"></i> סמינר חי</span>
+                </div>`;
+        } else if (currentType === 'module') {
+            const mod = MODULES[currentModuleIndex];
+            const week = mod.weeks[currentWeekIndex];
+            const day = week.days[currentDayIndex];
+            const totalLessons = mod.weeks.reduce((sum, w) => sum + w.days.length, 0);
+            html = `
+                <h3>${day.title}</h3>
+                <p>${mod.description || mod.shortDescription || ''}</p>
+                <div class="about-meta">
+                    <span class="about-meta-tag"><i class="fa-solid fa-layer-group"></i> מודול ${currentModuleIndex + 1}: ${mod.title}</span>
+                    <span class="about-meta-tag"><i class="fa-solid fa-calendar-week"></i> ${week.title}</span>
+                    <span class="about-meta-tag"><i class="fa-solid fa-video"></i> ${totalLessons} שיעורים במודול</span>
+                </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // ===== Resources Tab =====
+    function updateResourcesTab() {
+        const grid = document.getElementById('resourcesGrid');
+        let html = '';
+
+        if (currentType === 'seminar') {
+            const sem = SEMINARS[currentSeminarIndex];
+            if (sem.presentationUrl) {
+                html += `<a href="${sem.presentationUrl}" target="_blank" class="resource-card">
+                    <i class="fa-solid fa-file-powerpoint"></i>
+                    <span class="resource-card-text">מצגת הסמינר</span>
+                </a>`;
+            }
+        } else if (currentType === 'module') {
+            const mod = MODULES[currentModuleIndex];
+            if (mod.presentationUrl) {
+                html += `<a href="${mod.presentationUrl}" target="_blank" class="resource-card">
+                    <i class="fa-solid fa-file-powerpoint"></i>
+                    <span class="resource-card-text">מצגת המודול</span>
+                </a>`;
+            }
+            if (mod.aiCoachUrl) {
+                html += `<a href="${mod.aiCoachUrl}" target="_blank" class="resource-card">
+                    <i class="fa-solid fa-robot"></i>
+                    <span class="resource-card-text">מאמן AI למודול</span>
+                </a>`;
+            }
+            if (mod.extraTools) {
+                mod.extraTools.forEach(tool => {
+                    html += `<a href="${tool.url}" target="_blank" class="resource-card">
+                        <i class="fa-solid ${tool.icon}"></i>
+                        <span class="resource-card-text">${tool.label}</span>
+                    </a>`;
+                });
+            }
+        }
+
+        if (!html) {
+            html = '<p style="color:var(--text-muted);text-align:center;padding:1rem;">אין חומרים נוספים לשיעור זה</p>';
+        }
+        grid.innerHTML = html;
+    }
+
+    // ===== AI Tab =====
+    function updateAiTab() {
+        const container = document.getElementById('aiContent');
+        let html = '';
+
+        if (currentType === 'module') {
+            const mod = MODULES[currentModuleIndex];
+            if (mod.aiCoachUrl) {
+                html += `<div class="ai-cards">
+                    <div class="ai-card">
+                        <div class="ai-card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+                        <h4>מאמן AI — ${mod.title}</h4>
+                        <p>מאמן אישי שמותאם לתוכן המודול. שאלו שאלות, בקשו משוב על תרגילים, וקבלו הכוונה מותאמת אישית.</p>
+                        <a href="${mod.aiCoachUrl}" target="_blank" class="ai-card-btn">
+                            <i class="fa-solid fa-external-link-alt"></i> פתח מאמן AI
+                        </a>
+                    </div>`;
+
+                if (mod.extraTools) {
+                    mod.extraTools.forEach(tool => {
+                        html += `<div class="ai-card">
+                            <div class="ai-card-icon"><i class="fa-solid ${tool.icon}"></i></div>
+                            <h4>${tool.label}</h4>
+                            <p>כלי AI נוסף שמלווה אתכם במודול זה.</p>
+                            <a href="${tool.url}" target="_blank" class="ai-card-btn">
+                                <i class="fa-solid fa-external-link-alt"></i> פתח כלי
+                            </a>
+                        </div>`;
+                    });
+                }
+                html += '</div>';
+            } else {
+                html = `<div class="ai-placeholder">
+                    <i class="fa-solid fa-robot"></i>
+                    <p>אין כלי AI זמינים למודול זה</p>
+                </div>`;
+            }
+        } else {
+            html = `<div class="ai-placeholder">
+                <i class="fa-solid fa-robot"></i>
+                <p>כלי AI זמינים במודולי ההכשרה</p>
+            </div>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    // ===== Notes System =====
+    function loadNotes() {
+        const key = getCurrentLessonKey();
+        if (!key) return;
+        const textarea = document.getElementById('notesTextarea');
+        const content = localStorage.getItem(`bwc_notes_${key}`) || '';
+        textarea.value = content;
+        updateNotesCharCount();
+        document.getElementById('notesSavedIndicator').innerHTML = '';
+    }
+
+    function saveNotes() {
+        const key = getCurrentLessonKey();
+        if (!key) return;
+        const content = document.getElementById('notesTextarea').value;
+        localStorage.setItem(`bwc_notes_${key}`, content);
+        const indicator = document.getElementById('notesSavedIndicator');
+        indicator.className = 'notes-saved-indicator saved';
+        indicator.innerHTML = '<i class="fa-solid fa-check"></i> נשמר';
+        setTimeout(() => { indicator.innerHTML = ''; }, 2000);
+    }
+
+    function handleNotesInput() {
+        updateNotesCharCount();
+        const indicator = document.getElementById('notesSavedIndicator');
+        indicator.className = 'notes-saved-indicator saving';
+        indicator.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> שומר...';
+        if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
+        notesDebounceTimer = setTimeout(() => saveNotes(), 800);
+    }
+
+    function updateNotesCharCount() {
+        const count = document.getElementById('notesTextarea').value.length;
+        document.getElementById('notesCharCount').textContent = `${count} תווים`;
+    }
+
+    // ===== Sidebar Search =====
+    function filterLessons(query) {
+        const q = query.trim().toLowerCase();
+        const noResults = document.getElementById('searchNoResults');
+        const modules = document.querySelectorAll('#syllabus .module');
+        let anyVisible = false;
+
+        modules.forEach(mod => {
+            const lessons = mod.querySelectorAll('.lesson-item');
+            const sidebarResources = mod.querySelectorAll('.sidebar-resource');
+            let moduleHasMatch = false;
+
+            lessons.forEach(lesson => {
+                const title = lesson.querySelector('.lesson-title')?.textContent.toLowerCase() || '';
+                const match = !q || title.includes(q);
+                lesson.style.display = match ? '' : 'none';
+                if (match) moduleHasMatch = true;
+            });
+
+            // Also check module title
+            const modTitle = mod.querySelector('.module-title')?.textContent.toLowerCase() || '';
+            if (!q || modTitle.includes(q)) moduleHasMatch = true;
+
+            // Check week headers too
+            const weeks = mod.querySelectorAll('.week-group');
+            weeks.forEach(week => {
+                const weekLessons = week.querySelectorAll('.lesson-item');
+                let weekHasMatch = false;
+                weekLessons.forEach(l => {
+                    if (l.style.display !== 'none') weekHasMatch = true;
+                });
+                week.style.display = weekHasMatch || !q ? '' : 'none';
+            });
+
+            mod.style.display = moduleHasMatch ? '' : 'none';
+            sidebarResources.forEach(r => r.style.display = moduleHasMatch ? '' : 'none');
+            if (moduleHasMatch) anyVisible = true;
+
+            // Auto-expand modules with matches when searching
+            if (q && moduleHasMatch) {
+                mod.classList.add('open');
+                mod.querySelectorAll('.week-group').forEach(w => {
+                    if (w.style.display !== 'none') w.classList.add('open');
+                });
+            }
+        });
+
+        // Show/hide section labels
+        document.querySelectorAll('#syllabus .section-label').forEach(label => {
+            label.style.display = anyVisible || !q ? '' : 'none';
+        });
+
+        noResults.style.display = !anyVisible && q ? 'block' : 'none';
     }
 
     // ===== Variant Selector =====
@@ -1185,6 +2320,7 @@
     // ===== Load Thumbnail =====
     function loadThumbnail(videoId) {
         if (!videoId) return;
+        if (completionTimer) clearTimeout(completionTimer);
         const player = document.getElementById('videoPlayer');
         const placeholder = document.getElementById('videoPlaceholder');
         const thumbnail = document.getElementById('videoThumbnail');
@@ -1206,6 +2342,7 @@
     // ===== Play Video =====
     function playVideo() {
         if (!currentVideoId) return;
+        if (completionTimer) clearTimeout(completionTimer);
         const player = document.getElementById('videoPlayer');
         const thumbnail = document.getElementById('videoThumbnail');
         const loading = document.getElementById('videoLoading');
@@ -1217,8 +2354,8 @@
         player.onload = () => {
             loading.classList.remove('active');
             player.style.display = 'block';
-            // Mark as completed after 30 seconds
-            setTimeout(() => markCompleted(), 30000);
+            // Mark as completed after 45 seconds
+            completionTimer = setTimeout(() => markCompleted(), 45000);
         };
     }
 
@@ -1230,7 +2367,19 @@
         if (!completedLessons.includes(key)) {
             completedLessons.push(key);
             localStorage.setItem('bwc_completed', JSON.stringify(completedLessons));
+            // Update streak
+            const today = new Date().toDateString();
+            const lastDate = localStorage.getItem('bwc_last_learn_date');
+            let streak = parseInt(localStorage.getItem('bwc_streak') || '0');
+            if (lastDate !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                streak = (lastDate === yesterday) ? streak + 1 : 1;
+                localStorage.setItem('bwc_streak', streak);
+                localStorage.setItem('bwc_last_learn_date', today);
+            }
             updateProgress();
+            updateStats();
+            updateContinueHero();
             renderSyllabus();
         }
     }
@@ -1252,11 +2401,22 @@
         }
     }
 
-    // ===== Update Nav Buttons =====
+    // ===== Update Nav Buttons + Counter =====
     function updateNavButtons() {
         const idx = getFlatIndex();
+        const total = flatLessons.filter(l => l.videoId).length;
         document.getElementById('prevLessonBtn').disabled = idx <= 0;
         document.getElementById('nextLessonBtn').disabled = idx >= flatLessons.length - 1;
+
+        // Update lesson counter
+        const counter = document.getElementById('lessonCounter');
+        if (idx >= 0) {
+            // Count only video lessons up to current index
+            const videoIdx = flatLessons.slice(0, idx + 1).filter(l => l.videoId).length;
+            counter.textContent = `${videoIdx} / ${total}`;
+        } else {
+            counter.textContent = '';
+        }
     }
 
     // ===== Update Progress =====
@@ -1266,6 +2426,11 @@
         const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
         document.getElementById('progressPercent').textContent = `${percent}%`;
         document.getElementById('progressFill').style.width = `${percent}%`;
+        // Header progress
+        const headerPct = document.getElementById('headerProgressPct');
+        const headerFill = document.getElementById('headerProgressFill');
+        if (headerPct) headerPct.textContent = `${percent}%`;
+        if (headerFill) headerFill.style.width = `${percent}%`;
     }
 
     // ===== Mobile Sidebar =====
@@ -1302,6 +2467,8 @@
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
+        // Don't intercept when typing in search or notes
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'ArrowLeft') navigateLesson(1);
         if (e.key === 'ArrowRight') navigateLesson(-1);
     });

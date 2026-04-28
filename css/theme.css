@@ -1,0 +1,241 @@
+/* ===== Theme System - עסק ללא מתחרים ===== */
+/* Dark mode overrides for the learning portal */
+
+/* Dark Mode */
+[data-theme="dark"] {
+    --light-gray: #0d1b1e;
+    --pure-white: #112428;
+    --border-light: rgba(255, 255, 255, 0.1);
+    --text-dark: #e8f1f2;
+    --text-muted: #9cb3b8;
+
+    color-scheme: dark;
+}
+
+/* Main content area */
+[data-theme="dark"] body {
+    background: #0a1214;
+}
+
+/* Top navigation - already dark, just refine */
+[data-theme="dark"] .top-nav {
+    background: #001a20;
+    border-bottom-color: rgba(212, 175, 55, 0.15);
+}
+
+/* Top bar */
+[data-theme="dark"] .top-bar {
+    background: #112428;
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .current-lesson-info h2 {
+    color: var(--text-dark);
+}
+
+[data-theme="dark"] .current-lesson-info p {
+    color: var(--text-muted);
+}
+
+/* Nav buttons */
+[data-theme="dark"] .nav-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-dark);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .nav-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="dark"] .nav-btn.primary {
+    background: var(--gold);
+    color: #001a20;
+}
+
+/* Lesson counter */
+[data-theme="dark"] .lesson-counter {
+    color: var(--text-muted);
+}
+
+/* Video section */
+[data-theme="dark"] .video-section {
+    background: transparent;
+}
+
+[data-theme="dark"] .video-wrapper {
+    background: #0a1214;
+}
+
+/* Tabs */
+[data-theme="dark"] .tabs-section {
+    background: #112428;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .tabs-header {
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .tab-btn {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .tab-btn:hover {
+    color: #e8f1f2;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .tab-btn.active {
+    color: #e8f1f2;
+}
+
+/* About tab */
+[data-theme="dark"] .about-content h3 {
+    color: #e8f1f2;
+}
+
+[data-theme="dark"] .about-content p {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .about-meta-tag {
+    background: rgba(212, 175, 55, 0.1);
+    color: #e8f1f2;
+}
+
+/* Notes tab */
+[data-theme="dark"] .notes-textarea {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e8f1f2;
+}
+
+[data-theme="dark"] .notes-textarea:focus {
+    background: rgba(0, 0, 0, 0.4);
+    border-color: var(--dusty-aqua);
+}
+
+[data-theme="dark"] .notes-footer {
+    color: var(--text-muted);
+}
+
+/* Resources tab */
+[data-theme="dark"] .resource-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e8f1f2;
+}
+
+[data-theme="dark"] .resource-card:hover {
+    border-color: var(--gold);
+    background: rgba(212, 175, 55, 0.08);
+}
+
+/* AI tab */
+[data-theme="dark"] .ai-card {
+    background: linear-gradient(135deg, rgba(0, 59, 70, 0.15) 0%, rgba(212, 175, 55, 0.08) 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .ai-card:hover {
+    border-color: var(--gold);
+}
+
+[data-theme="dark"] .ai-card h4 {
+    color: #e8f1f2;
+}
+
+[data-theme="dark"] .ai-card p {
+    color: var(--text-muted);
+}
+
+[data-theme="dark"] .ai-card-btn {
+    background: var(--gold);
+    color: #001a20;
+}
+
+[data-theme="dark"] .ai-placeholder {
+    color: var(--text-muted);
+}
+
+/* Continue Hero */
+[data-theme="dark"] .continue-hero {
+    background: linear-gradient(135deg, #001a20 0%, #003B46 100%);
+}
+
+/* Stats */
+[data-theme="dark"] .stat-card {
+    background: #112428;
+}
+
+[data-theme="dark"] .stat-value {
+    color: #e8f1f2;
+}
+
+/* Split notes */
+[data-theme="dark"] .split-notes {
+    background: #112428;
+}
+
+/* Lesson end panel */
+[data-theme="dark"] .lesson-end-panel {
+    background: #112428;
+}
+
+[data-theme="dark"] .lesson-end-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #e8f1f2;
+}
+
+/* Keyboard hint */
+[data-theme="dark"] .keyboard-hint {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Variant selector */
+[data-theme="dark"] .variant-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e8f1f2;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .variant-btn.active {
+    background: var(--gold);
+    color: #001a20;
+    border-color: var(--gold);
+}
+
+/* Module resources (old, kept for compat) */
+[data-theme="dark"] .resource-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: #e8f1f2;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .resource-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--frost-white);
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    opacity: 0.8;
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 1;
+}
