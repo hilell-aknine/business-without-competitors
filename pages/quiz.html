@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>מבחנים - עסק ללא מתחרים</title>
+    <meta name="description" content="מבחני הבנה למודולי ההכשרה של תוכנית ״עסק ללא מתחרים״ — בדקו את עצמכם וקבלו משוב מותאם.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="מבחני הבנה - עסק ללא מתחרים">
+    <meta property="og:description" content="בדקו את ההבנה שלכם בכל מודול עם מבחני הבנה ממוקדים.">
+    <meta property="og:locale" content="he_IL">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <script>
+        // FOUC prevention
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <script src="../js/theme-toggle.js" defer></script>
+    <style>
+        :root {
+            --deep-petrol: #003B46;
+            --muted-teal: #00606B;
+            --dusty-aqua: #2F8592;
+            --frost-white: #E8F1F2;
+            --pure-white: #FFFFFF;
+            --light-gray: #f8f9fa;
+            --border-light: #e9ecef;
+            --text-dark: #2d3436;
+            --text-muted: #636e72;
+            --gold: #D4AF37;
+            --gold-light: #e6c65a;
+            --gold-glow: rgba(212, 175, 55, 0.3);
+            --success: #10B981;
+            --error: #EF4444;
+            --gradient-gold: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            --gradient-primary: linear-gradient(135deg, #003B46 0%, #00606B 50%, #2F8592 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Rubik', 'Heebo', sans-serif;
+            background: var(--light-gray);
+            color: var(--text-dark);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Heebo', 'Rubik', sans-serif;
+            letter-spacing: -0.02em;
+        }
+
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--dusty-aqua);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== Top Nav (mirrors index.html) ===== */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            background: var(--deep-petrol);
+            color: var(--frost-white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            height: 60px;
+            z-index: 100;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .top-nav-right { display: flex; align-items: center; gap: 1.5rem; }
+        .top-nav-left  { display: flex; align-items: center; gap: 0.6rem; }
+
+        .brand-link {
+            color: var(--frost-white);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-link i { color: var(--gold); }
+
+        .breadcrumb {
+            color: rgba(232, 241, 242, 0.7);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .breadcrumb i { font-size: 0.7rem; opacity: 0.5; }
+
+        .nav-back {
+            color: var(--frost-white);
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+        }
+        .nav-back:hover { background: rgba(255, 255, 255, 0.15); }
+
+        /* ===== Main wrapper ===== */
+        .quiz-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem 4rem;
+        }
+
+        /* ===== Page header ===== */
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        .page-header .eyebrow {
+            display: inline-block;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .page-header h1 {
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            font-weight: 900;
+            color: var(--deep-petrol);
+            margin-bottom: 0.6rem;
+        }
+        .page-header p {
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            font-size: 1rem;
+        }
+
+        /* ===== Overall stats strip ===== */
+        .overall-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            background: var(--pure-white);
+            border-radius: 14px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        }
+        .overall-stat {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        .overall-stat + .overall-stat {
+            border-right: 1px solid var(--border-light);
+        }
+        .overall-stat-value {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--deep-petrol);
+            font-family: 'Heebo', sans-serif;
+        }
+        .overall-stat-label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* ===== Module grid ===== */
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .module-card {
+            background: var(--pure-white);
+            border-radius: 14px;
+            padding: 1.25rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+        .module-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--gradient-gold);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--gold);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+        .module-card:hover::before { opacity: 1; }
+
+        .module-card-head {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+        .module-card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--gradient-primary);
+            color: var(--gold);
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .module-card-num {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .module-card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--deep-petrol);
+            margin: 0;
+        }
+
+        .module-card-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+            min-height: 2.6em;
+        }
+
+        .module-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.7rem;
+            border-top: 1px solid var(--border-light);
+            margin-top: auto;
+        }
+
+        .module-card-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .badge.passed { background: rgba(16, 185, 129, 0.12); color: #047857; }
+        .badge.tried  { background: rgba(212, 175, 55, 0.15); color: #8B6914; }
+        .badge.fresh  { background: var(--border-light); color: var(--text-muted); }
+
+        /* ===== Quiz flow ===== */
+        .quiz-flow { display: none; }
+        .quiz-flow.active { display: block; }
+
+        .quiz-flow-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .quiz-title-block { display: flex; align-items: center; gap: 0.7rem; }
+        .quiz-title-block .icon {
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: var(--gradient-primary);
+            color: var(--gold);
+            display: grid; place-items: center;
+        }
+        .quiz-title-block h2 {
+            font-size: 1.2rem;
+            color: var(--deep-petrol);
+            margin: 0;
+        }
+        .quiz-title-block .sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .quiz-progress {
+            display: flex; align-items: center; gap: 0.6rem;
+            background: var(--pure-white);
+            padding: 0.5rem 0.9rem;
+            border-radius: 999px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .quiz-progress-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+        .quiz-progress-dots {
+            display: flex; gap: 0.3rem;
+        }
+        .quiz-progress-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--border-light);
+            transition: all 0.2s;
+        }
+        .quiz-progress-dot.active { background: var(--gold); transform: scale(1.3); }
+        .quiz-progress-dot.done   { background: var(--success); }
+        .quiz-progress-dot.wrong  { background: var(--error); }
+
+        .question-card {
+            background: var(--pure-white);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.25rem;
+            animation: cardIn 0.3s ease;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-num {
+            color: var(--gold);
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.04em;
+        }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 1.25rem;
+            line-height: 1.55;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .answer-btn {
+            background: var(--light-gray);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 0.85rem 1.1rem;
+            text-align: right;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            line-height: 1.5;
+        }
+        .answer-btn:hover:not(:disabled) {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: var(--gold);
+        }
+        .answer-btn .marker {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--pure-white);
+            color: var(--text-muted);
+            font-weight: 700;
+            display: grid; place-items: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            border: 2px solid var(--border-light);
+        }
+        .answer-btn.correct {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+        }
+        .answer-btn.correct .marker {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+        .answer-btn.wrong {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: var(--error);
+        }
+        .answer-btn.wrong .marker {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+        .answer-btn:disabled { cursor: default; }
+
+        .explanation {
+            margin-top: 1.25rem;
+            padding: 1rem 1.1rem;
+            background: rgba(47, 133, 146, 0.07);
+            border-right: 4px solid var(--dusty-aqua);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            display: none;
+            animation: cardIn 0.3s ease;
+        }
+        .explanation.show { display: block; }
+        .explanation strong {
+            color: var(--deep-petrol);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .quiz-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .quiz-actions .left { display: flex; gap: 0.5rem; }
+
+        .btn {
+            padding: 0.75rem 1.4rem;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: var(--deep-petrol);
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(212, 175, 55, 0.4);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-ghost {
+            background: var(--pure-white);
+            color: var(--text-dark);
+            border: 1px solid var(--border-light);
+        }
+        .btn-ghost:hover { background: var(--light-gray); }
+
+        /* ===== Results ===== */
+        .results { display: none; }
+        .results.active { display: block; }
+
+        .result-hero {
+            background: var(--pure-white);
+            border-radius: 18px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .result-hero::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--gradient-gold);
+        }
+        .result-medal {
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: 2.4rem;
+            margin: 0 auto 1rem;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+        }
+        .result-medal.pass {
+            background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+            color: white;
+        }
+        .result-medal.fail {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+            color: white;
+        }
+        .result-score {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--deep-petrol);
+            font-family: 'Heebo', sans-serif;
+            line-height: 1;
+            margin-bottom: 0.3rem;
+        }
+        .result-score-pct {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+        .result-msg {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.4rem;
+        }
+        .result-sub {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            max-width: 480px;
+            margin: 0 auto 1.25rem;
+        }
+
+        .result-review {
+            background: var(--pure-white);
+            border-radius: 14px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            margin-bottom: 1.25rem;
+        }
+        .result-review h3 {
+            font-size: 1rem;
+            color: var(--deep-petrol);
+            margin-bottom: 0.9rem;
+        }
+        .review-item {
+            display: flex;
+            gap: 0.7rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px solid var(--border-light);
+            align-items: flex-start;
+        }
+        .review-item:last-child { border-bottom: none; }
+        .review-item-icon {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            margin-top: 0.15rem;
+        }
+        .review-item-icon.ok   { background: var(--success); color: white; }
+        .review-item-icon.bad  { background: var(--error); color: white; }
+        .review-item-text {
+            flex: 1;
+            font-size: 0.88rem;
+            color: var(--text-dark);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.6rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .top-nav { padding: 0 0.8rem; }
+            .breadcrumb { display: none; }
+            .quiz-wrap { padding: 1.25rem 1rem 3rem; }
+            .overall-stats { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+            .overall-stat:nth-child(3) { grid-column: 1 / -1; border-right: none; border-top: 1px solid var(--border-light); padding-top: 0.7rem; }
+            .overall-stat + .overall-stat { border-right: none; }
+            .module-grid { grid-template-columns: 1fr; }
+            .question-card { padding: 1.25rem; }
+            .question-text { font-size: 1.05rem; }
+            .answer-btn { padding: 0.75rem 0.9rem; font-size: 0.9rem; }
+            .quiz-actions { flex-direction: column-reverse; }
+            .quiz-actions .btn { width: 100%; justify-content: center; }
+            .quiz-actions .left { width: 100%; }
+            .quiz-actions .left .btn { width: 100%; }
+            .result-actions .btn { flex: 1 1 140px; justify-content: center; }
+        }
+
+        /* ===== Dark mode overrides ===== */
+        [data-theme="dark"] body { background: #0a1214; }
+        [data-theme="dark"] .top-nav {
+            background: #001a20;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+        }
+        [data-theme="dark"] .page-header h1 { color: var(--frost-white); }
+        [data-theme="dark"] .page-header p { color: rgba(232, 241, 242, 0.7); }
+        [data-theme="dark"] .overall-stats,
+        [data-theme="dark"] .module-card,
+        [data-theme="dark"] .question-card,
+        [data-theme="dark"] .quiz-progress,
+        [data-theme="dark"] .result-hero,
+        [data-theme="dark"] .result-review {
+            background: #112428;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+        }
+        [data-theme="dark"] .overall-stat-value,
+        [data-theme="dark"] .module-card-title,
+        [data-theme="dark"] .question-text,
+        [data-theme="dark"] .result-score,
+        [data-theme="dark"] .result-msg,
+        [data-theme="dark"] .review-item-text,
+        [data-theme="dark"] .result-review h3 {
+            color: var(--frost-white);
+        }
+        [data-theme="dark"] .overall-stat-label,
+        [data-theme="dark"] .module-card-desc,
+        [data-theme="dark"] .module-card-meta,
+        [data-theme="dark"] .module-card-num,
+        [data-theme="dark"] .quiz-progress-text,
+        [data-theme="dark"] .question-num,
+        [data-theme="dark"] .result-score-pct,
+        [data-theme="dark"] .result-sub,
+        [data-theme="dark"] .quiz-title-block .sub {
+            color: rgba(232, 241, 242, 0.65);
+        }
+        [data-theme="dark"] .quiz-title-block h2 { color: var(--frost-white); }
+        [data-theme="dark"] .module-card { border-color: rgba(255, 255, 255, 0.08); }
+        [data-theme="dark"] .module-card:hover { border-color: var(--gold); }
+        [data-theme="dark"] .overall-stat + .overall-stat { border-right-color: rgba(255, 255, 255, 0.08); }
+        [data-theme="dark"] .module-card-footer,
+        [data-theme="dark"] .review-item { border-color: rgba(255, 255, 255, 0.08); }
+        [data-theme="dark"] .answer-btn {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--frost-white);
+            border-color: rgba(255, 255, 255, 0.06);
+        }
+        [data-theme="dark"] .answer-btn:hover:not(:disabled) {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--gold);
+        }
+        [data-theme="dark"] .answer-btn .marker {
+            background: rgba(0, 0, 0, 0.25);
+            color: rgba(232, 241, 242, 0.7);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        [data-theme="dark"] .answer-btn.correct { background: rgba(16, 185, 129, 0.15); }
+        [data-theme="dark"] .answer-btn.wrong   { background: rgba(239, 68, 68, 0.12); }
+        [data-theme="dark"] .explanation {
+            background: rgba(47, 133, 146, 0.18);
+            color: var(--frost-white);
+        }
+        [data-theme="dark"] .explanation strong { color: var(--gold); }
+        [data-theme="dark"] .btn-ghost {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--frost-white);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        [data-theme="dark"] .btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+        [data-theme="dark"] .badge.fresh {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(232, 241, 242, 0.7);
+        }
+        [data-theme="dark"] .badge.tried {
+            background: rgba(212, 175, 55, 0.18);
+            color: var(--gold);
+        }
+        [data-theme="dark"] .badge.passed {
+            background: rgba(16, 185, 129, 0.18);
+            color: #6EE7B7;
+        }
+        [data-theme="dark"] .nav-back { color: var(--frost-white); }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="top-nav-right">
+            <a href="../hub.html" class="brand-link">
+                <i class="fa-solid fa-rocket"></i>
+                עסק ללא מתחרים
+            </a>
+            <span class="breadcrumb">
+                <i class="fa-solid fa-chevron-left"></i>
+                <span id="breadcrumbCurrent">מבחני הבנה</span>
+            </span>
+        </div>
+        <div class="top-nav-left">
+            <!-- theme toggle injected by theme-toggle.js -->
+            <a href="../index.html" class="nav-back">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>חזרה לפורטל</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="quiz-wrap">
+        <!-- ===== Module Selection View ===== -->
+        <section id="selectView">
+            <div class="page-header">
+                <span class="eyebrow">בדיקת הבנה</span>
+                <h1>מבחני המודולים</h1>
+                <p>5 שאלות לכל מודול. ציון מעבר 80%. אחרי כל שאלה תקבלו הסבר קצר שמחזק את ההבנה.</p>
+            </div>
+
+            <div class="overall-stats">
+                <div class="overall-stat">
+                    <div class="overall-stat-value" id="statModulesPassed">0/8</div>
+                    <div class="overall-stat-label">מודולים שעברתי</div>
+                </div>
+                <div class="overall-stat">
+                    <div class="overall-stat-value" id="statTotalAttempts">0</div>
+                    <div class="overall-stat-label">ניסיונות סך הכול</div>
+                </div>
+                <div class="overall-stat">
+                    <div class="overall-stat-value" id="statBestAvg">—</div>
+                    <div class="overall-stat-label">ציון ממוצע (Best)</div>
+                </div>
+            </div>
+
+            <div class="module-grid" id="moduleGrid"></div>
+        </section>
+
+        <!-- ===== Quiz Flow View ===== -->
+        <section class="quiz-flow" id="quizFlow">
+            <div class="quiz-flow-head">
+                <div class="quiz-title-block">
+                    <div class="icon"><i id="quizIcon" class="fa-solid fa-atom"></i></div>
+                    <div>
+                        <h2 id="quizTitle">—</h2>
+                        <div class="sub" id="quizSub">—</div>
+                    </div>
+                </div>
+                <div class="quiz-progress">
+                    <span class="quiz-progress-text" id="quizProgressText">שאלה 1 מתוך 5</span>
+                    <div class="quiz-progress-dots" id="quizProgressDots"></div>
+                </div>
+            </div>
+
+            <div class="question-card">
+                <div class="question-num" id="questionNum">שאלה 1</div>
+                <div class="question-text" id="questionText">—</div>
+                <div class="answers" id="answers"></div>
+                <div class="explanation" id="explanation">
+                    <strong id="explanationTitle">הסבר</strong>
+                    <span id="explanationText">—</span>
+                </div>
+            </div>
+
+            <div class="quiz-actions">
+                <div class="left">
+                    <button class="btn btn-ghost" onclick="abortQuiz()">
+                        <i class="fa-solid fa-xmark"></i>
+                        ביטול
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>
+                    <span id="nextBtnText">בחרו תשובה</span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ===== Results View ===== -->
+        <section class="results" id="resultsView">
+            <div class="result-hero">
+                <div class="result-medal" id="resultMedal"><i class="fa-solid fa-trophy"></i></div>
+                <div class="result-score" id="resultScore">0/5</div>
+                <div class="result-score-pct" id="resultScorePct">0%</div>
+                <div class="result-msg" id="resultMsg">—</div>
+                <div class="result-sub" id="resultSub">—</div>
+            </div>
+
+            <div class="result-review">
+                <h3><i class="fa-solid fa-list-check"></i> סקירת השאלות</h3>
+                <div id="resultReviewList"></div>
+            </div>
+
+            <div class="result-actions">
+                <button class="btn btn-ghost" onclick="showSelect()">
+                    <i class="fa-solid fa-list"></i>
+                    כל המבחנים
+                </button>
+                <button class="btn btn-primary" onclick="retryQuiz()">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    נסה שוב
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <script src="../js/quiz-data.js"></script>
+    <script>
+    // ===== State =====
+    const SCORES_KEY = 'bwc_quiz_scores';
+    let activeQuizIdx = -1;
+    let activeQuestionIdx = 0;
+    let answers = []; // chosen index per question (or -1 if skipped)
+
+    // ===== localStorage =====
+    function loadScores() {
+        try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '{}'); }
+        catch { return {}; }
+    }
+    function saveScore(quizIdx, score, total) {
+        const scores = loadScores();
+        const prev = scores[quizIdx] || { best: 0, attempts: 0, passed: false };
+        const passed = (score / total) >= getPassThreshold();
+        scores[quizIdx] = {
+            best: Math.max(prev.best, score),
+            attempts: prev.attempts + 1,
+            passed: prev.passed || passed,
+            lastScore: score,
+            total: total
+        };
+        localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+    }
+
+    // ===== Init =====
+    document.addEventListener('DOMContentLoaded', () => {
+        renderModuleGrid();
+        renderOverallStats();
+
+        // Deep link: ?quiz=N
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('quiz')) {
+            const idx = parseInt(params.get('quiz'));
+            if (idx >= 0 && idx < QUIZZES.length) startQuiz(idx);
+        }
+    });
+
+    // ===== Module grid =====
+    function renderModuleGrid() {
+        const grid = document.getElementById('moduleGrid');
+        const scores = loadScores();
+        grid.innerHTML = QUIZZES.map((quiz, i) => {
+            const score = scores[i];
+            let badge = '<span class="badge fresh"><i class="fa-solid fa-circle"></i> טרם התחלת</span>';
+            if (score) {
+                if (score.passed) {
+                    badge = `<span class="badge passed"><i class="fa-solid fa-check"></i> עברתי (${score.best}/${quiz.questions.length})</span>`;
+                } else {
+                    badge = `<span class="badge tried"><i class="fa-solid fa-rotate-right"></i> ${score.best}/${quiz.questions.length} • ${score.attempts} ניסיונות</span>`;
+                }
+            }
+            return `
+                <article class="module-card" onclick="startQuiz(${i})" tabindex="0" role="button"
+                         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startQuiz(${i})}">
+                    <div class="module-card-head">
+                        <div class="module-card-icon"><i class="fa-solid ${quiz.icon}"></i></div>
+                        <div>
+                            <div class="module-card-num">מודול ${i + 1}</div>
+                            <h3 class="module-card-title">${quiz.title}</h3>
+                        </div>
+                    </div>
+                    <p class="module-card-desc">${quiz.intro}</p>
+                    <div class="module-card-footer">
+                        <span class="module-card-meta">
+                            <i class="fa-solid fa-circle-question"></i>
+                            ${quiz.questions.length} שאלות
+                        </span>
+                        ${badge}
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function renderOverallStats() {
+        const scores = loadScores();
+        const passed = QUIZZES.filter((_, i) => scores[i] && scores[i].passed).length;
+        const totalAttempts = Object.values(scores).reduce((s, x) => s + (x.attempts || 0), 0);
+        document.getElementById('statModulesPassed').textContent = `${passed}/${QUIZZES.length}`;
+        document.getElementById('statTotalAttempts').textContent = totalAttempts;
+
+        const tried = Object.values(scores);
+        if (tried.length === 0) {
+            document.getElementById('statBestAvg').textContent = '—';
+        } else {
+            const avgPct = tried.reduce((s, x) => s + (x.best / x.total), 0) / tried.length;
+            document.getElementById('statBestAvg').textContent = `${Math.round(avgPct * 100)}%`;
+        }
+    }
+
+    // ===== View switching =====
+    function showSelect() {
+        document.getElementById('selectView').style.display = '';
+        document.getElementById('quizFlow').classList.remove('active');
+        document.getElementById('resultsView').classList.remove('active');
+        document.getElementById('breadcrumbCurrent').textContent = 'מבחני הבנה';
+        renderModuleGrid();
+        renderOverallStats();
+        history.replaceState(null, '', window.location.pathname);
+    }
+
+    function showQuiz() {
+        document.getElementById('selectView').style.display = 'none';
+        document.getElementById('quizFlow').classList.add('active');
+        document.getElementById('resultsView').classList.remove('active');
+    }
+
+    function showResults() {
+        document.getElementById('selectView').style.display = 'none';
+        document.getElementById('quizFlow').classList.remove('active');
+        document.getElementById('resultsView').classList.add('active');
+    }
+
+    // ===== Quiz flow =====
+    function startQuiz(idx) {
+        activeQuizIdx = idx;
+        activeQuestionIdx = 0;
+        const quiz = QUIZZES[idx];
+        answers = new Array(quiz.questions.length).fill(-1);
+
+        document.getElementById('quizTitle').textContent = quiz.title;
+        document.getElementById('quizSub').textContent = `מודול ${idx + 1} • ${quiz.questions.length} שאלות`;
+        document.getElementById('quizIcon').className = `fa-solid ${quiz.icon}`;
+        document.getElementById('breadcrumbCurrent').textContent = quiz.title;
+
+        renderProgressDots();
+        renderQuestion();
+        showQuiz();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function abortQuiz() {
+        if (!confirm('לעזוב את המבחן? התשובות שעניתם לא יישמרו.')) return;
+        showSelect();
+    }
+
+    function retryQuiz() {
+        if (activeQuizIdx >= 0) startQuiz(activeQuizIdx);
+    }
+
+    function renderProgressDots() {
+        const quiz = QUIZZES[activeQuizIdx];
+        const container = document.getElementById('quizProgressDots');
+        container.innerHTML = quiz.questions.map((_, i) => {
+            let cls = 'quiz-progress-dot';
+            if (i === activeQuestionIdx) cls += ' active';
+            else if (i < activeQuestionIdx) {
+                const ans = answers[i];
+                cls += (ans === quiz.questions[i].c) ? ' done' : ' wrong';
+            }
+            return `<span class="${cls}"></span>`;
+        }).join('');
+    }
+
+    function renderQuestion() {
+        const quiz = QUIZZES[activeQuizIdx];
+        const q = quiz.questions[activeQuestionIdx];
+
+        document.getElementById('quizProgressText').textContent =
+            `שאלה ${activeQuestionIdx + 1} מתוך ${quiz.questions.length}`;
+        document.getElementById('questionNum').textContent = `שאלה ${activeQuestionIdx + 1}`;
+        document.getElementById('questionText').textContent = q.q;
+
+        const letters = ['א', 'ב', 'ג', 'ד'];
+        const answersEl = document.getElementById('answers');
+        answersEl.innerHTML = q.a.map((ans, i) => `
+            <button class="answer-btn" data-idx="${i}" onclick="selectAnswer(${i})">
+                <span class="marker">${letters[i]}</span>
+                <span>${ans}</span>
+            </button>
+        `).join('');
+
+        document.getElementById('explanation').classList.remove('show');
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.disabled = true;
+        document.getElementById('nextBtnText').textContent = 'בחרו תשובה';
+
+        renderProgressDots();
+    }
+
+    function selectAnswer(chosen) {
+        const quiz = QUIZZES[activeQuizIdx];
+        const q = quiz.questions[activeQuestionIdx];
+        answers[activeQuestionIdx] = chosen;
+
+        const buttons = document.querySelectorAll('.answer-btn');
+        buttons.forEach((btn, i) => {
+            btn.disabled = true;
+            if (i === q.c) btn.classList.add('correct');
+            else if (i === chosen) btn.classList.add('wrong');
+        });
+
+        // Show explanation
+        const exp = document.getElementById('explanation');
+        const isCorrect = chosen === q.c;
+        document.getElementById('explanationTitle').textContent = isCorrect ? '✓ תשובה נכונה' : '✗ תשובה לא נכונה';
+        document.getElementById('explanationText').textContent = q.e;
+        exp.classList.add('show');
+
+        // Enable next
+        const nextBtn = document.getElementById('nextBtn');
+        nextBtn.disabled = false;
+        const isLast = activeQuestionIdx === quiz.questions.length - 1;
+        document.getElementById('nextBtnText').textContent = isLast ? 'סיום וצפייה בתוצאות' : 'שאלה הבאה';
+
+        renderProgressDots();
+    }
+
+    function nextQuestion() {
+        const quiz = QUIZZES[activeQuizIdx];
+        if (activeQuestionIdx >= quiz.questions.length - 1) {
+            finishQuiz();
+            return;
+        }
+        activeQuestionIdx++;
+        renderQuestion();
+        document.querySelector('.question-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function finishQuiz() {
+        const quiz = QUIZZES[activeQuizIdx];
+        const score = answers.reduce((s, a, i) => s + (a === quiz.questions[i].c ? 1 : 0), 0);
+        const total = quiz.questions.length;
+        const pct = score / total;
+        const passed = pct >= getPassThreshold();
+
+        saveScore(activeQuizIdx, score, total);
+
+        // Render results
+        document.getElementById('resultScore').textContent = `${score}/${total}`;
+        document.getElementById('resultScorePct').textContent = `${Math.round(pct * 100)}% תשובות נכונות`;
+
+        const medal = document.getElementById('resultMedal');
+        medal.className = 'result-medal ' + (passed ? 'pass' : 'fail');
+        medal.innerHTML = passed ? '<i class="fa-solid fa-trophy"></i>' : '<i class="fa-solid fa-arrows-rotate"></i>';
+
+        document.getElementById('resultMsg').textContent = passed
+            ? `כל הכבוד — עברתם את המבחן ב״${quiz.title}״`
+            : `קצת חסר. נסו שוב — אתם קרובים`;
+        document.getElementById('resultSub').textContent = passed
+            ? 'הציון הזה מעיד על הבנה איכותית של המודול. ממשיכים למודול הבא.'
+            : `כדי לעבור צריך לפחות ${Math.ceil(total * getPassThreshold())}/${total}. סקירת השאלות למטה תעזור לכם להבין מה לחזק.`;
+
+        // Review list
+        const list = document.getElementById('resultReviewList');
+        list.innerHTML = quiz.questions.map((q, i) => {
+            const correct = answers[i] === q.c;
+            return `
+                <div class="review-item">
+                    <div class="review-item-icon ${correct ? 'ok' : 'bad'}">
+                        <i class="fa-solid ${correct ? 'fa-check' : 'fa-xmark'}"></i>
+                    </div>
+                    <div class="review-item-text">
+                        <div><strong>${i + 1}.</strong> ${q.q}</div>
+                        ${!correct ? `<div style="font-size:0.82rem;color:var(--text-muted);margin-top:0.2rem">תשובה נכונה: ${q.a[q.c]}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        showResults();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Keyboard: 1-4 to select, Enter to advance
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (!document.getElementById('quizFlow').classList.contains('active')) return;
+        if (['1', '2', '3', '4'].includes(e.key)) {
+            const idx = parseInt(e.key) - 1;
+            const btn = document.querySelector(`.answer-btn[data-idx="${idx}"]`);
+            if (btn && !btn.disabled) btn.click();
+        } else if (e.key === 'Enter') {
+            const next = document.getElementById('nextBtn');
+            if (!next.disabled) next.click();
+        }
+    });
+    </script>
+</body>
+</html>
