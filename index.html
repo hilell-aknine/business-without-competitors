@@ -466,19 +466,28 @@
 
   /* ==================== ANNOUNCE ==================== */
   .v1-announce{
-    border-radius:28px;padding:28px 32px;
+    border-radius:18px;padding:14px 18px;
     position:relative;isolation:isolate;
-    box-shadow:0 14px 38px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.14) inset,0 -1px 0 rgba(0,0,0,.14) inset;
+    box-shadow:0 6px 18px rgba(0,0,0,.18),0 1px 0 rgba(255,255,255,.10) inset;
+    transition:padding .2s ease;
   }
-  .v1-announce__hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
-  .v1-announce__title{display:flex;align-items:center;gap:.55rem;font-size:.95rem;font-weight:600;color:#fff;}
+  .v1-announce--full{border-radius:28px;padding:28px 32px;box-shadow:0 14px 38px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.14) inset,0 -1px 0 rgba(0,0,0,.14) inset;}
+  .v1-announce__hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;}
+  .v1-announce--full .v1-announce__hd{margin-bottom:.6rem;}
+  .v1-announce__title{display:flex;align-items:center;gap:.55rem;font-size:.85rem;font-weight:600;color:#fff;margin:0;}
+  .v1-announce--full .v1-announce__title{font-size:.95rem;}
   .v1-announce__icon{
-    width:32px;height:32px;border-radius:11px;
+    width:28px;height:28px;border-radius:9px;
     background:linear-gradient(135deg,rgba(229,181,71,.32),rgba(229,181,71,.10));
     border:1px solid rgba(229,181,71,.38);color:var(--lg-gold);
-    display:inline-flex;align-items:center;justify-content:center;font-size:.74rem;
+    display:inline-flex;align-items:center;justify-content:center;font-size:.7rem;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.25), 0 0 12px rgba(229,181,71,.18);
+    flex-shrink:0;
   }
+  .v1-announce--full .v1-announce__icon{width:32px;height:32px;border-radius:11px;font-size:.74rem;}
+  .v1-announce__empty-line{font-size:.78rem;color:rgba(255,255,255,.7);margin-inline-start:.65rem;}
+
+  /* Full empty state (kept for when announcements re-enable) */
   .v1-announce__empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.6rem 1rem .6rem;color:rgba(255,255,255,.7);}
   .v1-announce__empty svg{color:rgba(229,181,71,.55);margin-bottom:.7rem;animation:lgFloat 3.2s ease-in-out infinite;}
   @keyframes lgFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
@@ -583,7 +592,9 @@
   .v1-variant.active{background:linear-gradient(135deg,rgba(230,198,90,.6),rgba(212,175,55,.4));color:#1a1205;border-color:rgba(230,198,90,.5);font-weight:600;}
 
   /* ==================== FAB ==================== */
-  .v1-fabs{position:fixed;bottom:1.4rem;inset-inline-start:1.4rem;z-index:80;display:flex;flex-direction:column-reverse;gap:.7rem;}
+  .v1-fabs{position:fixed;bottom:calc(1.4rem + env(safe-area-inset-bottom, 0px));inset-inline-start:1.4rem;z-index:80;display:none;flex-direction:column-reverse;gap:.7rem;}
+  /* Mobile only — desktop has these actions in header + sidebar */
+  @media (max-width:768px){.v1-fabs{display:flex;}}
   .v1-fab{
     position:relative;width:56px;height:56px;padding:0;border-radius:50%;
     background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.06));
@@ -821,22 +832,15 @@
       </div>
     </section>
 
-    <!-- ANNOUNCE -->
-    <section class="v1-announce g" aria-labelledby="announceTitle">
+    <!-- ANNOUNCE — compact when empty, expands when there's content -->
+    <section class="v1-announce g" aria-labelledby="announceTitle" aria-live="polite" aria-atomic="true">
       <header class="v1-announce__hd">
         <h2 id="announceTitle" class="v1-announce__title">
           <span class="v1-announce__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
           לוח מודעות
+          <span class="v1-announce__empty-line">אין מודעות חדשות כרגע · נעדכן אותך</span>
         </h2>
       </header>
-      <div class="v1-announce__empty" aria-live="polite" aria-atomic="true">
-        <svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M44 4 22 26"/>
-          <path d="M44 4 30 44l-8-18-18-8z"/>
-        </svg>
-        <h4>אין מודעות חדשות</h4>
-        <p>נעדכן אותך כשיהיה משהו חדש.</p>
-      </div>
     </section>
 
     <!-- REFERRAL / QUIZ CTA BANNER -->
@@ -977,11 +981,10 @@
 <!-- Mobile drawer overlay -->
 <div class="v1-drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
-<!-- FAB stack — wand (AI) + question (quiz) + lightbulb (transcripts/insights) -->
+<!-- FAB — mobile only, single primary action: open AI coach.
+     On desktop, the same actions are reachable from the header and sidebar. -->
 <div class="v1-fabs" role="group" aria-label="פעולות צפות">
-  <button class="v1-fab v1-fab--ai" id="fabAi" data-tip="פתח מאמן AI" aria-label="מאמן AI"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-  <a class="v1-fab" href="pages/quiz.html" data-tip="מבחני הבנה" aria-label="מבחנים"><i class="fa-regular fa-circle-question"></i></a>
-  <a class="v1-fab" href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" data-tip="תמלולים ותובנות" aria-label="תמלולים"><i class="fa-regular fa-lightbulb"></i></a>
+  <button class="v1-fab v1-fab--ai" id="fabAi" data-tip="פתח מאמן AI" aria-label="פתח מאמן AI"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i></button>
 </div>
 
 <script src="js/course-data.js"></script>
