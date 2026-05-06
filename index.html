@@ -31,7 +31,8 @@
   /* All design tokens are defined in /assets/css/design-tokens.css */
 
   *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{background:#04161b;color:#fff;font-family:'Heebo',sans-serif;min-height:100vh;}
+  html,body{background:#04161b;color:#fff;font-family:'Heebo',sans-serif;min-height:100vh;overflow-x:hidden;max-width:100vw;line-height:1.6;}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
 
   a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{
     outline:3px solid var(--lg-gold);outline-offset:2px;border-radius:inherit;
