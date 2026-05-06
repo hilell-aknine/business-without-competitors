@@ -621,6 +621,58 @@
   }
   @media (prefers-reduced-motion:reduce){
     .atmos__blob,.v1-hero__progress-bar span,.v1-hd__progress-bar span,.v1-hd__progress-bar span::after,.v1-fab--ai,.v1-hero__orb,.v1-announce__empty svg{animation:none !important;}
+    body.drawer-open .v1-side{transition:none !important;}
+    .v1-drawer-overlay{transition:none !important;}
+  }
+
+  /* ==================== MOBILE DRAWER ==================== */
+  .v1-drawer-overlay{
+    position:fixed;inset:0;
+    background:var(--surface-overlay,rgba(0,0,0,.6));
+    backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+    opacity:0;visibility:hidden;
+    transition:opacity 250ms ease-out, visibility 0s linear 250ms;
+    z-index:var(--z-overlay,90);
+    cursor:pointer;
+  }
+  body.drawer-open .v1-drawer-overlay{
+    opacity:1;visibility:visible;
+    transition:opacity 250ms ease-out;
+  }
+  body.drawer-open{overflow:hidden;}
+
+  .v1-side__close{
+    display:none;
+    position:absolute;top:.85rem;inset-inline-end:.85rem;
+    width:36px;height:36px;border-radius:50%;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    color:#fff;cursor:pointer;
+    align-items:center;justify-content:center;
+    z-index:2;font-size:.95rem;
+    transition:background .2s;
+  }
+  .v1-side__close:hover{background:rgba(255,255,255,.20);}
+  .v1-side__close:focus-visible{outline:2px solid var(--lg-gold);outline-offset:2px;}
+
+  @media (max-width:768px){
+    .v1-side{
+      position:fixed !important;
+      top:0;bottom:0;
+      inset-inline-start:0;
+      width:min(320px,88vw);
+      height:100vh !important;height:100dvh !important;
+      max-height:none !important;
+      margin:0;border-radius:0;padding:1rem 1rem 1rem;
+      z-index:var(--z-drawer,95);
+      transform:translateX(100%);
+      transition:transform 250ms ease-out;
+      box-shadow:-12px 0 32px rgba(0,0,0,.4);
+      order:0;
+    }
+    body.drawer-open .v1-side{transform:translateX(0);}
+    .v1-side__close{display:inline-flex;}
+    .v1-side__head{padding-inline-end:3rem;}
   }
 </style>
 </head>
@@ -663,7 +715,7 @@
     <a href="pages/quiz.html" class="btn btn--gold btn--sm"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</a>
     <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" class="btn btn--clear btn--icon" aria-label="תמלולים" title="תמלולים מלאים"><i class="fa-solid fa-folder-open"></i></a>
     <button class="btn btn--clear btn--icon v1-bell" aria-label="התראות"><i class="fa-regular fa-bell"></i></button>
-    <button class="btn btn--clear btn--sm v1-mobile-toggle" id="sidebarToggle" aria-label="תפריט שיעורים"><i class="fa-solid fa-list"></i></button>
+    <button class="btn btn--clear btn--sm v1-mobile-toggle" id="sidebarToggle" aria-label="פתח תפריט שיעורים" aria-expanded="false" aria-controls="sidebar"><i class="fa-solid fa-list"></i></button>
   </div>
 </header>
 
@@ -853,7 +905,8 @@
   </main>
 
   <!-- SIDEBAR -->
-  <aside class="v1-side g" id="sidebar">
+  <aside class="v1-side g" id="sidebar" aria-label="תפריט שיעורים" tabindex="-1">
+    <button class="v1-side__close" id="sidebarClose" type="button" aria-label="סגור תפריט"><i class="fa-solid fa-xmark"></i></button>
     <div class="v1-side__head">
       <div class="v1-side__head-top">
         <span class="v1-side__h1">התקדמות בקורס</span>
@@ -880,6 +933,9 @@
     </div>
   </aside>
 </div>
+
+<!-- Mobile drawer overlay -->
+<div class="v1-drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
 
 <!-- FAB stack — wand (AI) + question (quiz) + lightbulb (transcripts/insights) -->
 <div class="v1-fabs" role="group" aria-label="פעולות צפות">
@@ -1465,13 +1521,81 @@ document.getElementById('fabAi').addEventListener('click', () => {
   document.querySelector('.v1-tabs').scrollIntoView({behavior:'smooth', block:'center'});
 });
 
-// ===== Mobile sidebar toggle =====
-const sidebarToggle = document.getElementById('sidebarToggle');
+// ===== Mobile sidebar drawer =====
+const sidebarToggle  = document.getElementById('sidebarToggle');
+const sidebarClose   = document.getElementById('sidebarClose');
+const drawerOverlay  = document.getElementById('drawerOverlay');
+const sidebarEl      = document.getElementById('sidebar');
+
+let drawerLastFocus = null;
+
+function openDrawer(){
+  drawerLastFocus = document.activeElement;
+  document.body.classList.add('drawer-open');
+  if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
+  drawerOverlay && drawerOverlay.setAttribute('aria-hidden', 'false');
+  // Focus the close button so screen readers/keyboard users land inside the drawer
+  setTimeout(() => sidebarClose && sidebarClose.focus(), 60);
+}
+
+function closeDrawer(){
+  document.body.classList.remove('drawer-open');
+  if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
+  drawerOverlay && drawerOverlay.setAttribute('aria-hidden', 'true');
+  // Return focus to the trigger
+  if (drawerLastFocus && typeof drawerLastFocus.focus === 'function') {
+    drawerLastFocus.focus();
+  } else if (sidebarToggle) {
+    sidebarToggle.focus();
+  }
+}
+
+function isDrawerOpen(){ return document.body.classList.contains('drawer-open'); }
+
 if (sidebarToggle) {
   sidebarToggle.addEventListener('click', () => {
-    document.getElementById('sidebar').scrollIntoView({behavior:'smooth', block:'start'});
+    isDrawerOpen() ? closeDrawer() : openDrawer();
   });
 }
+if (sidebarClose)  sidebarClose.addEventListener('click', closeDrawer);
+if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+// ESC closes drawer
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && isDrawerOpen()) {
+    e.preventDefault();
+    closeDrawer();
+  }
+});
+
+// Auto-close drawer when crossing back above mobile breakpoint
+const drawerMq = window.matchMedia('(min-width: 769px)');
+drawerMq.addEventListener('change', e => { if (e.matches && isDrawerOpen()) closeDrawer(); });
+
+// Close drawer when a lesson is selected from inside it (mobile UX)
+if (sidebarEl) {
+  sidebarEl.addEventListener('click', e => {
+    if (!isDrawerOpen()) return;
+    const lessonRow = e.target.closest('.v1-les');
+    if (lessonRow) closeDrawer();
+  });
+}
+
+// Focus trap inside drawer when open
+document.addEventListener('keydown', e => {
+  if (!isDrawerOpen() || e.key !== 'Tab') return;
+  const focusables = sidebarEl.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last  = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault(); last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault(); first.focus();
+  }
+});
 
 // ===== Keyboard navigation =====
 document.addEventListener('keydown', e => {
