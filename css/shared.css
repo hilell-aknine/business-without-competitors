@@ -2,6 +2,7 @@
 /* Aligned with Hillel Design System (design-system.md) */
 /* Tokens are defined in /assets/css/design-tokens.css — single source of truth */
 @import url('../assets/css/design-tokens.css');
+@import url('../assets/css/components.css');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -62,7 +63,7 @@ button:focus-visible,
     top: 0;
     left: 0;
     right: 0;
-    height: 70px;
+    height: var(--header-height-desktop, 64px);
     background: rgba(0, 27, 32, 0.9);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
@@ -72,6 +73,13 @@ button:focus-visible,
     padding: 0 2rem;
     z-index: 1000;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        height: var(--header-height-mobile, 56px);
+        padding: 0 1rem;
+    }
 }
 
 .navbar-brand {
@@ -864,13 +872,13 @@ button:focus-visible,
 @media (max-width: 768px) {
     .navbar {
         padding: 0 1rem;
-        height: 60px;
+        height: var(--header-height-mobile, 56px);
     }
 
     .navbar-links {
         display: none;
         position: fixed;
-        top: 60px;
+        top: var(--header-height-mobile, 56px);
         left: 0;
         right: 0;
         background: rgba(0, 27, 32, 0.98);

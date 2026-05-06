@@ -348,11 +348,13 @@
 </head>
 <body>
 
+    <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+
     <!-- Navbar -->
-    <nav class="navbar">
-        <a href="hub.html" class="navbar-brand">
+    <nav class="navbar app-header" aria-label="ניווט ראשי">
+        <a href="hub.html" class="navbar-brand app-header__brand" aria-label="עסק ללא מתחרים — דף הבית">
             <div class="brand-icon"><i class="fa-solid fa-rocket"></i></div>
-            עסק <span>ללא מתחרים</span>
+            <span class="app-header__brand-text">עסק <span>ללא מתחרים</span></span>
         </a>
         <div class="navbar-links" id="navLinks">
             <a href="#method">השיטה</a>
@@ -363,13 +365,13 @@
                 כניסה לתוכנית
             </a>
         </div>
-        <button class="navbar-mobile-toggle" onclick="toggleNav()">
+        <button class="navbar-mobile-toggle" onclick="toggleNav()" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="navLinks">
             <i class="fa-solid fa-bars" id="navToggleIcon"></i>
         </button>
     </nav>
 
     <!-- ========== 1. HERO ========== -->
-    <section class="hero reveal">
+    <section class="hero reveal" id="main" tabindex="-1">
         <div class="hero-badge">
             <i class="fa-solid fa-rocket"></i>
             השיטה האטומית לצמיחה עסקית

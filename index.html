@@ -26,6 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="assets/css/design-tokens.css">
+<link rel="stylesheet" href="assets/css/components.css">
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -101,7 +102,7 @@
 
   /* ==================== HEADER ==================== */
   .v1-header{
-    position:sticky;top:0;z-index:50;
+    position:sticky;top:0;z-index:var(--z-sticky,60);
     display:flex;align-items:center;justify-content:space-between;gap:1rem;
     padding:.75rem 1.25rem;
     background:linear-gradient(180deg, rgba(15,45,45,.72) 0%, rgba(15,45,45,.55) 100%);
@@ -109,7 +110,16 @@
     -webkit-backdrop-filter:blur(60px) saturate(200%) brightness(1.05);
     border-bottom:1px solid rgba(255,255,255,.10);
     box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 8px 24px rgba(0,0,0,.18);
-    min-height:64px;
+    height:var(--header-height-desktop,64px);
+    min-height:var(--header-height-desktop,64px);
+    box-sizing:border-box;
+  }
+  @media (max-width:768px){
+    .v1-header{
+      height:var(--header-height-mobile,56px);
+      min-height:var(--header-height-mobile,56px);
+      padding:.5rem 1rem;
+    }
   }
   .v1-hd__right,.v1-hd__center,.v1-hd__left{display:flex;align-items:center;gap:.55rem;}
   .v1-hd__brand{display:flex;align-items:center;gap:.55rem;text-decoration:none;color:#fff;}
@@ -688,12 +698,14 @@
   <div class="atmos__grain"></div>
 </div>
 
+<a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+
 <!-- HEADER -->
-<header class="v1-header">
+<header class="v1-header app-header" aria-label="ניווט ראשי">
   <div class="v1-hd__right">
-    <a class="v1-hd__brand" href="hub.html">
-      <span class="v1-hd__brand-icon"><i class="fa-solid fa-rocket"></i></span>
-      <span>עסק <b>ללא מתחרים</b></span>
+    <a class="v1-hd__brand app-header__brand" href="hub.html" aria-label="עסק ללא מתחרים — חזרה לדף הבית">
+      <span class="v1-hd__brand-icon app-header__brand-icon"><i class="fa-solid fa-rocket"></i></span>
+      <span class="app-header__brand-text">עסק <b>ללא מתחרים</b></span>
     </a>
     <span class="v1-hd__sep"></span>
     <span class="v1-hd__course">תוכנית ההכשרה המלאה</span>
@@ -723,7 +735,7 @@
 <div class="v1-body">
 
   <!-- MAIN -->
-  <main class="v1-main">
+  <main class="v1-main" id="main" tabindex="-1">
 
     <!-- HERO -->
     <section class="v1-hero" id="hero" aria-label="המשך ללמוד">

@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
     <script>
         // FOUC prevention
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
@@ -76,9 +77,17 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 1.5rem;
-            height: 60px;
+            height: var(--header-height-desktop, 64px);
+            min-height: var(--header-height-desktop, 64px);
             z-index: 100;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        @media (max-width: 768px) {
+            .top-nav {
+                height: var(--header-height-mobile, 56px);
+                min-height: var(--header-height-mobile, 56px);
+                padding: 0 1rem;
+            }
         }
 
         .top-nav-right { display: flex; align-items: center; gap: 1.5rem; }
@@ -695,11 +704,12 @@
     </style>
 </head>
 <body>
-    <nav class="top-nav">
+    <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+    <nav class="top-nav app-header" aria-label="ניווט ראשי">
         <div class="top-nav-right">
-            <a href="../hub.html" class="brand-link">
-                <i class="fa-solid fa-rocket"></i>
-                עסק ללא מתחרים
+            <a href="../hub.html" class="brand-link app-header__brand" aria-label="עסק ללא מתחרים — דף הבית">
+                <span class="app-header__brand-icon"><i class="fa-solid fa-rocket"></i></span>
+                <span class="app-header__brand-text">עסק ללא מתחרים</span>
             </a>
             <span class="breadcrumb">
                 <i class="fa-solid fa-chevron-left"></i>
@@ -708,14 +718,14 @@
         </div>
         <div class="top-nav-left">
             <!-- theme toggle injected by theme-toggle.js -->
-            <a href="../index.html" class="nav-back">
+            <a href="../index.html" class="nav-back app-header__back" aria-label="חזרה לפורטל הלמידה">
                 <i class="fa-solid fa-arrow-left"></i>
                 <span>חזרה לפורטל</span>
             </a>
         </div>
     </nav>
 
-    <main class="quiz-wrap">
+    <main class="quiz-wrap" id="main" tabindex="-1">
         <!-- ===== Module Selection View ===== -->
         <section id="selectView">
             <div class="page-header">

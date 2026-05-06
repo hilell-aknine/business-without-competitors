@@ -1,0 +1,156 @@
+/* ============================================================
+   COMPONENTS — עסק ללא מתחרים
+   Shared building blocks used across hub.html, index.html,
+   and pages/quiz.html. Loaded after design-tokens.css.
+   ============================================================ */
+
+
+/* ============================================================
+   .app-header — unified top header skeleton
+   Pages add their own background/decoration on top of this.
+   ============================================================ */
+
+.app-header {
+    /* Standardised height across all pages */
+    min-height: var(--header-height-desktop, 64px);
+    height: var(--header-height-desktop, 64px);
+    box-sizing: border-box;
+    padding-inline: 1.25rem;
+
+    /* Layout */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        min-height: var(--header-height-mobile, 56px);
+        height: var(--header-height-mobile, 56px);
+        padding-inline: 1rem;
+    }
+}
+
+
+/* ============================================================
+   .app-header__brand — rocket icon + "עסק ללא מתחרים"
+   Used identically in all 3 pages.
+   ============================================================ */
+
+.app-header__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-decoration: none;
+    color: var(--text-primary, #fff);
+    font-family: var(--font-display, 'Frank Ruhl Libre', serif);
+    font-weight: 700;
+    font-size: 0.98rem;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.app-header__brand-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md, 8px);
+    background: linear-gradient(135deg, var(--accent-gold-hover, #E5B547), var(--accent-gold-deep, #D4A03B));
+    display: grid;
+    place-items: center;
+    color: var(--text-inverse, #1A2E2E);
+    font-size: 0.95rem;
+    box-shadow: 0 4px 14px rgba(229, 181, 71, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    flex-shrink: 0;
+}
+
+.app-header__brand-text { color: inherit; }
+.app-header__brand-text b { color: var(--accent-gold-hover, #E5B547); font-weight: 900; }
+
+.app-header__brand:hover { color: var(--text-primary, #fff); }
+.app-header__brand:focus-visible {
+    outline: 3px solid var(--accent-gold-hover, #E5B547);
+    outline-offset: 3px;
+    border-radius: var(--radius-md, 8px);
+}
+
+
+/* ============================================================
+   .app-header__back — "back to ___" pill button
+   Used in portal (back to hub) and quiz (back to portal).
+   ============================================================ */
+
+.app-header__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 36px;
+    padding: 0.4rem 0.85rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary, #fff);
+    border: 1px solid var(--border-default, rgba(255, 255, 255, 0.18));
+    border-radius: var(--radius-md, 8px);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    line-height: 1;
+    cursor: pointer;
+    transition: background var(--transition-fast, 150ms ease), border-color var(--transition-fast, 150ms ease);
+    white-space: nowrap;
+}
+
+.app-header__back:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--border-strong, rgba(255, 255, 255, 0.28));
+    color: var(--text-primary, #fff);
+}
+
+.app-header__back:focus-visible {
+    outline: 3px solid var(--accent-gold-hover, #E5B547);
+    outline-offset: 2px;
+}
+
+.app-header__back i { font-size: 0.8rem; }
+
+/* RTL note: "→" should point INTO the destination side.
+   In RTL, a "back" arrow visually points right (start side). */
+[dir="rtl"] .app-header__back .fa-arrow-left { transform: scaleX(-1); }
+
+
+/* ============================================================
+   .app-skip-link — visually-hidden until keyboard focus
+   Required by accessibility brief. Place as the first
+   focusable element on every page.
+   ============================================================ */
+
+.app-skip-link {
+    position: absolute;
+    inset-inline-start: 1rem;
+    top: -100px;
+    z-index: 200;
+    padding: 0.6rem 1rem;
+    background: var(--accent-gold, #D4AF37);
+    color: var(--text-inverse, #1A2E2E);
+    border-radius: var(--radius-md, 8px);
+    font-weight: 700;
+    text-decoration: none;
+    transition: top var(--transition-base, 250ms ease);
+}
+.app-skip-link:focus {
+    top: 0.5rem;
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+}
+
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .app-header__back,
+    .app-skip-link {
+        transition: none !important;
+    }
+}
