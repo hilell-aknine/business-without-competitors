@@ -239,6 +239,29 @@
   /* a11y — visually hidden but readable by screen readers */
   .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
+  /* ==================== TOAST ==================== */
+  .v1-toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(150%);
+    z-index:var(--z-toast,110);
+    background:linear-gradient(135deg,rgba(15,45,45,.95),rgba(6,40,49,.95));
+    backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid rgba(229,181,71,.45);
+    color:#fff;padding:.85rem 1.4rem;border-radius:14px;
+    font-family:'Heebo',sans-serif;font-size:.92rem;font-weight:500;
+    box-shadow:0 22px 48px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.06) inset;
+    display:flex;align-items:center;gap:.7rem;
+    opacity:0;visibility:hidden;
+    transition:transform 250ms var(--ease-out-expo),opacity 250ms ease-out,visibility 0s linear 250ms;
+    pointer-events:none;max-width:90vw;
+  }
+  .v1-toast.show{transform:translateX(-50%) translateY(0);opacity:1;visibility:visible;
+    transition:transform 250ms var(--ease-out-expo),opacity 250ms ease-out;}
+  .v1-toast i{color:var(--lg-gold);font-size:1.05rem;}
+  @media (prefers-reduced-motion:reduce){
+    .v1-toast{transition:opacity 200ms ease-out,visibility 0s linear 200ms !important;transform:translateX(-50%) !important;}
+    .v1-toast.show{transform:translateX(-50%) !important;}
+  }
+
   .v1-side__list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem;padding-inline-end:.3rem;margin-inline-end:-.3rem;}
   .v1-side__list::-webkit-scrollbar{width:4px;}
   .v1-side__list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:2px;}
@@ -785,7 +808,7 @@
   </div>
 
   <div class="v1-hd__left">
-    <a href="pages/quiz.html" class="btn btn--gold btn--sm"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</a>
+    <a href="pages/quiz.html" class="btn btn--gold btn--sm js-quiz-link"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</a>
     <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" class="btn btn--clear btn--icon" aria-label="תמלולים" title="תמלולים מלאים"><i class="fa-solid fa-folder-open"></i></a>
     <button class="btn btn--clear btn--icon v1-bell" aria-label="התראות"><i class="fa-regular fa-bell"></i></button>
     <button class="btn btn--clear btn--sm v1-mobile-toggle" id="sidebarToggle" aria-label="פתח תפריט שיעורים" aria-expanded="false" aria-controls="sidebar"><i class="fa-solid fa-list"></i></button>
@@ -874,7 +897,7 @@
     </section>
 
     <!-- REFERRAL / QUIZ CTA BANNER -->
-    <a class="v1-referral" href="pages/quiz.html" aria-label="פתחו מבחני הבנה">
+    <a class="v1-referral js-quiz-link" href="pages/quiz.html" aria-label="פתחו מבחני הבנה">
       <span class="v1-referral__icon-wrap">
         <span class="v1-referral__icon"><i class="fa-solid fa-graduation-cap"></i></span>
       </span>
@@ -963,7 +986,7 @@
           <div class="v1-quiz__icon"><i class="fa-solid fa-graduation-cap"></i></div>
           <h3 class="v1-h3">בדקו את ההבנה במבחן המודול</h3>
           <p class="v1-p">5 שאלות לכל מודול עם הסבר אחרי כל שאלה. ציון מעבר 80%.<br>בנוי לחזק את החומר — לא לבחון אתכם.</p>
-          <a href="pages/quiz.html" class="btn btn--gold"><i class="fa-solid fa-play"></i> פתח מבחנים</a>
+          <a href="pages/quiz.html" class="btn btn--gold js-quiz-link"><i class="fa-solid fa-play"></i> פתח מבחנים</a>
           <div class="v1-quiz__stats" id="quizStats">
             <div><b id="quizPassed">0/8</b><span>מודולים שעברתי</span></div>
             <div><b id="quizAttempts">0</b><span>ניסיונות</span></div>
@@ -1016,6 +1039,12 @@
 
 <!-- Mobile drawer overlay -->
 <div class="v1-drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+
+<!-- Toast region for status announcements -->
+<div class="v1-toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
+  <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+  <span id="toastMsg"></span>
+</div>
 
 <!-- FAB — mobile only, single primary action: open AI coach.
      On desktop, the same actions are reachable from the header and sidebar. -->
@@ -1117,7 +1146,7 @@ function renderSidebar(filter=''){
           ? `<i class="fa-solid fa-check v1-les__check"></i>`
           : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
         const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
-        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi},true)" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
           <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
           <span class="v1-les__txt">
             <span class="v1-les__title">${part.title}</span>
@@ -1167,7 +1196,7 @@ function renderSidebar(filter=''){
             ? `<i class="fa-solid fa-check v1-les__check"></i>`
             : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
           const lessonAria = `${day.title} (${week.title})${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
-          return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectLesson(${mi},${wi},${di})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+          return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectLesson(${mi},${wi},${di},true)" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
             <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
             <span class="v1-les__txt">
               <span class="v1-les__title">${day.title}</span>
@@ -1229,6 +1258,7 @@ function goHome(){
   updateNotesCount();
   document.getElementById('variantsBar').hidden = true;
   renderSidebar(document.getElementById('lessonSearch').value);
+  updateQuizLinks();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 window.goHome = goHome;
@@ -1345,7 +1375,7 @@ function renderQuizStats(){
 }
 
 // ===== Selection =====
-function selectSeminar(si, pi){
+function selectSeminar(si, pi, autoPlay){
   currentType = 'seminar';
   currentSi = si; currentPi = pi;
   currentMi = currentWi = currentDi = -1;
@@ -1353,9 +1383,10 @@ function selectSeminar(si, pi){
   const part = sem.parts[pi];
   currentVideoId = part.videoId;
   renderAfterSelect();
+  if (autoPlay) playCurrent();
 }
 
-function selectLesson(mi, wi, di){
+function selectLesson(mi, wi, di, autoPlay){
   currentType = 'module';
   currentMi = mi; currentWi = wi; currentDi = di;
   currentSi = currentPi = -1;
@@ -1369,6 +1400,7 @@ function selectLesson(mi, wi, di){
     document.getElementById('variantsBar').innerHTML = '';
   }
   renderAfterSelect();
+  if (autoPlay) playCurrent();
 }
 
 function renderVariants(variants){
@@ -1398,7 +1430,17 @@ function renderAfterSelect(){
   updateAboutTab();
   updateAITab();
   updateResourcesTab();
+  updateQuizLinks();
   loadNotes();
+}
+
+// Re-target every quiz link to the current module's quiz when one is open.
+function updateQuizLinks(){
+  let target = 'pages/quiz.html';
+  if (currentType === 'module' && currentMi >= 0) {
+    target = `pages/quiz.html?quiz=${currentMi}`;
+  }
+  document.querySelectorAll('.js-quiz-link').forEach(a => { a.href = target; });
 }
 
 // ===== Breadcrumb =====
@@ -1647,12 +1689,26 @@ function closeVideo(){
 }
 window.closeVideo = closeVideo;
 
+// ===== Toast =====
+let __toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  const m = document.getElementById('toastMsg');
+  if (!t || !m) return;
+  m.textContent = msg;
+  t.classList.add('show');
+  if (__toastTimer) clearTimeout(__toastTimer);
+  __toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+window.showToast = showToast;
+
 function markCurrentComplete(){
   const key = currentLessonKey();
   if (!key) return;
-  if (!completedLessons.includes(key)) {
+  const wasNew = !completedLessons.includes(key);
+  if (wasNew) {
     completedLessons.push(key);
-    localStorage.setItem('bwc_completed', JSON.stringify(completedLessons));
+    try { localStorage.setItem('bwc_completed', JSON.stringify(completedLessons)); } catch(e){}
 
     // Streak
     const today = new Date().toDateString();
@@ -1668,6 +1724,9 @@ function markCurrentComplete(){
     renderStats();
     renderSidebar(document.getElementById('lessonSearch').value);
     updateLessonNav();
+    showToast('השיעור סומן כהושלם ✓');
+  } else {
+    showToast('כבר סימנת את השיעור הזה כהושלם');
   }
 }
 
