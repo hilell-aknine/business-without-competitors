@@ -857,7 +857,7 @@
     <!-- VIDEO PLAYER (shown when a lesson is playing) -->
     <section class="v1-video" id="videoSection">
       <button class="v1-video__close" onclick="closeVideo()" aria-label="סגור"><i class="fa-solid fa-xmark"></i></button>
-      <iframe id="videoFrame" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <iframe id="videoFrame" src="about:blank" title="נגן וידאו של השיעור" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </section>
 
     <!-- VARIANTS (e.g. צביקה / תמר) -->
@@ -1682,7 +1682,7 @@ function playCurrent(){
 
 function closeVideo(){
   const sec = document.getElementById('videoSection');
-  document.getElementById('videoFrame').src = '';
+  document.getElementById('videoFrame').src = 'about:blank';
   sec.classList.remove('show');
   document.getElementById('hero').style.display = '';
   if (window.__completeTimer) clearTimeout(window.__completeTimer);
