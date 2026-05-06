@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
     <script>
         // FOUC prevention
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
@@ -22,21 +23,11 @@
     <link rel="stylesheet" href="../css/theme.css">
     <script src="../js/theme-toggle.js" defer></script>
     <style>
+        /* Tokens come from /assets/css/design-tokens.css                  */
+        /* Quiz page is light-themed, so it overrides a few tokens here:   */
         :root {
-            --deep-petrol: #003B46;
-            --muted-teal: #00606B;
-            --dusty-aqua: #2F8592;
-            --frost-white: #E8F1F2;
-            --pure-white: #FFFFFF;
-            --light-gray: #f8f9fa;
-            --border-light: #e9ecef;
-            --text-dark: #2d3436;
-            --text-muted: #636e72;
-            --gold: #D4AF37;
-            --gold-light: #e6c65a;
-            --gold-glow: rgba(212, 175, 55, 0.3);
-            --success: #10B981;
-            --error: #EF4444;
+            --text-muted: #636e72;     /* Quiz is light-themed; muted = dark gray, not translucent white */
+            --error: var(--color-error);
             --gradient-gold: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
             --gradient-primary: linear-gradient(135deg, #003B46 0%, #00606B 50%, #2F8592 100%);
         }
