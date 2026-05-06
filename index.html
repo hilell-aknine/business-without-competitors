@@ -509,6 +509,21 @@
   .v1-announce__empty h4{margin:0 0 .25rem;font-family:'Frank Ruhl Libre',serif;font-size:1.05rem;font-weight:600;color:#fff;}
   .v1-announce__empty p{margin:0;font-size:.82rem;color:rgba(255,255,255,.55);}
 
+  /* ==================== BREADCRUMB ==================== */
+  .v1-crumb{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;padding:.55rem .85rem;
+    background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);border-radius:14px;
+    font-size:.78rem;color:rgba(232,241,242,.72);}
+  .v1-crumb[hidden]{display:none;}
+  .v1-crumb__item{display:inline-flex;align-items:center;gap:.4rem;background:none;border:none;
+    color:inherit;font-family:inherit;font-size:inherit;cursor:pointer;padding:.2rem .35rem;
+    border-radius:6px;text-decoration:none;transition:background .15s,color .15s;}
+  .v1-crumb__item:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .v1-crumb__item:focus-visible{outline:2px solid var(--lg-gold);outline-offset:2px;}
+  .v1-crumb__item--current{color:var(--lg-gold);font-weight:600;cursor:default;}
+  .v1-crumb__item--current:hover{background:none;}
+  .v1-crumb__sep{color:rgba(232,241,242,.35);font-size:.7rem;}
+  .v1-crumb i.fa-folder-open,.v1-crumb i.fa-calendar-week,.v1-crumb i.fa-circle-play{font-size:.7rem;opacity:.7;}
+
   /* ==================== LESSON NAV ==================== */
   .v1-navbar{
     display:flex;align-items:center;justify-content:space-between;gap:.75rem;
@@ -873,6 +888,9 @@
       </span>
     </a>
 
+    <!-- BREADCRUMB — visible only when a lesson is selected -->
+    <nav class="v1-crumb" id="lessonCrumb" aria-label="נתיב ניווט" hidden></nav>
+
     <!-- LESSON NAV -->
     <div class="v1-navbar g" id="lessonNav" hidden>
       <button class="btn btn--clear" id="prevBtn">
@@ -1200,6 +1218,8 @@ function goHome(){
   currentVideoId = null;
   closeVideo();
   document.getElementById('lessonNav').hidden = true;
+  const crumbEl = document.getElementById('lessonCrumb');
+  if (crumbEl) { crumbEl.hidden = true; crumbEl.innerHTML = ''; }
   document.getElementById('aboutTitle').textContent = 'בחרו שיעור מהתפריט';
   document.getElementById('aboutDesc').textContent = 'אחרי שתבחרו שיעור או מודול, יופיעו כאן תיאור המודול, מספר השיעורים, ומידע נוסף על השיעור.';
   document.getElementById('aboutMeta').innerHTML = '';
@@ -1374,11 +1394,77 @@ function switchVariant(idx, btn, variants){
 function renderAfterSelect(){
   renderSidebar(document.getElementById('lessonSearch').value);
   updateLessonNav();
+  updateCrumb();
   updateAboutTab();
   updateAITab();
   updateResourcesTab();
   loadNotes();
 }
+
+// ===== Breadcrumb =====
+function escAttr(s){ return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function updateCrumb(){
+  const crumb = document.getElementById('lessonCrumb');
+  if (!crumb) return;
+  if (currentType === 'seminar' && currentSi >= 0) {
+    const sem = SEMINARS[currentSi];
+    const part = sem.parts[currentPi];
+    crumb.innerHTML = `
+      <button type="button" class="v1-crumb__item" onclick="crumbOpenSeminar(${currentSi})">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><span>סמינרים</span>
+      </button>
+      <span class="v1-crumb__sep" aria-hidden="true">›</span>
+      <button type="button" class="v1-crumb__item" onclick="crumbOpenSeminar(${currentSi})">
+        <span>${escAttr(sem.title)}</span>
+      </button>
+      <span class="v1-crumb__sep" aria-hidden="true">›</span>
+      <span class="v1-crumb__item v1-crumb__item--current" aria-current="page">${escAttr(part.title)}</span>
+    `;
+    crumb.hidden = false;
+  } else if (currentType === 'module' && currentMi >= 0) {
+    const mod = MODULES[currentMi];
+    const week = mod.weeks[currentWi];
+    const day = week.days[currentDi];
+    crumb.innerHTML = `
+      <button type="button" class="v1-crumb__item" onclick="crumbOpenModule(${currentMi})">
+        <i class="fa-solid fa-folder-open" aria-hidden="true"></i><span>מודול ${currentMi+1}: ${escAttr(mod.title)}</span>
+      </button>
+      <span class="v1-crumb__sep" aria-hidden="true">›</span>
+      <button type="button" class="v1-crumb__item" onclick="crumbOpenModule(${currentMi})">
+        <i class="fa-solid fa-calendar-week" aria-hidden="true"></i><span>${escAttr(week.title)}</span>
+      </button>
+      <span class="v1-crumb__sep" aria-hidden="true">›</span>
+      <span class="v1-crumb__item v1-crumb__item--current" aria-current="page">${escAttr(day.title)}</span>
+    `;
+    crumb.hidden = false;
+  } else {
+    crumb.hidden = true;
+    crumb.innerHTML = '';
+  }
+}
+
+function crumbOpenSeminar(si){
+  const el = document.querySelector(`.v1-mod[data-sem="${si}"]`);
+  if (el) {
+    el.classList.add('open');
+    const hd = el.querySelector('.v1-mod__hd');
+    if (hd) hd.setAttribute('aria-expanded','true');
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+window.crumbOpenSeminar = crumbOpenSeminar;
+
+function crumbOpenModule(mi){
+  const el = document.querySelector(`.v1-mod[data-mod="${mi}"]`);
+  if (el) {
+    el.classList.add('open');
+    const hd = el.querySelector('.v1-mod__hd');
+    if (hd) hd.setAttribute('aria-expanded','true');
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+}
+window.crumbOpenModule = crumbOpenModule;
 
 function updateLessonNav(){
   const idx = flatIndexOfCurrent();
