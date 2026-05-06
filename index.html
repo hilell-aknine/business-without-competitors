@@ -203,7 +203,7 @@
 
   .v1-side__head{padding:.4rem .2rem;}
   .v1-side__head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
-  .v1-side__h1{font-size:.85rem;font-weight:600;color:#fff;}
+  .v1-side__h1{font-size:.85rem;font-weight:600;color:#fff;margin:0;}
   .v1-side__count{font-size:.72rem;color:rgba(232,241,242,.55);font-variant-numeric:tabular-nums;}
   .v1-side__bar{display:block;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
   .v1-side__bar span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:3px;}
@@ -219,7 +219,10 @@
   .v1-side__search input:focus{border-color:rgba(230,198,90,.4);background:rgba(0,0,0,.35);}
   .v1-side__search i{position:absolute;inset-inline-start:.85rem;top:50%;transform:translateY(-50%);color:rgba(232,241,242,.5);font-size:.8rem;}
 
-  .v1-side__h2{font-size:.7rem;font-weight:600;color:rgba(232,241,242,.5);text-transform:uppercase;letter-spacing:.14em;padding:.25rem .2rem;}
+  .v1-side__h2{font-size:.7rem;font-weight:600;color:rgba(232,241,242,.5);text-transform:uppercase;letter-spacing:.14em;padding:.25rem .2rem;margin:0;}
+
+  /* a11y — visually hidden but readable by screen readers */
+  .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 
   .v1-side__list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem;padding-inline-end:.3rem;margin-inline-end:-.3rem;}
   .v1-side__list::-webkit-scrollbar{width:4px;}
@@ -227,13 +230,15 @@
 
   .v1-side__hl{
     display:flex;align-items:center;gap:.65rem;
+    width:100%;
     padding:.7rem .85rem;border-radius:14px;
     background:linear-gradient(135deg,rgba(230,198,90,.16),rgba(212,175,55,.06));
     border:1px solid rgba(230,198,90,.22);
-    font-size:.85rem;color:#fff;font-weight:500;cursor:pointer;
-    text-decoration:none;
+    font-family:inherit;font-size:.85rem;color:#fff;font-weight:500;cursor:pointer;
+    text-decoration:none;text-align:start;
     transition:background .2s;
   }
+  .v1-side__hl:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
   .v1-side__hl:hover{background:linear-gradient(135deg,rgba(230,198,90,.24),rgba(212,175,55,.1));}
   .v1-side__hl i{color:var(--lg-gold);width:18px;text-align:center;}
   .v1-side__hl.welcome{background:linear-gradient(135deg,rgba(63,170,187,.16),rgba(47,133,146,.06));border-color:rgba(63,170,187,.22);}
@@ -290,7 +295,10 @@
   .v1-les{
     display:flex;align-items:center;gap:.6rem;padding:.5rem;border-radius:12px;
     cursor:pointer;transition:background .15s;border:1px solid transparent;
+    /* Reset button styles when rendered as a real button (a11y) */
+    width:100%;background:transparent;color:inherit;font-family:inherit;font-size:inherit;text-align:start;
   }
+  .v1-les:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
   .v1-les:hover{background:rgba(255,255,255,.04);}
   .v1-les.active{background:linear-gradient(135deg,rgba(230,198,90,.14),rgba(212,175,55,.04));border-color:rgba(230,198,90,.3);}
   .v1-les__thumb{position:relative;width:62px;height:38px;border-radius:8px;overflow:hidden;background:#04161b;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
@@ -777,7 +785,7 @@
     </section>
 
     <!-- VARIANTS (e.g. צביקה / תמר) -->
-    <div class="v1-variants" id="variantsBar" hidden></div>
+    <div class="v1-variants" id="variantsBar" hidden role="group" aria-label="בחירת מדריך"></div>
 
     <!-- STATS -->
     <section class="v1-stats" aria-label="סטטיסטיקות">
@@ -802,14 +810,14 @@
     </section>
 
     <!-- ANNOUNCE -->
-    <section class="v1-announce g" aria-label="לוח מודעות">
+    <section class="v1-announce g" aria-labelledby="announceTitle">
       <header class="v1-announce__hd">
-        <span class="v1-announce__title">
-          <span class="v1-announce__icon"><i class="fa-solid fa-bullhorn"></i></span>
+        <h2 id="announceTitle" class="v1-announce__title">
+          <span class="v1-announce__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
           לוח מודעות
-        </span>
+        </h2>
       </header>
-      <div class="v1-announce__empty">
+      <div class="v1-announce__empty" aria-live="polite" aria-atomic="true">
         <svg width="44" height="44" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M44 4 22 26"/>
           <path d="M44 4 30 44l-8-18-18-8z"/>
@@ -891,10 +899,11 @@
       <!-- Notes -->
       <div class="v1-panel" data-panel="notes" role="tabpanel">
         <div class="v1-notes">
-          <textarea id="notesArea" placeholder="כתבו כאן את ההערות שלכם לשיעור הנוכחי..."></textarea>
+          <label for="notesArea" class="visually-hidden">הערות אישיות לשיעור הנוכחי</label>
+          <textarea id="notesArea" placeholder="כתבו כאן את ההערות שלכם לשיעור הנוכחי..." aria-describedby="notesCount notesSaved"></textarea>
           <div class="v1-notes__foot">
-            <span class="v1-notes__count" id="notesCount">0 תווים</span>
-            <span class="v1-notes__saved" id="notesSaved"><i class="fa-solid fa-check"></i> נשמר</span>
+            <span class="v1-notes__count" id="notesCount" aria-live="polite">0 תווים</span>
+            <span class="v1-notes__saved" id="notesSaved" role="status" aria-live="polite"><i class="fa-solid fa-check" aria-hidden="true"></i> נשמר</span>
           </div>
         </div>
       </div>
@@ -921,24 +930,25 @@
     <button class="v1-side__close" id="sidebarClose" type="button" aria-label="סגור תפריט"><i class="fa-solid fa-xmark"></i></button>
     <div class="v1-side__head">
       <div class="v1-side__head-top">
-        <span class="v1-side__h1">התקדמות בקורס</span>
-        <span class="v1-side__count" id="sideCount">0/0 שיעורים</span>
+        <h2 class="v1-side__h1">התקדמות בקורס</h2>
+        <span class="v1-side__count" id="sideCount" aria-live="polite">0/0 שיעורים</span>
       </div>
       <div class="v1-side__bar"><span id="sideFill" style="width:0%"></span></div>
       <div class="v1-side__pct" id="sidePct">0%</div>
     </div>
 
-    <div class="v1-side__search">
-      <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" id="lessonSearch" placeholder="חפש שיעור...">
+    <div class="v1-side__search" role="search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <label for="lessonSearch" class="visually-hidden">חיפוש שיעור</label>
+      <input type="text" id="lessonSearch" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול" autocomplete="off">
     </div>
 
     <button class="v1-side__jump" id="jumpToCurrent" type="button">
-      <i class="fa-solid fa-arrow-down"></i>
+      <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
       קפיצה לשיעור הנוכחי
     </button>
 
-    <div class="v1-side__h2">תוכן הקורס</div>
+    <h3 class="v1-side__h2">תוכן הקורס</h3>
 
     <div class="v1-side__list" id="sideList">
       <!-- populated by JS -->
@@ -1015,7 +1025,7 @@ function renderSidebar(filter=''){
   let html = '';
 
   // Welcome highlight (returns to home view)
-  html += `<a class="v1-side__hl welcome" href="#" onclick="goHome();return false;"><i class="fa-solid fa-door-open"></i><span>ברוך הבא לפורטל</span></a>`;
+  html += `<button type="button" class="v1-side__hl welcome" onclick="goHome()" aria-label="חזרה לדף הבית של הפורטל"><i class="fa-solid fa-door-open" aria-hidden="true"></i><span>ברוך הבא לפורטל</span></button>`;
 
   // Quiz promo card (replaces partners banner from V1)
   html += `<a class="v1-side__promo" href="pages/quiz.html">
@@ -1035,7 +1045,7 @@ function renderSidebar(filter=''){
     return sem.parts.some(p => p.title.toLowerCase().includes(q));
   });
   if (seminarMatches.length) {
-    html += `<div class="v1-side__h2" style="padding-top:.6rem;">סמינרים חיים</div>`;
+    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">סמינרים חיים</h3>`;
     seminarMatches.forEach(({sem, si}) => {
       const isOpen = currentType === 'seminar' && currentSi === si;
       const partsHtml = sem.parts.map((part, pi) => {
@@ -1049,23 +1059,25 @@ function renderSidebar(filter=''){
         const overlay = done
           ? `<i class="fa-solid fa-check v1-les__check"></i>`
           : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
-        return `<div class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi})">
-          <span class="v1-les__thumb">${thumb}${overlay}</span>
-          <div class="v1-les__txt">
+        const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':''}`;
+        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+          <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
+          <span class="v1-les__txt">
             <span class="v1-les__title">${part.title}</span>
             <span class="v1-les__meta">${active?'נצפה כעת':done?'הושלם':'לא נצפה'}</span>
-          </div>
-        </div>`;
+          </span>
+        </button>`;
       }).join('');
       const presentation = sem.presentationUrl ? `<a class="v1-side__resource" href="${sem.presentationUrl}" target="_blank" rel="noopener"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>` : '';
+      const semListId = `sem-list-${si}`;
       html += `<div class="v1-mod ${isOpen?'open':''}" data-sem="${si}">
-        <button class="v1-mod__hd" onclick="toggleMod(this)">
-          <span class="v1-mod__num seminar"><i class="fa-solid ${sem.icon||'fa-video'}"></i></span>
+        <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${semListId}">
+          <span class="v1-mod__num seminar" aria-hidden="true"><i class="fa-solid ${sem.icon||'fa-video'}"></i></span>
           <span class="v1-mod__title">${sem.title}</span>
-          <span class="v1-mod__count">${sem.parts.length}</span>
-          <i class="fa-solid fa-chevron-down v1-mod__chev"></i>
+          <span class="v1-mod__count" aria-label="${sem.parts.length} שיעורים">${sem.parts.length}</span>
+          <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
         </button>
-        <div class="v1-mod__list">${partsHtml}${presentation}</div>
+        <div class="v1-mod__list" id="${semListId}">${partsHtml}${presentation}</div>
       </div>`;
     });
   }
@@ -1077,7 +1089,7 @@ function renderSidebar(filter=''){
     return mod.weeks.some(w => w.days.some(d => d.title.toLowerCase().includes(q)));
   });
   if (moduleMatches.length) {
-    html += `<div class="v1-side__h2" style="padding-top:.6rem;">מודולי ההכשרה</div>`;
+    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">מודולי ההכשרה</h3>`;
     moduleMatches.forEach(({mod, mi}) => {
       const isOpen = currentType === 'module' && currentMi === mi;
       const totalLessons = mod.weeks.reduce((s, w) => s + w.days.filter(d => d.videoId).length, 0);
@@ -1097,13 +1109,14 @@ function renderSidebar(filter=''){
           const overlay = done
             ? `<i class="fa-solid fa-check v1-les__check"></i>`
             : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
-          return `<div class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectLesson(${mi},${wi},${di})">
-            <span class="v1-les__thumb">${thumb}${overlay}</span>
-            <div class="v1-les__txt">
+          const lessonAria = `${day.title} (${week.title})${active?' — נצפה כעת':done?' — הושלם':''}`;
+          return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectLesson(${mi},${wi},${di})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+            <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
+            <span class="v1-les__txt">
               <span class="v1-les__title">${day.title}</span>
               <span class="v1-les__meta">${week.title} · ${active?'נצפה כעת':done?'הושלם':'לא נצפה'}</span>
-            </div>
-          </div>`;
+            </span>
+          </button>`;
         }).join('');
         if (!daysHtml.trim()) return '';
         return `<div class="v1-week"><div class="v1-week__title"><i class="fa-solid fa-calendar-week"></i> ${week.title}</div>${daysHtml}</div>`;
@@ -1112,14 +1125,15 @@ function renderSidebar(filter=''){
       const extraResources = [];
       if (mod.presentationUrl) extraResources.push(`<a class="v1-side__resource" href="${mod.presentationUrl}" target="_blank" rel="noopener"><i class="fa-solid fa-file-powerpoint"></i> מצגת המודול</a>`);
 
+      const modListId = `mod-list-${mi}`;
       html += `<div class="v1-mod ${isOpen?'open':''}" data-mod="${mi}">
-        <button class="v1-mod__hd" onclick="toggleMod(this)">
-          <span class="v1-mod__num">${mi+1}</span>
+        <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${modListId}">
+          <span class="v1-mod__num" aria-hidden="true">${mi+1}</span>
           <span class="v1-mod__title">${mod.title}</span>
-          <span class="v1-mod__count">${doneCount}/${totalLessons}</span>
-          <i class="fa-solid fa-chevron-down v1-mod__chev"></i>
+          <span class="v1-mod__count" aria-label="${doneCount} מתוך ${totalLessons} שיעורים הושלמו">${doneCount}/${totalLessons}</span>
+          <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
         </button>
-        <div class="v1-mod__list">${weeksHtml}${extraResources.join('')}</div>
+        <div class="v1-mod__list" id="${modListId}">${weeksHtml}${extraResources.join('')}</div>
       </div>`;
     });
   }
@@ -1132,7 +1146,8 @@ function renderSidebar(filter=''){
 }
 
 function toggleMod(btn){
-  btn.parentElement.classList.toggle('open');
+  const isOpen = btn.parentElement.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
 
 // Return to home/hero view, clear current selection
@@ -1197,8 +1212,10 @@ function renderHero(){
     document.getElementById('heroPreviewTag').textContent = `מודול ${next.mi+1} · ${mod.title}`;
   }
   document.getElementById('heroMeta').innerHTML = metaHtml;
-  document.getElementById('heroPreviewImg').src = `https://img.youtube.com/vi/${next.videoId}/maxresdefault.jpg`;
-  document.getElementById('heroPreviewImg').onerror = function(){ this.src = `https://img.youtube.com/vi/${next.videoId}/hqdefault.jpg`; };
+  const heroImg = document.getElementById('heroPreviewImg');
+  heroImg.src = `https://img.youtube.com/vi/${next.videoId}/maxresdefault.jpg`;
+  heroImg.alt = `תצוגה מקדימה של השיעור: ${next.title}`;
+  heroImg.onerror = function(){ this.src = `https://img.youtube.com/vi/${next.videoId}/hqdefault.jpg`; };
 
   document.getElementById('heroDoneCount').textContent = done;
   document.getElementById('heroTotalCount').textContent = total;
@@ -1295,13 +1312,17 @@ function renderVariants(variants){
   const bar = document.getElementById('variantsBar');
   bar.hidden = false;
   bar.innerHTML = variants.map((v, i) =>
-    `<button class="v1-variant ${i===0?'active':''}" onclick="switchVariant(${i}, this, ${JSON.stringify(variants).replace(/"/g,'&quot;')})">${v.label}</button>`
+    `<button type="button" class="v1-variant ${i===0?'active':''}" onclick="switchVariant(${i}, this, ${JSON.stringify(variants).replace(/"/g,'&quot;')})" aria-pressed="${i===0?'true':'false'}">${v.label}</button>`
   ).join('');
 }
 function switchVariant(idx, btn, variants){
   currentVideoId = variants[idx].videoId;
-  document.querySelectorAll('.v1-variant').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.v1-variant').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-pressed', 'false');
+  });
   btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
   if (document.getElementById('videoSection').classList.contains('show')) {
     playCurrent();
   }
