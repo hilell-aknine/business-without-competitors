@@ -211,13 +211,28 @@
 
   .v1-side__search{position:relative;}
   .v1-side__search input{
-    width:100%;padding:.55rem .9rem;padding-inline-start:2.2rem;
+    width:100%;padding:.55rem .9rem;padding-inline-start:2.2rem;padding-inline-end:4.2rem;
     background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);
     border-radius:10px;color:#fff;font-family:inherit;font-size:.82rem;outline:none;
     transition:border-color .2s;}
   .v1-side__search input::placeholder{color:rgba(232,241,242,.6);}
   .v1-side__search input:focus{border-color:rgba(230,198,90,.4);background:rgba(0,0,0,.35);}
-  .v1-side__search i{position:absolute;inset-inline-start:.85rem;top:50%;transform:translateY(-50%);color:rgba(232,241,242,.5);font-size:.8rem;}
+  .v1-side__search input:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
+  .v1-side__search > i{position:absolute;inset-inline-start:.85rem;top:50%;transform:translateY(-50%);color:rgba(232,241,242,.55);font-size:.8rem;pointer-events:none;}
+  .v1-side__search-kbd{position:absolute;inset-inline-end:.5rem;top:50%;transform:translateY(-50%);
+    font-size:.62rem;color:rgba(232,241,242,.55);font-family:ui-monospace,Menlo,monospace;
+    padding:.18rem .35rem;border:1px solid rgba(255,255,255,.12);border-radius:5px;background:rgba(255,255,255,.04);
+    pointer-events:none;}
+  .v1-side__search-clear{position:absolute;inset-inline-end:.4rem;top:50%;transform:translateY(-50%);
+    width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+    color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.72rem;
+    padding:0;line-height:1;}
+  .v1-side__search-clear:hover{background:rgba(255,255,255,.2);}
+  .v1-side__search-clear:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
+  .v1-side__search.has-value .v1-side__search-kbd{display:none;}
+  .v1-side__search.has-value .v1-side__search-clear{display:inline-flex;}
+  .v1-side__search-count{display:none;font-size:.7rem;color:rgba(232,241,242,.6);padding:.2rem .2rem 0;}
+  .v1-side__search.has-value .v1-side__search-count{display:block;}
 
   .v1-side__h2{font-size:.7rem;font-weight:600;color:rgba(232,241,242,.5);text-transform:uppercase;letter-spacing:.14em;padding:.25rem .2rem;margin:0;}
 
@@ -953,10 +968,13 @@
       <div class="v1-side__pct" id="sidePct">0%</div>
     </div>
 
-    <div class="v1-side__search" role="search">
+    <div class="v1-side__search" id="lessonSearchWrap" role="search">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
       <label for="lessonSearch" class="visually-hidden">חיפוש שיעור</label>
-      <input type="text" id="lessonSearch" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול" autocomplete="off">
+      <input type="text" id="lessonSearch" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול. קיצור מקלדת Ctrl K" aria-describedby="lessonSearchCount" autocomplete="off">
+      <kbd class="v1-side__search-kbd" aria-hidden="true">Ctrl K</kbd>
+      <button type="button" class="v1-side__search-clear" id="lessonSearchClear" aria-label="נקה חיפוש"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+      <div class="v1-side__search-count" id="lessonSearchCount" role="status" aria-live="polite"></div>
     </div>
 
     <button class="v1-side__jump" id="jumpToCurrent" type="button">
@@ -1160,7 +1178,11 @@ function renderSidebar(filter=''){
   }
 
   if (!html.trim()) {
-    html = '<div class="v1-side__empty">לא נמצאו שיעורים תואמים</div>';
+    html = `<div class="v1-side__empty">
+      <div style="font-size:1.4rem;margin-bottom:.5rem;opacity:.6;" aria-hidden="true">🔍</div>
+      <div>לא נמצאו שיעורים תואמים</div>
+      <button type="button" class="btn btn--clear btn--sm" style="margin-top:.7rem;" onclick="clearLessonSearch()">נקה חיפוש</button>
+    </div>`;
   }
 
   list.innerHTML = html;
@@ -1564,8 +1586,72 @@ function markCurrentComplete(){
 }
 
 // ===== Search =====
-document.getElementById('lessonSearch').addEventListener('input', e => {
-  renderSidebar(e.target.value);
+const searchInput = document.getElementById('lessonSearch');
+const searchWrap  = document.getElementById('lessonSearchWrap');
+const searchClear = document.getElementById('lessonSearchClear');
+const searchCount = document.getElementById('lessonSearchCount');
+let searchDebounce = null;
+
+function countMatches(q){
+  if (!q) return 0;
+  const needle = q.toLowerCase();
+  let n = 0;
+  SEMINARS.forEach(sem => {
+    if (sem.title.toLowerCase().includes(needle)) n += sem.parts.length;
+    else sem.parts.forEach(p => { if (p.title.toLowerCase().includes(needle)) n++; });
+  });
+  MODULES.forEach(mod => {
+    const modMatch = mod.title.toLowerCase().includes(needle);
+    mod.weeks.forEach(w => w.days.forEach(d => {
+      if (!d.videoId) return;
+      if (modMatch || d.title.toLowerCase().includes(needle)) n++;
+    }));
+  });
+  return n;
+}
+
+function applySearch(){
+  const q = searchInput.value.trim();
+  searchWrap.classList.toggle('has-value', q.length > 0);
+  if (q.length > 0) {
+    const n = countMatches(q);
+    searchCount.textContent = n === 0 ? 'אין תוצאות' : `${n} תוצאות`;
+  } else {
+    searchCount.textContent = '';
+  }
+  renderSidebar(q);
+}
+
+function clearLessonSearch(){
+  searchInput.value = '';
+  applySearch();
+  searchInput.focus();
+}
+window.clearLessonSearch = clearLessonSearch;
+
+searchInput.addEventListener('input', () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(applySearch, 200);
+});
+
+searchClear.addEventListener('click', clearLessonSearch);
+
+// Esc clears (when search is focused)
+searchInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && searchInput.value) {
+    e.preventDefault();
+    e.stopPropagation();
+    clearLessonSearch();
+  }
+});
+
+// Ctrl+K / Cmd+K focuses the search box
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
 });
 
 // ===== FAB AI =====
