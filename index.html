@@ -309,7 +309,19 @@
   .v1-les__txt{display:flex;flex-direction:column;gap:.15rem;min-width:0;flex:1;}
   .v1-les__title{font-size:.78rem;color:#fff;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .v1-les.done .v1-les__title{color:rgba(232,241,242,.55);}
-  .v1-les__meta{font-size:.7rem;color:rgba(232,241,242,.62);}
+  .v1-les__meta{font-size:.7rem;color:rgba(232,241,242,.62);display:flex;align-items:center;gap:.4rem;}
+  .v1-les__dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.32);flex-shrink:0;transition:background .2s,border-color .2s,box-shadow .2s;}
+  .v1-les.done .v1-les__dot{background:#10B981;border-color:#10B981;}
+  .v1-les.active .v1-les__dot{background:var(--lg-gold);border-color:var(--lg-gold);box-shadow:0 0 6px rgba(229,181,71,.7);}
+
+  .v1-side__legend{display:flex;align-items:center;justify-content:flex-start;gap:.7rem;flex-wrap:wrap;
+    padding:.4rem .55rem;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05);
+    border-radius:10px;font-size:.66rem;color:rgba(232,241,242,.65);}
+  .v1-side__legend-item{display:inline-flex;align-items:center;gap:.3rem;}
+  .v1-side__legend .dot{display:inline-block;width:8px;height:8px;border-radius:50%;}
+  .v1-side__legend .dot--default{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.32);}
+  .v1-side__legend .dot--done{background:#10B981;}
+  .v1-side__legend .dot--active{background:var(--lg-gold);box-shadow:0 0 4px rgba(229,181,71,.7);}
   .v1-side__resource{display:flex;align-items:center;gap:.6rem;padding:.5rem .55rem;font-size:.74rem;color:rgba(230,198,90,.85);text-decoration:none;border-radius:10px;}
   .v1-side__resource:hover{background:rgba(230,198,90,.06);color:var(--lg-gold);}
   .v1-side__resource i{font-size:.78rem;}
@@ -948,6 +960,12 @@
       קפיצה לשיעור הנוכחי
     </button>
 
+    <div class="v1-side__legend" aria-hidden="true">
+      <span class="v1-side__legend-item"><span class="dot dot--default"></span>לא נצפה</span>
+      <span class="v1-side__legend-item"><span class="dot dot--active"></span>נצפה כעת</span>
+      <span class="v1-side__legend-item"><span class="dot dot--done"></span>הושלם</span>
+    </div>
+
     <h3 class="v1-side__h2">תוכן הקורס</h3>
 
     <div class="v1-side__list" id="sideList">
@@ -1059,12 +1077,12 @@ function renderSidebar(filter=''){
         const overlay = done
           ? `<i class="fa-solid fa-check v1-les__check"></i>`
           : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
-        const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':''}`;
+        const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
         return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
           <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
           <span class="v1-les__txt">
             <span class="v1-les__title">${part.title}</span>
-            <span class="v1-les__meta">${active?'נצפה כעת':done?'הושלם':'לא נצפה'}</span>
+            <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${sem.title}</span></span>
           </span>
         </button>`;
       }).join('');
@@ -1109,12 +1127,12 @@ function renderSidebar(filter=''){
           const overlay = done
             ? `<i class="fa-solid fa-check v1-les__check"></i>`
             : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
-          const lessonAria = `${day.title} (${week.title})${active?' — נצפה כעת':done?' — הושלם':''}`;
+          const lessonAria = `${day.title} (${week.title})${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
           return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectLesson(${mi},${wi},${di})" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
             <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
             <span class="v1-les__txt">
               <span class="v1-les__title">${day.title}</span>
-              <span class="v1-les__meta">${week.title} · ${active?'נצפה כעת':done?'הושלם':'לא נצפה'}</span>
+              <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${week.title}</span></span>
             </span>
           </button>`;
         }).join('');
