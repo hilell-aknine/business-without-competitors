@@ -1,0 +1,363 @@
+/* ============================================================
+   ONBOARDING MODAL — First-time visitor flow
+   Endowed Progress Effect: 3 steps, +1.5% each (4.5% total)
+   Style: Liquid Glass — frosted, gold accents, RTL Hebrew
+   Loaded by index.html only.
+   ============================================================ */
+
+.onb-overlay[hidden] { display: none !important; }
+
+.onb-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200; /* above v1-toast (110), v1-modal (100) */
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+    background: rgba(4, 22, 27, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    animation: onbFade 280ms var(--ease-smooth, ease);
+}
+
+@keyframes onbFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes onbRise {
+    from { opacity: 0; transform: translateY(18px) scale(.985); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onb-overlay,
+    .onb-modal { animation: none !important; }
+}
+
+/* ---------- Modal shell ---------- */
+.onb-modal {
+    position: relative;
+    width: min(560px, 100%);
+    max-height: calc(100vh - 2.5rem);
+    overflow-y: auto;
+    border-radius: 22px;
+    padding: 1.6rem 1.4rem 1.5rem;
+    color: #fff;
+    background: linear-gradient(160deg,
+        rgba(15, 45, 45, 0.78) 0%,
+        rgba(15, 45, 45, 0.62) 60%,
+        rgba(212, 165, 116, 0.10) 100%);
+    backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+    -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-top-color: rgba(255, 255, 255, 0.28);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.45),
+        0 10px 24px rgba(0, 0, 0, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    animation: onbRise 380ms var(--ease-smooth, cubic-bezier(.32,.72,0,1));
+    isolation: isolate;
+}
+
+.onb-modal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg,
+        rgba(255, 255, 255, 0.10) 0%,
+        rgba(255, 255, 255, 0.02) 35%,
+        transparent 55%);
+}
+
+/* ---------- Close button ---------- */
+.onb-close {
+    position: absolute;
+    top: .65rem;
+    inset-inline-end: .65rem;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: .9rem;
+    transition: background .2s, transform .2s, color .2s;
+    z-index: 2;
+}
+.onb-close:hover { background: rgba(255, 255, 255, 0.16); color: #fff; transform: scale(1.05); }
+.onb-close:focus-visible { outline: 3px solid var(--lg-gold); outline-offset: 2px; }
+
+/* ---------- Header ---------- */
+.onb-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--lg-gold);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: .55rem;
+}
+.onb-eyebrow i {
+    font-size: .65rem;
+    filter: drop-shadow(0 0 8px rgba(229, 181, 71, 0.5));
+}
+
+.onb-title {
+    font-family: 'Frank Ruhl Libre', 'Heebo', serif;
+    font-size: clamp(1.35rem, 3.6vw, 1.7rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: .35rem;
+    color: #fff;
+}
+.onb-title b { color: var(--lg-gold); font-weight: 700; }
+
+.onb-sub {
+    font-size: .92rem;
+    line-height: 1.55;
+    color: rgba(232, 241, 242, 0.78);
+    margin-bottom: 1.1rem;
+}
+
+/* ---------- Bonus meter (visual progress headline) ---------- */
+.onb-meter {
+    margin: 0 0 1.1rem;
+    padding: .75rem .9rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg,
+        rgba(229, 181, 71, 0.12) 0%,
+        rgba(229, 181, 71, 0.04) 100%);
+    border: 1px solid rgba(229, 181, 71, 0.28);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .8rem;
+    flex-wrap: wrap;
+}
+.onb-meter__label {
+    font-size: .82rem;
+    color: rgba(232, 241, 242, 0.85);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.onb-meter__label i { color: var(--lg-gold); }
+.onb-meter__value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--lg-gold);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px rgba(229, 181, 71, 0.35);
+}
+
+/* ---------- Steps grid ---------- */
+.onb-steps {
+    display: grid;
+    gap: .65rem;
+    margin-bottom: 1.1rem;
+}
+
+.onb-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: .85rem .95rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    text-align: start;
+    color: inherit;
+    font-family: inherit;
+    cursor: pointer;
+    transition:
+        background .25s var(--ease-smooth, ease),
+        border-color .25s var(--ease-smooth, ease),
+        transform .2s var(--ease-smooth, ease);
+}
+.onb-step:hover:not(.is-done) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(229, 181, 71, 0.35);
+    transform: translateY(-1px);
+}
+.onb-step:focus-visible {
+    outline: 3px solid var(--lg-gold);
+    outline-offset: 2px;
+}
+
+.onb-step__icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    background: linear-gradient(135deg,
+        rgba(229, 181, 71, 0.22),
+        rgba(229, 181, 71, 0.06));
+    border: 1px solid rgba(229, 181, 71, 0.32);
+    color: var(--lg-gold);
+    font-size: .95rem;
+    transition: all .3s var(--ease-smooth, ease);
+}
+.onb-step.is-done .onb-step__icon {
+    background: linear-gradient(135deg,
+        var(--lg-gold) 0%,
+        var(--lg-gold-deep) 100%);
+    color: #1A2E2E;
+    border-color: rgba(229, 181, 71, 0.7);
+    box-shadow: 0 6px 18px rgba(229, 181, 71, 0.35);
+}
+
+.onb-step__body { flex: 1; min-width: 0; }
+.onb-step__title {
+    display: block;
+    font-size: .95rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .15rem;
+}
+.onb-step__sub {
+    display: block;
+    font-size: .78rem;
+    line-height: 1.45;
+    color: rgba(232, 241, 242, 0.65);
+}
+
+.onb-step__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--lg-gold);
+    flex-shrink: 0;
+}
+.onb-step.is-done .onb-step__cta {
+    color: rgba(232, 241, 242, 0.55);
+}
+.onb-step.is-done .onb-step__cta-text::after {
+    content: 'הושלם';
+}
+.onb-step:not(.is-done) .onb-step__cta-text::after {
+    content: attr(data-cta);
+}
+
+/* Goal step uses inline select instead of CTA */
+.onb-step--goal {
+    flex-wrap: wrap;
+}
+.onb-step__goal-row {
+    width: 100%;
+    margin-top: .55rem;
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    flex-wrap: wrap;
+}
+.onb-step__goal-row label {
+    font-size: .78rem;
+    color: rgba(232, 241, 242, 0.78);
+}
+.onb-goal-select {
+    flex: 1;
+    min-width: 110px;
+    padding: .45rem .7rem;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.30);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-family: inherit;
+    font-size: .85rem;
+    cursor: pointer;
+}
+.onb-goal-select:focus-visible {
+    outline: 3px solid var(--lg-gold);
+    outline-offset: 2px;
+}
+.onb-goal-select option { background: #0F2D2D; color: #fff; }
+
+.onb-goal-confirm {
+    padding: .45rem .9rem;
+    border-radius: 10px;
+    border: 1px solid rgba(229, 181, 71, 0.55);
+    background: linear-gradient(135deg, var(--lg-gold) 0%, var(--lg-gold-deep) 100%);
+    color: #1A2E2E;
+    font-family: inherit;
+    font-size: .8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .2s, filter .2s;
+}
+.onb-goal-confirm:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.onb-goal-confirm:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* ---------- Footer ---------- */
+.onb-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    flex-wrap: wrap;
+    padding-top: .35rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: .85rem;
+}
+.onb-foot__hint {
+    font-size: .76rem;
+    color: rgba(232, 241, 242, 0.55);
+    line-height: 1.5;
+}
+.onb-foot__skip {
+    background: transparent;
+    border: 0;
+    color: rgba(232, 241, 242, 0.65);
+    font-family: inherit;
+    font-size: .8rem;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding: .35rem .25rem;
+    transition: color .2s;
+}
+.onb-foot__skip:hover { color: #fff; }
+.onb-foot__skip:focus-visible {
+    outline: 3px solid var(--lg-gold);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* ---------- Progress bonus tooltip (on hero progress) ---------- */
+.onb-bonus-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-inline-start: .5rem;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 600;
+    color: var(--lg-gold);
+    background: rgba(229, 181, 71, 0.10);
+    border: 1px solid rgba(229, 181, 71, 0.28);
+    white-space: nowrap;
+    cursor: help;
+    vertical-align: middle;
+}
+.onb-bonus-tip i { font-size: .62rem; }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 480px) {
+    .onb-modal { padding: 1.3rem 1.1rem 1.2rem; border-radius: 18px; }
+    .onb-step { padding: .75rem .8rem; gap: .7rem; }
+    .onb-step__cta { font-size: .72rem; }
+    .onb-step__icon { width: 34px; height: 34px; }
+}
