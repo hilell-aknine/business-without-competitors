@@ -1,0 +1,201 @@
+/* ==========================================================================
+   Navbar "More" (3-dots) Dropdown — declutters the primary header.
+   Houses secondary actions (folder, notifications) in a frosted-glass menu.
+   Matches the .v1-hd__pill aesthetic. RTL-aware via logical properties.
+   ========================================================================== */
+
+/* Wrapper around the More trigger + the dropdown panel. */
+.v1-hd__more-wrap{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+}
+
+/* Visible gap / soft divider between the primary actions (quiz, hamburger)
+   and the secondary cluster (More menu). Adds breathing room so the header
+   reads as two intentional clusters, not one crowded row. */
+.v1-hd__left{
+  gap:.55rem;
+}
+.v1-hd__more-wrap::before{
+  content:"";
+  display:block;
+  width:1px;
+  height:22px;
+  margin-inline:6px 10px;
+  background:rgba(255,255,255,.14);
+  align-self:center;
+}
+
+/* The 3-dots trigger button — frosted glass, matches .v1-hd__pill family. */
+.v1-hd__more{
+  position:relative;
+  isolation:isolate;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  height:36px;
+  padding:0;
+  border-radius:50%;
+  background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  border:1px solid rgba(255,255,255,.10);
+  backdrop-filter:blur(22px) saturate(220%);
+  -webkit-backdrop-filter:blur(22px) saturate(220%);
+  color:#fff;
+  font-size:.95rem;
+  cursor:pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.14),
+    0 6px 18px rgba(0,0,0,.20);
+  transition:transform .18s ease, background .2s ease, box-shadow .2s ease;
+}
+.v1-hd__more::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:0;
+  background:
+    radial-gradient(70% 60% at 30% 0%, rgba(255,255,255,.45), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.14) 0%, transparent 40%);
+  mix-blend-mode:screen;
+}
+.v1-hd__more > *{
+  position:relative;
+  z-index:1;
+}
+.v1-hd__more:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,.08));
+}
+.v1-hd__more[aria-expanded="true"]{
+  background:linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,.10));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.32),
+    inset 0 -1px 0 rgba(0,0,0,.14),
+    0 0 0 2px rgba(229,181,71,.25),
+    0 6px 18px rgba(0,0,0,.22);
+}
+
+/* Dropdown panel — frosted glass per spec. Positioned below the trigger,
+   aligned to the leading edge of the wrapper (RTL-safe via logical props). */
+.v1-hd__more-menu{
+  position:absolute;
+  top:calc(100% + 10px);
+  inset-inline-end:0;          /* leading-edge alignment, RTL-aware */
+  min-width:200px;
+  padding:6px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  background:rgba(0,0,0,.4);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45),
+    0 0 0 1px rgba(255,255,255,.04) inset;
+  z-index:var(--z-dropdown, 80);
+  opacity:0;
+  transform:translateY(-4px) scale(.98);
+  transform-origin:top center;
+  transition:opacity .16s ease, transform .16s ease;
+  pointer-events:none;
+}
+.v1-hd__more-menu[hidden]{
+  display:none;                /* keep [hidden] semantics — JS toggles it */
+}
+.v1-hd__more-menu.is-open{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+/* Each menu item — full-width row with icon + Hebrew label. */
+.v1-hd__more-menu .v1-hd__more-item{
+  display:flex;
+  align-items:center;
+  gap:.7rem;
+  width:100%;
+  padding:.6rem .8rem;
+  border-radius:8px;
+  background:transparent;
+  border:1px solid transparent;
+  color:#fff;
+  font-family:inherit;
+  font-size:.85rem;
+  font-weight:500;
+  text-align:start;
+  text-decoration:none;
+  cursor:pointer;
+  transition:background .15s ease, border-color .15s ease;
+}
+.v1-hd__more-menu .v1-hd__more-item i{
+  width:18px;
+  text-align:center;
+  color:var(--lg-gold, #E5B547);
+  font-size:.95rem;
+}
+.v1-hd__more-menu .v1-hd__more-item:hover,
+.v1-hd__more-menu .v1-hd__more-item:focus-visible{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.12);
+  outline:none;
+}
+.v1-hd__more-menu .v1-hd__more-item:focus-visible{
+  outline:2px solid var(--lg-gold, #E5B547);
+  outline-offset:2px;
+}
+
+/* Inside the dropdown, items are full rows — strip any inherited circular
+   icon-button shape from .btn--icon, and neutralize the .v1-bell glass
+   styling so it reads as a flat row item, not a floating pill. */
+.v1-hd__more-menu .btn.btn--icon{
+  width:100%;
+  height:auto;
+  border-radius:8px;
+  justify-content:flex-start;
+}
+.v1-hd__more-menu .v1-bell{
+  background:transparent;
+  border:1px solid transparent;
+  box-shadow:none;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  isolation:auto;
+}
+.v1-hd__more-menu .v1-bell::before{
+  display:none;
+}
+
+/* Mobile: keep the More cluster visible & compact next to the hamburger.
+   The existing inline media query already hides non-icon buttons on mobile;
+   our trigger is icon-shaped so it survives naturally. Just tighten spacing. */
+@media (max-width:768px){
+  .v1-hd__more{
+    width:34px;
+    height:34px;
+    font-size:.9rem;
+  }
+  /* On mobile the quiz button is hidden by the existing inline media query,
+     so a leading divider would float orphaned. Drop it. */
+  .v1-hd__more-wrap::before{
+    display:none;
+  }
+  .v1-hd__more-menu{
+    min-width:180px;
+    inset-inline-end:0;
+  }
+}
+
+/* Reduced-motion users get an instant snap. */
+@media (prefers-reduced-motion:reduce){
+  .v1-hd__more,
+  .v1-hd__more-menu{
+    transition:none !important;
+  }
+}
