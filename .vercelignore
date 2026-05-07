@@ -1,0 +1,28 @@
+# Next.js app (separate deployment, not the static site)
+/frontend/
+
+# FastAPI backend (separate deployment)
+/backend/
+
+# Internal docs (not for public)
+/CLAUDE.md
+/CLAUDE CODE INSTRUCTIONS.txt
+/primer.md
+/hindsight.md
+/.clinerules
+/.claude/
+
+# Course PDFs (paid content)
+/*.pdf
+
+# Dev tooling
+/docker-compose.yml
+
+# Env files (defense-in-depth — already in .gitignore)
+/.env
+/.env.local
+/backend/.env
+/frontend/.env.local
+
+# Databases
+*.db
