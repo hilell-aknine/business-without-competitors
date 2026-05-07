@@ -1,0 +1,82 @@
+/* ============================================================
+   A11Y · WCAG 2.1 AA — Audit fixes (Task 6)
+   ------------------------------------------------------------
+   Loaded LAST in <head> so it overrides:
+     - the inline <style> block in index.html
+     - css/button-hierarchy.css, onboarding.css, sidebar-accordion.css,
+       empty-state.css, navbar-more.css
+   ------------------------------------------------------------
+   This file fixes only the specific text/background combos that
+   were measured FAIL against AA. It does NOT change brand colors
+   in the design tokens. Where a brand value would be forced into
+   a non-brand value, we instead lift opacity / pick the next
+   token already defined in design-tokens.css (e.g. --color-primary-300).
+   ============================================================ */
+
+/* ---------- 1. Global focus-visible (consistency safety net) ---------- */
+/* The inline <style> already defines a 3px gold outline at
+   index.html:45-47 for a/button/input/textarea. Mirror it here for
+   <select> (used in the onboarding goal step) and any element that
+   becomes focusable via tabindex, so every keyboard user gets the
+   same affordance regardless of widget. */
+:focus-visible {
+    outline: 3px solid var(--lg-gold, #E5B547);
+    outline-offset: 2px;
+    border-radius: inherit;
+}
+/* Make sure dropdown menu items keep the same focus ring even after
+   the inline `outline:none` reset on hover state in navbar-more.css. */
+.v1-hd__more-menu .v1-hd__more-item:focus-visible {
+    outline: 3px solid var(--lg-gold, #E5B547);
+    outline-offset: 2px;
+}
+
+/* ---------- 2. Contrast overrides (measured failures only) ---------- */
+
+/* 2a. .v1-empty__hint — was rgba(232,241,242,.5) on tab panel glass.
+   Measured 4.27:1 → FAIL (needs 4.5:1 for normal text).
+   Fix: bump alpha to .6 → 6.30:1 PASS. */
+.v1-tabs .v1-empty .v1-empty__hint {
+    color: rgba(232, 241, 242, 0.6);
+}
+
+/* 2b. .v1-side__h2 — inline style sets rgba(232,241,242,.5).
+   At 11.2px font-weight 600 it's NORMAL text per WCAG (large = >=14px-bold).
+   Measured 4.27:1 on sidebar glass → FAIL.
+   Fix: bump alpha to .6 → ~6.30:1 PASS. Brand letter-spacing/uppercase intact. */
+.v1-side .v1-side__h2 {
+    color: rgba(232, 241, 242, 0.6);
+}
+
+/* 2c. .v1-hero__skip — button-hierarchy.css uses --accent-teal-bright
+   (#3FAABB). On the hero card baseline this is 5.22:1 (PASS), but the
+   hero has a gold radial overlay top-right that, in the worst region,
+   drops contrast to 3.75:1 on a 13.6px / weight-500 (NORMAL) text.
+   Fix: lift to --color-primary-300 (#8DD0D9) — already defined in
+   design-tokens.css, same teal family, brand-consistent. Worst-case
+   contrast: 5.94:1 PASS. Hover/focus mirrored. */
+.v1-page .v1-hero__actions .v1-hero__skip,
+.v1-hero__actions .v1-hero__skip,
+.v1-hero__actions .v1-hero__skip.btn,
+.v1-hero__actions .v1-hero__skip.btn--clear,
+.v1-hero__actions .v1-hero__skip.btn--sm {
+    color: var(--color-primary-300, #8DD0D9);
+}
+.v1-hero__actions .v1-hero__skip:hover,
+.v1-hero__actions .v1-hero__skip:focus-visible {
+    color: var(--color-primary-200, #C4E8ED);
+}
+
+/* ---------- 3. Defensive: inherit-color trap on links/buttons ---------- */
+/* Memory note: "Text contrast — verify before showing" — color:inherit
+   on <a>/<button> can silently drop contrast when the parent gets a
+   muted color. The crumb / referral / promo links below all set their
+   own color OR sit on backgrounds where the inherited body color (#fff)
+   is high-contrast. Spot-checked: no failures. No override needed. */
+
+/* ---------- 4. Reduced-motion safety for outline (no animation) ---------- */
+@media (prefers-reduced-motion: reduce) {
+    :focus-visible {
+        transition: none !important;
+    }
+}
