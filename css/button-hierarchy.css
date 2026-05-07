@@ -1,0 +1,66 @@
+/* ============================================================
+   BUTTON HIERARCHY — Hero card ("השיעור הבא שלך")
+   ------------------------------------------------------------
+   Demotes the secondary "דלג לשיעור הבא" action to a tertiary
+   text-link so the primary gold CTA "המשך ללמוד" dominates
+   the hero card visually.
+
+   Scoped strictly to .v1-hero__actions — does NOT modify any
+   global button styles.
+   ============================================================ */
+
+/* Tighten the gap so the primary CTA visually dominates */
+.v1-hero__actions {
+  gap: 0.35rem;
+}
+
+/* Tertiary text-link: no background, no border, soft turquoise.
+   Reset all button-like surfaces and rely on type + color only. */
+.v1-hero__actions .v1-hero__skip,
+.v1-hero__actions .v1-hero__skip.btn,
+.v1-hero__actions .v1-hero__skip.btn--clear,
+.v1-hero__actions .v1-hero__skip.btn--sm {
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: var(--accent-teal-bright, #3FAABB);
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 6px;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease, text-decoration-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Kill the inherited ::before glaze that .btn applies */
+.v1-hero__actions .v1-hero__skip::before {
+  display: none;
+  content: none;
+}
+
+/* Hover/focus: subtle underline, slightly brighter color, no lift box */
+.v1-hero__actions .v1-hero__skip:hover,
+.v1-hero__actions .v1-hero__skip:focus-visible {
+  background: transparent;
+  transform: none;
+  color: var(--accent-teal-bright, #3FAABB);
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  filter: brightness(1.12);
+}
+
+/* Soften the icon — should feel like a glyph, not a button affordance */
+.v1-hero__actions .v1-hero__skip i {
+  opacity: 0.75;
+  font-size: 0.78rem;
+  margin-inline-end: 0.2rem;
+}
+
+.v1-hero__actions .v1-hero__skip:hover i,
+.v1-hero__actions .v1-hero__skip:focus-visible i {
+  opacity: 1;
+}
