@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="assets/css/design-tokens.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="css/protocol.css">
+<link rel="stylesheet" href="css/empty-state.css">
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -944,9 +945,25 @@
 
       <!-- About -->
       <div class="v1-panel active" data-panel="about" role="tabpanel">
-        <h3 class="v1-h3" id="aboutTitle">בחרו שיעור מהתפריט</h3>
-        <p class="v1-p" id="aboutDesc">אחרי שתבחרו שיעור או מודול, יופיעו כאן תיאור המודול, מספר השיעורים, ומידע נוסף על השיעור.</p>
-        <div class="v1-about__meta" id="aboutMeta"></div>
+        <!-- Active empty state (shown only when no lesson is selected) -->
+        <div class="v1-empty" id="aboutEmptyState">
+          <div class="v1-empty__icon" aria-hidden="true">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <h3 class="v1-empty__title" id="aboutEmptyTitle">קדימה — מתחילים את המסע שלכם</h3>
+          <p class="v1-empty__subtitle" id="aboutEmptySubtitle">תוכנית עסק ללא מתחרים מחכה לכם. שיעור אחד בכל פעם, צעד אחד קדימה.</p>
+          <button type="button" class="btn btn--gold v1-empty__cta" id="aboutEmptyCta" onclick="aboutEmptyAction()">
+            <span id="aboutEmptyCtaText">התחילו מהשיעור הראשון</span>
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          </button>
+          <p class="v1-empty__hint">או בחרו שיעור מהתפריט בצד</p>
+        </div>
+        <!-- Lesson-selected content (shown when a lesson IS selected) -->
+        <div class="v1-about__content" id="aboutContent" hidden>
+          <h3 class="v1-h3" id="aboutTitle"></h3>
+          <p class="v1-p" id="aboutDesc"></p>
+          <div class="v1-about__meta" id="aboutMeta"></div>
+        </div>
       </div>
 
       <!-- AI / Protocol -->
@@ -1251,9 +1268,10 @@ function goHome(){
   document.getElementById('lessonNav').hidden = true;
   const crumbEl = document.getElementById('lessonCrumb');
   if (crumbEl) { crumbEl.hidden = true; crumbEl.innerHTML = ''; }
-  document.getElementById('aboutTitle').textContent = 'בחרו שיעור מהתפריט';
-  document.getElementById('aboutDesc').textContent = 'אחרי שתבחרו שיעור או מודול, יופיעו כאן תיאור המודול, מספר השיעורים, ומידע נוסף על השיעור.';
+  document.getElementById('aboutTitle').textContent = '';
+  document.getElementById('aboutDesc').textContent = '';
   document.getElementById('aboutMeta').innerHTML = '';
+  renderAboutEmptyState();
   document.getElementById('aiContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>בחר שיעור כדי להפעיל את פרוטוקול הלמידה</p></div>`;
   document.getElementById('resourcesContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-download"></i><p>בחרו שיעור או מודול כדי לראות את החומרים הזמינים</p></div>`;
   document.getElementById('notesArea').value = '';
@@ -1542,7 +1560,11 @@ function updateAboutTab(){
   const titleEl = document.getElementById('aboutTitle');
   const descEl  = document.getElementById('aboutDesc');
   const metaEl  = document.getElementById('aboutMeta');
+  const emptyEl = document.getElementById('aboutEmptyState');
+  const contentEl = document.getElementById('aboutContent');
   if (currentType === 'seminar') {
+    if (emptyEl)   emptyEl.hidden   = true;
+    if (contentEl) contentEl.hidden = false;
     const sem = SEMINARS[currentSi];
     titleEl.textContent = `${sem.title} · ${sem.parts[currentPi].title}`;
     descEl.textContent = sem.description || sem.shortDescription || '';
@@ -1550,6 +1572,8 @@ function updateAboutTab(){
       <span class="v1-about__meta-tag"><i class="fa-solid fa-users"></i> סמינר חי</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-video"></i> ${sem.parts.length} חלקים</span>`;
   } else if (currentType === 'module') {
+    if (emptyEl)   emptyEl.hidden   = true;
+    if (contentEl) contentEl.hidden = false;
     const mod = MODULES[currentMi];
     const week = mod.weeks[currentWi];
     const day = week.days[currentDi];
@@ -1560,8 +1584,59 @@ function updateAboutTab(){
       <span class="v1-about__meta-tag"><i class="fa-solid fa-layer-group"></i> מודול ${currentMi+1}: ${mod.title}</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-calendar-week"></i> ${week.title}</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-video"></i> ${total} שיעורים במודול</span>`;
+  } else {
+    // No lesson selected → show inviting empty state
+    renderAboutEmptyState();
   }
 }
+
+// Resolve the most recent lesson the user touched (last completed),
+// returning a flatLessons-shaped item, or null if no progress exists.
+function lastTouchedLesson(){
+  if (!Array.isArray(completedLessons) || completedLessons.length === 0) return null;
+  // Last entry pushed = most recently completed
+  const lastKey = completedLessons[completedLessons.length - 1];
+  return flatLessons.find(l => lessonKey(l) === lastKey) || null;
+}
+
+// Render the About-tab empty state and pick the right CTA based on progress
+function renderAboutEmptyState(){
+  const emptyEl   = document.getElementById('aboutEmptyState');
+  const contentEl = document.getElementById('aboutContent');
+  if (!emptyEl) return;
+  if (emptyEl)   emptyEl.hidden   = false;
+  if (contentEl) contentEl.hidden = true;
+
+  const titleEl    = document.getElementById('aboutEmptyTitle');
+  const subtitleEl = document.getElementById('aboutEmptySubtitle');
+  const ctaTextEl  = document.getElementById('aboutEmptyCtaText');
+
+  const last = lastTouchedLesson();
+  if (last) {
+    if (titleEl)    titleEl.textContent    = 'ברוכים השבים — נמשיך מאיפה שעצרתם';
+    if (subtitleEl) subtitleEl.textContent = `השיעור האחרון שסיימתם: ${last.title}`;
+    if (ctaTextEl)  ctaTextEl.textContent  = 'חזרו לשיעור האחרון';
+  } else {
+    if (titleEl)    titleEl.textContent    = 'קדימה — מתחילים את המסע שלכם';
+    if (subtitleEl) subtitleEl.textContent = 'תוכנית עסק ללא מתחרים מחכה לכם. שיעור אחד בכל פעם, צעד אחד קדימה.';
+    if (ctaTextEl)  ctaTextEl.textContent  = 'התחילו מהשיעור הראשון';
+  }
+}
+
+// Click handler for the empty-state CTA
+function aboutEmptyAction(){
+  const last = lastTouchedLesson();
+  if (last) {
+    if (last.type === 'seminar') {
+      selectSeminar(last.si, last.pi, true);
+    } else {
+      selectLesson(last.mi, last.wi, last.di, true);
+    }
+  } else {
+    selectLesson(0, 0, 0, true);
+  }
+}
+window.aboutEmptyAction = aboutEmptyAction;
 
 function updateAITab(){
   const c = document.getElementById('aiContent');
@@ -1889,6 +1964,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderHero();
   renderStats();
   renderQuizStats();
+  renderAboutEmptyState();
 
   // Deep link
   const params = new URLSearchParams(window.location.search);
