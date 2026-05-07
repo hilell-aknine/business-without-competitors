@@ -1,0 +1,131 @@
+/* ============================================================
+   Sidebar Module Accordion + Mini Progress Bars
+   ------------------------------------------------------------
+   Enhances .v1-mod / .v1-mod__hd / .v1-mod__list (defined in
+   index.html inline <style>) with:
+     - Smooth max-height accordion transition (replaces display:none)
+     - Lesson-count chip (X שיעורים)
+     - Slim 4px progress bar inside the module header
+   ============================================================ */
+
+/* --- 1. Replace display:none collapse with max-height transition --- */
+/* Override the inline rule .v1-mod__list { display:none } so the panel
+   stays in the layout and animates via max-height. Higher specificity
+   via .v1-side scope ensures we beat the inline stylesheet without
+   needing !important. */
+.v1-side .v1-mod__list {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  padding: 0 .4rem;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height .35s ease,
+    opacity .25s ease,
+    padding-block .25s ease;
+}
+
+.v1-side .v1-mod.open > .v1-mod__list {
+  max-height: 4000px; /* large enough for any module's lessons */
+  opacity: 1;
+  padding-top: .25rem;
+  padding-bottom: .5rem;
+}
+
+/* When user prefers reduced motion, snap instead of slide */
+@media (prefers-reduced-motion: reduce) {
+  .v1-side .v1-mod__list {
+    transition: none;
+  }
+}
+
+/* --- 2. Mini progress bar inside module header --- */
+.v1-mod__hd {
+  /* Allow header to wrap so the progress bar can sit on its own row */
+  flex-wrap: wrap;
+  position: relative;
+  row-gap: .45rem;
+}
+
+/* Lesson-count chip ("23 שיעורים") — refined look */
+.v1-mod__hd .v1-mod__count {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .15rem .55rem;
+  border-radius: 999px;
+  background: rgba(63, 170, 187, .12);
+  border: 1px solid rgba(63, 170, 187, .22);
+  color: rgba(232, 241, 242, .82);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+
+/* Slim 4px progress bar — its own row at the bottom of the header */
+.v1-mod__progress {
+  flex-basis: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  overflow: hidden;
+  position: relative;
+  margin-top: .1rem;
+}
+
+.v1-mod__progress-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(212, 175, 55, .55),
+    var(--lg-gold, #D4AF37)
+  );
+  box-shadow: 0 0 6px rgba(212, 175, 55, .35);
+  transition: width .4s ease;
+}
+
+/* Fully complete: a touch brighter */
+.v1-mod__progress.is-complete .v1-mod__progress-fill {
+  background: linear-gradient(
+    90deg,
+    var(--lg-gold, #D4AF37),
+    #F2D26A
+  );
+}
+
+/* Empty (0%) — keep a faint hint so it doesn't feel broken */
+.v1-mod__progress.is-empty .v1-mod__progress-fill {
+  width: 2px;
+  opacity: .35;
+}
+
+/* Done-count text inside progress when ready (optional, hidden by default) */
+.v1-mod__progress-label {
+  position: absolute;
+  inset-inline-end: 0;
+  top: -1.05rem;
+  font-size: .65rem;
+  color: rgba(232, 241, 242, .55);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* --- 3. Open-state header polish --- */
+.v1-mod.open > .v1-mod__hd {
+  background: linear-gradient(
+    180deg,
+    rgba(63, 170, 187, .07),
+    rgba(255, 255, 255, 0)
+  );
+}
+
+/* Hover on closed accordion gives subtle feedback */
+.v1-mod:not(.open) > .v1-mod__hd:hover {
+  background: rgba(255, 255, 255, .03);
+}
