@@ -32,6 +32,8 @@
 <link rel="stylesheet" href="css/onboarding.css">
 <link rel="stylesheet" href="css/sidebar-accordion.css">
 <link rel="stylesheet" href="css/empty-state.css">
+<link rel="stylesheet" href="css/navbar-more.css">
+<script src="js/navbar-more.js" defer></script>
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -814,8 +816,13 @@
 
   <div class="v1-hd__left">
     <a href="pages/quiz.html" class="btn btn--gold btn--sm js-quiz-link"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</a>
-    <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" class="btn btn--clear btn--icon" aria-label="תמלולים" title="תמלולים מלאים"><i class="fa-solid fa-folder-open"></i></a>
-    <button class="btn btn--clear btn--icon v1-bell" aria-label="התראות"><i class="fa-regular fa-bell"></i></button>
+    <div class="v1-hd__more-wrap">
+      <button type="button" class="v1-hd__more" aria-label="עוד" aria-haspopup="menu" aria-expanded="false" aria-controls="navbarMoreMenu"><i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i></button>
+      <div class="v1-hd__more-menu" id="navbarMoreMenu" role="menu" aria-label="פעולות נוספות" hidden>
+        <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" class="btn btn--clear v1-hd__more-item" role="menuitem" aria-label="תמלולים" title="תמלולים מלאים"><i class="fa-solid fa-folder-open" aria-hidden="true"></i><span>תיקייה</span></a>
+        <button type="button" class="btn btn--clear v1-hd__more-item v1-bell" role="menuitem" aria-label="התראות"><i class="fa-regular fa-bell" aria-hidden="true"></i><span>התראות</span></button>
+      </div>
+    </div>
     <button class="btn btn--clear btn--sm v1-mobile-toggle" id="sidebarToggle" aria-label="פתח תפריט שיעורים" aria-expanded="false" aria-controls="sidebar"><i class="fa-solid fa-list"></i></button>
   </div>
 </header>
