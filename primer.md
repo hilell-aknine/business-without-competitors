@@ -1,11 +1,20 @@
 # Primer — עסק ללא מתחרים
-> Last updated: 2026-05-06 by Claude Code
+> Last updated: 2026-05-07 by Claude Code
 
 ## Current State
-- **Status:** **LIVE on GitHub Pages** at `https://hilell-aknine.github.io/business-without-competitors/`
-- **Last task completed:** Promoted Liquid Glass portal to landing page. `index-glass.html` → renamed to `index.html` (with full OG/Twitter meta added). Old classic portal preserved as `index-classic.html` for fallback.
-- **Next planned task:** Monitor first-week traffic / mobile rendering of glass version (backdrop-filter behavior on older Android). Per-lesson quiz questions still need more transcripts.
-- **Blocking issues:** None.
+- **Status:** **LIVE on Vercel** at `https://business-without-competitors.vercel.app` (also still live on GitHub Pages at `https://hilell-aknine.github.io/business-without-competitors/`)
+- **Last task completed:** **10X AI Learning Protocol** integrated into every lesson. Added `/api/` Vercel serverless functions (transcript fetch from YouTube, methodology extraction, active-learning Stage 2 with 3 modes), provider-fallback chain (Gemini → Groq → OpenRouter — same Hebrew system prompt across all), localStorage caching keyed by lessonKey, frosted-glass UI matching Liquid Glass theme. Replaced AI Coach tab content with the protocol; ChatGPT GPT link kept as small secondary affordance.
+- **Next planned task:** (1) Hillel adds GEMINI/GROQ/OPENROUTER keys to Vercel env vars → first end-to-end test on real lesson → review Hebrew quality → tune prompts if needed. (2) Connect custom domain in Vercel.
+- **Blocking issues:** Awaiting Vercel env vars before live test.
+
+## Protocol Architecture (added 2026-05-07)
+- **Endpoints:** `/api/transcript` (YouTube captions scraper, no key needed), `/api/protocol-extract` (Stage 1 methodology), `/api/protocol-active` (Stage 2 active learning), `/api/_test` (sanity check)
+- **Provider chain:** `api/_lib/providers.js` — Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter `deepseek-r1-distill-llama-70b:free`. First success wins, returns `{ text, providerUsed }`.
+- **Prompts:** `api/_lib/prompts.js` — Stage 1 + 3 Stage 2 modes (habit / sim / investigate). All Hebrew, business tone, no hype words.
+- **Frontend:** `js/protocol.js` exposes `window.Protocol.render(panelEl, ctx)`. `css/protocol.css` matches frosted-glass theme.
+- **Tab integration:** `index.html:1564-1577` updateAITab() now delegates to `Protocol.render()` with `{videoId, lessonKey, externalGptUrl}`.
+- **vercel.json:** `functions: { "api/**/*.js": { "maxDuration": 30 } }` for AI calls. ESM enabled via `api/package.json` `{"type":"module"}`.
+- **Cache key:** `localStorage["bwc_protocol_v1_" + lessonKey]` stores `{transcript, methodology, providerUsed, active: {habit, sim, investigate}, lastMode}`.
 
 ## Recent Changes
 | Date | What Changed | Files Affected |

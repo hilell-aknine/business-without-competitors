@@ -27,6 +27,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="assets/css/design-tokens.css">
 <link rel="stylesheet" href="assets/css/components.css">
+<link rel="stylesheet" href="css/protocol.css">
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -935,7 +936,7 @@
     <div class="v1-tabs g">
       <div class="v1-tabs__hd" role="tablist">
         <button class="v1-tab active" data-tab="about" role="tab" aria-selected="true"><i class="fa-solid fa-circle-info"></i> אודות</button>
-        <button class="v1-tab" data-tab="ai" role="tab" aria-selected="false"><i class="fa-solid fa-robot"></i> מאמן AI</button>
+        <button class="v1-tab" data-tab="ai" role="tab" aria-selected="false"><i class="fa-solid fa-bolt"></i> פרוטוקול 10X</button>
         <button class="v1-tab" data-tab="resources" role="tab" aria-selected="false"><i class="fa-solid fa-download"></i> חומרים</button>
         <button class="v1-tab" data-tab="notes" role="tab" aria-selected="false"><i class="fa-regular fa-pen-to-square"></i> הערות אישיות</button>
         <button class="v1-tab" data-tab="quiz" role="tab" aria-selected="false"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</button>
@@ -948,12 +949,12 @@
         <div class="v1-about__meta" id="aboutMeta"></div>
       </div>
 
-      <!-- AI -->
+      <!-- AI / Protocol -->
       <div class="v1-panel" data-panel="ai" role="tabpanel">
         <div id="aiContent">
           <div class="v1-ai__placeholder">
             <i class="fa-solid fa-robot"></i>
-            <p>בחרו שיעור במודול כדי לראות את כלי ה-AI הזמינים לאותו מודול</p>
+            <p>בחר שיעור כדי להפעיל את פרוטוקול הלמידה</p>
           </div>
         </div>
       </div>
@@ -1054,6 +1055,7 @@
 
 <script src="js/course-data.js"></script>
 <script src="js/quiz-data.js"></script>
+<script src="js/protocol.js"></script>
 <script>
 // ===== State =====
 let currentType = null; // 'seminar' | 'module'
@@ -1252,7 +1254,7 @@ function goHome(){
   document.getElementById('aboutTitle').textContent = 'בחרו שיעור מהתפריט';
   document.getElementById('aboutDesc').textContent = 'אחרי שתבחרו שיעור או מודול, יופיעו כאן תיאור המודול, מספר השיעורים, ומידע נוסף על השיעור.';
   document.getElementById('aboutMeta').innerHTML = '';
-  document.getElementById('aiContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>בחרו שיעור במודול כדי לראות את כלי ה-AI הזמינים לאותו מודול</p></div>`;
+  document.getElementById('aiContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>בחר שיעור כדי להפעיל את פרוטוקול הלמידה</p></div>`;
   document.getElementById('resourcesContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-download"></i><p>בחרו שיעור או מודול כדי לראות את החומרים הזמינים</p></div>`;
   document.getElementById('notesArea').value = '';
   updateNotesCount();
@@ -1563,31 +1565,17 @@ function updateAboutTab(){
 
 function updateAITab(){
   const c = document.getElementById('aiContent');
-  if (currentType !== 'module') {
-    c.innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>כלי AI זמינים במודולי ההכשרה</p></div>`;
+  const lessonKey = currentLessonKey();
+  if (!currentVideoId || !lessonKey) {
+    c.innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>בחר שיעור עם וידאו כדי להפעיל את פרוטוקול הלמידה</p></div>`;
     return;
   }
-  const mod = MODULES[currentMi];
-  const cards = [];
-  if (mod.aiCoachUrl) {
-    cards.push(`<a class="v1-ai__card" href="${mod.aiCoachUrl}" target="_blank" rel="noopener">
-      <div class="v1-ai__card-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-      <h4>מאמן AI · ${mod.title}</h4>
-      <p>מאמן אישי המותאם לתוכן המודול. שאלו שאלות, בקשו משוב על תרגילים, וקבלו הכוונה מותאמת.</p>
-      <span class="v1-ai__card-cta">פתח מאמן <i class="fa-solid fa-arrow-left"></i></span>
-    </a>`);
+  const externalGptUrl = (currentType === 'module' && MODULES[currentMi]?.aiCoachUrl) || null;
+  if (window.Protocol && typeof window.Protocol.render === 'function') {
+    window.Protocol.render(c, { videoId: currentVideoId, lessonKey, externalGptUrl });
+  } else {
+    c.innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>טוען את פרוטוקול הלמידה...</p></div>`;
   }
-  (mod.extraTools || []).forEach(tool => {
-    cards.push(`<a class="v1-ai__card" href="${tool.url}" target="_blank" rel="noopener">
-      <div class="v1-ai__card-icon"><i class="fa-solid ${tool.icon}"></i></div>
-      <h4>${tool.label}</h4>
-      <p>כלי AI נוסף שמלווה אתכם במודול זה.</p>
-      <span class="v1-ai__card-cta">פתח כלי <i class="fa-solid fa-arrow-left"></i></span>
-    </a>`);
-  });
-  c.innerHTML = cards.length
-    ? `<div class="v1-ai">${cards.join('')}</div>`
-    : `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>אין כלי AI זמינים למודול זה</p></div>`;
 }
 
 function updateResourcesTab(){

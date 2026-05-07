@@ -3,6 +3,9 @@
   "buildCommand": null,
   "installCommand": null,
   "outputDirectory": ".",
+  "functions": {
+    "api/**/*.js": { "maxDuration": 30 }
+  },
   "headers": [
     {
       "source": "/(.*)",
