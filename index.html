@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="css/protocol.css">
 <link rel="stylesheet" href="css/button-hierarchy.css">
 <link rel="stylesheet" href="css/onboarding.css">
+<link rel="stylesheet" href="css/sidebar-accordion.css">
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -1057,6 +1058,7 @@
 
 <script src="js/course-data.js"></script>
 <script src="js/quiz-data.js"></script>
+<script src="js/sidebar-accordion.js"></script>
 <script src="js/protocol.js"></script>
 <script>
 // ===== State =====
@@ -1137,7 +1139,10 @@ function renderSidebar(filter=''){
   if (seminarMatches.length) {
     html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">סמינרים חיים</h3>`;
     seminarMatches.forEach(({sem, si}) => {
-      const isOpen = currentType === 'seminar' && currentSi === si;
+      const matchesCurrent = currentType === 'seminar' && currentSi === si;
+      const isOpen = (window.SidebarAccordion
+        ? window.SidebarAccordion.shouldStartOpen('seminar', si, matchesCurrent || !!q)
+        : matchesCurrent) || !!q;
       const partsHtml = sem.parts.map((part, pi) => {
         if (q && !part.title.toLowerCase().includes(q) && !sem.title.toLowerCase().includes(q)) return '';
         const key = `s${si}-${pi}`;
@@ -1181,9 +1186,16 @@ function renderSidebar(filter=''){
   if (moduleMatches.length) {
     html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">מודולי ההכשרה</h3>`;
     moduleMatches.forEach(({mod, mi}) => {
-      const isOpen = currentType === 'module' && currentMi === mi;
+      const matchesCurrent = currentType === 'module' && currentMi === mi;
+      const isOpen = (window.SidebarAccordion
+        ? window.SidebarAccordion.shouldStartOpen('module', mi, matchesCurrent || !!q)
+        : matchesCurrent) || !!q;
       const totalLessons = mod.weeks.reduce((s, w) => s + w.days.filter(d => d.videoId).length, 0);
       const doneCount = mod.weeks.reduce((s, w, wi) => s + w.days.filter((d, di) => d.videoId && completedLessons.includes(`m${mi}-${wi}-${di}`)).length, 0);
+      const modPct = totalLessons > 0 ? Math.round((doneCount / totalLessons) * 100) : 0;
+      const modProgressHtml = window.SidebarAccordion
+        ? window.SidebarAccordion.progressBarHtml(modPct)
+        : '';
 
       const weeksHtml = mod.weeks.map((week, wi) => {
         const daysHtml = week.days.map((day, di) => {
@@ -1220,8 +1232,9 @@ function renderSidebar(filter=''){
         <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${modListId}">
           <span class="v1-mod__num" aria-hidden="true">${mi+1}</span>
           <span class="v1-mod__title">${mod.title}</span>
-          <span class="v1-mod__count" aria-label="${doneCount} מתוך ${totalLessons} שיעורים הושלמו">${doneCount}/${totalLessons}</span>
+          <span class="v1-mod__count" aria-label="${totalLessons} שיעורים — ${doneCount} הושלמו">${totalLessons} שיעורים</span>
           <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
+          ${modProgressHtml}
         </button>
         <div class="v1-mod__list" id="${modListId}">${weeksHtml}${extraResources.join('')}</div>
       </div>`;
@@ -1237,11 +1250,22 @@ function renderSidebar(filter=''){
   }
 
   list.innerHTML = html;
+  if (window.SidebarAccordion) window.SidebarAccordion.applyOpenStates();
 }
 
 function toggleMod(btn){
-  const isOpen = btn.parentElement.classList.toggle('open');
+  const wrap = btn.parentElement;
+  const isOpen = wrap.classList.toggle('open');
   btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  if (window.SidebarAccordion) {
+    const miAttr = wrap.getAttribute('data-mod');
+    const siAttr = wrap.getAttribute('data-sem');
+    if (miAttr !== null) {
+      window.SidebarAccordion.setOpen('module', parseInt(miAttr, 10), isOpen);
+    } else if (siAttr !== null) {
+      window.SidebarAccordion.setOpen('seminar', parseInt(siAttr, 10), isOpen);
+    }
+  }
 }
 
 // Return to home/hero view, clear current selection
@@ -1383,6 +1407,7 @@ function selectSeminar(si, pi, autoPlay){
   currentType = 'seminar';
   currentSi = si; currentPi = pi;
   currentMi = currentWi = currentDi = -1;
+  if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('seminar', si);
   const sem = SEMINARS[si];
   const part = sem.parts[pi];
   currentVideoId = part.videoId;
@@ -1394,6 +1419,7 @@ function selectLesson(mi, wi, di, autoPlay){
   currentType = 'module';
   currentMi = mi; currentWi = wi; currentDi = di;
   currentSi = currentPi = -1;
+  if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('module', mi);
   const day = MODULES[mi].weeks[wi].days[di];
   if (day.variants) {
     currentVideoId = day.variants[0].videoId;
@@ -1491,6 +1517,7 @@ function updateCrumb(){
 }
 
 function crumbOpenSeminar(si){
+  if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('seminar', si);
   const el = document.querySelector(`.v1-mod[data-sem="${si}"]`);
   if (el) {
     el.classList.add('open');
@@ -1502,6 +1529,7 @@ function crumbOpenSeminar(si){
 window.crumbOpenSeminar = crumbOpenSeminar;
 
 function crumbOpenModule(mi){
+  if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('module', mi);
   const el = document.querySelector(`.v1-mod[data-mod="${mi}"]`);
   if (el) {
     el.classList.add('open');
