@@ -1,0 +1,93 @@
+/* ====================================================================
+   ABOUT TAB · ACTIVE EMPTY STATE
+   Used when no lesson is currently selected.
+   Variables (--lg-gold, --lg-aqua, --lg-frost) come from
+   /assets/css/design-tokens.css and the inline tokens in index.html.
+   ==================================================================== */
+
+.v1-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2.4rem 1.2rem 2rem;
+  gap: .85rem;
+}
+
+.v1-empty__icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 2.1rem;
+  color: var(--lg-gold);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, .14), transparent 55%),
+    linear-gradient(135deg, rgba(229, 181, 71, .18) 0%, rgba(47, 133, 146, .14) 100%);
+  border: 1px solid rgba(229, 181, 71, .35);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, .25),
+    inset 0 1px 0 rgba(255, 255, 255, .25),
+    0 0 24px rgba(229, 181, 71, .18);
+  margin-bottom: .35rem;
+}
+
+.v1-empty__title {
+  font-family: 'Frank Ruhl Libre', serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1.3;
+  color: var(--lg-frost);
+  margin: 0;
+}
+
+.v1-empty__subtitle {
+  font-size: .92rem;
+  line-height: 1.55;
+  color: rgba(232, 241, 242, .72);
+  max-width: 38ch;
+  margin: 0 auto;
+}
+
+.v1-empty__cta {
+  margin-top: .55rem;
+  padding: .75rem 1.4rem;
+  font-size: .95rem;
+  font-weight: 700;
+  border-radius: 12px;
+}
+
+.v1-empty__cta i {
+  font-size: .85rem;
+}
+
+.v1-empty__hint {
+  margin-top: .25rem;
+  font-size: .78rem;
+  color: rgba(232, 241, 242, .5);
+  letter-spacing: .01em;
+}
+
+/* When the empty state is showing, hide the standard about content */
+.v1-about__content[hidden] { display: none; }
+
+/* Reduced motion respect */
+@media (prefers-reduced-motion: no-preference) {
+  .v1-empty__icon {
+    animation: v1EmptyIconFloat 4.5s ease-in-out infinite;
+  }
+  @keyframes v1EmptyIconFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+}
+
+/* Mobile tweaks */
+@media (max-width: 640px) {
+  .v1-empty { padding: 1.8rem .8rem 1.4rem; }
+  .v1-empty__icon { width: 64px; height: 64px; font-size: 1.8rem; }
+  .v1-empty__title { font-size: 1.18rem; }
+  .v1-empty__subtitle { font-size: .86rem; }
+  .v1-empty__cta { padding: .65rem 1.2rem; font-size: .9rem; }
+}
