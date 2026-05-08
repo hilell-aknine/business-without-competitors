@@ -381,7 +381,7 @@ body > *:not(.atmos) { position: relative; z-index: 1; }
   font-size: .92rem; color: var(--text-primary); line-height: 1.45; flex: 1; word-break: break-word;
 }
 .order-item__arrows {
-  display: none; flex-direction: column; gap: .15rem; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: .15rem; flex-shrink: 0;
 }
 .order-item__arrows button {
   background: rgba(255,255,255,.07); border: 1px solid var(--border-subtle);
@@ -393,7 +393,6 @@ body > *:not(.atmos) { position: relative; z-index: 1; }
 .order-item__arrows button:hover { background: rgba(255,255,255,.16); color: #fff; }
 @media (max-width: 768px) {
   .order-item { cursor: default; }
-  .order-item__arrows { display: flex; }
 }
 .order-result-label {
   font-size: .78rem; font-weight: 700; margin-top: .25rem; margin-inline-start: .5rem;

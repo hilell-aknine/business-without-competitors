@@ -272,13 +272,20 @@ function renderChallenge() {
   const fill = document.getElementById('play-progress-fill');
   const label = document.getElementById('play-progress-label');
   if (fill)  fill.style.width = `${Math.round((done / total) * 100)}%`;
-  if (label) label.textContent = `${done} / ${total}`;
+  if (label) label.textContent = `אתגר ${done + 1} מתוך ${total}`;
 
   // Render appropriate challenge type
   const cardWrap = document.getElementById('challenge-card');
   if (!cardWrap) return;
 
   state.active = null;
+
+  // Reset chrome BEFORE rendering — so per-type renderers can override
+  // the check button (e.g. Order enables it from start since shuffled
+  // input is itself a valid candidate answer).
+  hideFeedback();
+  showActionBar();
+  setCheckButton(false, false);
 
   switch (challenge.type) {
     case 'match': renderMatch(challenge, cardWrap); break;
@@ -287,11 +294,6 @@ function renderChallenge() {
     default:
       cardWrap.innerHTML = `<p style="color:var(--text-muted)">סוג אתגר לא מוכר: ${challenge.type}</p>`;
   }
-
-  // Reset action bar
-  hideFeedback();
-  showActionBar();
-  setCheckButton(false, false);
 }
 
 /* ----------------------------------------------------------------
@@ -749,6 +751,14 @@ function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue) {
 function hideFeedback() {
   const panel = document.getElementById('feedback-panel');
   if (panel) panel.className = 'prac-feedback';
+  // Clear inner content so previous challenge's explanation doesn't leak
+  // into the next challenge's panel before submit.
+  const expEl = document.getElementById('feedback-explanation');
+  if (expEl) { expEl.textContent = ''; expEl.style.display = 'none'; }
+  const verdictEl = document.getElementById('feedback-verdict');
+  if (verdictEl) verdictEl.textContent = '';
+  const iconEl = document.getElementById('feedback-icon');
+  if (iconEl) iconEl.textContent = '';
 }
 
 /* ================================================================
