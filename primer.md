@@ -1,11 +1,11 @@
 # Primer — עסק ללא מתחרים
-> Last updated: 2026-05-07 by Claude Code
+> Last updated: 2026-05-08 by Claude Code
 
 ## Current State
 - **Status:** **LIVE on Vercel** at `https://business-without-competitors.vercel.app` (also still live on GitHub Pages at `https://hilell-aknine.github.io/business-without-competitors/`)
-- **Last task completed:** **10X AI Learning Protocol** integrated into every lesson. Added `/api/` Vercel serverless functions (transcript fetch from YouTube, methodology extraction, active-learning Stage 2 with 3 modes), provider-fallback chain (Gemini → Groq → OpenRouter — same Hebrew system prompt across all), localStorage caching keyed by lessonKey, frosted-glass UI matching Liquid Glass theme. Replaced AI Coach tab content with the protocol; ChatGPT GPT link kept as small secondary affordance.
-- **Next planned task:** (1) Hillel adds GEMINI/GROQ/OPENROUTER keys to Vercel env vars → first end-to-end test on real lesson → review Hebrew quality → tune prompts if needed. (2) Connect custom domain in Vercel.
-- **Blocking issues:** Awaiting Vercel env vars before live test.
+- **Last task completed:** **Lessons Library + Duolingo-style Practice MVP (built locally, NOT yet deployed).** Added `pages/library.html` (single page listing all 132 lessons + seminars with substring search, type/module/topic filters, completion icons from `bwc_completed` localStorage, auto-derived topic tags). Added `pages/practice.html` + `js/practice.js` + `js/practice-data.js` (3 challenge types: Match/Order/Cloze, 9 challenges for Module 1 only, XP + streak in `bwc_practice_v1`, modules 2-8 visibly locked). Cross-linked from `index.html` more-menu, `hub.html` navbar, `pages/quiz.html` top-nav, and library↔practice mutually.
+- **Next planned task:** (1) Hillel reviews library + practice MVP locally (`python -m http.server 8000`) → approves quality. (2) Push to Vercel. (3) After approval, expand `practice-data.js` to all 8 modules (Wave 3 — currently only Module 1 has challenges). (4) Hillel adds GEMINI/GROQ/OPENROUTER keys to Vercel env vars for the older 10X Protocol feature. (5) Connect custom domain.
+- **Blocking issues:** Library + Practice MVP awaiting Hillel's manual review and explicit OK before `git push`.
 
 ## Protocol Architecture (added 2026-05-07)
 - **Endpoints:** `/api/transcript` (YouTube captions scraper, no key needed), `/api/protocol-extract` (Stage 1 methodology), `/api/protocol-active` (Stage 2 active learning), `/api/_test` (sanity check)
@@ -19,6 +19,7 @@
 ## Recent Changes
 | Date | What Changed | Files Affected |
 |------|-------------|----------------|
+| 2026-05-08 | **Library page + Duolingo-style practice MVP (Module 1).** Library: flatten of all 132 lessons (115 module videos + 1 AI-tool placeholder + 16 seminar parts) into one searchable RTL page with Liquid Glass theme. Topic tags auto-derived from titles (mostly module-level; many day titles are bare "יום 1/2/3" so per-day tagging is weak — flagged for Hillel). Deep links use real `?module=&week=&day=` / `?seminar=&part=` query params (verified against existing `index.html` routing). Practice: 3-screen state machine (menu/play/done), 3 challenge types (Match 4-6 pairs, Order 5 items drag/arrows, Cloze 4 options), 9 challenges for Module 1 grounded in the Atomic Method (מיצוב/אווטאר/הצעה אטומית/בורות-סולמות/פיצוח/שיטה). XP + streak persisted in `bwc_practice_v1` with Asia/Jerusalem date logic. Modules 2-8 visibly locked. Cross-linked from `index.html` more-menu, `hub.html` navbar, `pages/quiz.html` top-nav. **NOT deployed.** | `pages/library.html`, `js/library.js`, `css/library.css`, `pages/practice.html`, `js/practice.js`, `js/practice-data.js`, `css/practice.css` (new) · `index.html`, `pages/quiz.html`, `hub.html` (nav links added) |
 | 2026-05-06 | **Deployed to GitHub Pages.** Promoted Liquid Glass to landing: `index.html` (was classic) → `index-classic.html`; `index-glass.html` → `index.html`. Added full OG/Twitter meta to glass version. Hub.html links unchanged (already point to `index.html`). | `index.html`, `index-classic.html` (rename), `primer.md`, `מה-זה.txt` |
 | 2026-04-28 | Liquid Glass portal V1 (Apple visionOS-style) — atmospheric mesh BG with floating blobs/grain, frosted glass cards, gold+petrol palette, Frank Ruhl Libre display + Heebo body. Wired to MODULES/SEMINARS/QUIZZES. Dark-only by design. Standalone file, doesn't affect existing portal. | `index-glass.html` (new) |
 | 2026-04-28 | Quiz/game system: 8 module quizzes, 5 questions each, with explanations, scoring, retry, localStorage tracking. Nav link added in top-nav. Mobile: nav links collapse to icons. | `js/quiz-data.js` (new), `pages/quiz.html` (new), `index.html` (nav + mobile rule) |

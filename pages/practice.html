@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#04161b">
+<title>תרגול פעיל — עסק ללא מתחרים</title>
+<meta name="description" content="תרגול פעיל — בדקו ושכללו את הידע שלכם עם אתגרי התאמה, סידור והשלמת משפטים.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="תרגול פעיל — עסק ללא מתחרים">
+<meta property="og:locale" content="he_IL">
+
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="../assets/css/design-tokens.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<link rel="stylesheet" href="../css/practice.css">
+
+<script>
+  /* FOUC prevention — match index.html pattern */
+  (function(){
+    var t = localStorage.getItem('bwc-theme') || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+</head>
+<body>
+
+<!-- ===== Atmospheric background ===== -->
+<div class="atmos" aria-hidden="true">
+  <div class="atmos__base"></div>
+  <div class="atmos__blob atmos__blob--a"></div>
+  <div class="atmos__blob atmos__blob--b"></div>
+  <div class="atmos__blob atmos__blob--c"></div>
+  <div class="atmos__grid"></div>
+  <div class="atmos__grain"></div>
+</div>
+
+<!-- ===== Skip link ===== -->
+<a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+
+<!-- ===== Top navigation ===== -->
+<header class="prac-nav" role="banner">
+  <div class="prac-nav__right">
+    <a href="../index.html" class="prac-nav__brand" aria-label="עסק ללא מתחרים — דף הבית">
+      <div class="prac-nav__brand-icon">
+        <i class="fa-solid fa-rocket" aria-hidden="true"></i>
+      </div>
+      <span>עסק ללא <b>מתחרים</b></span>
+    </a>
+    <nav class="prac-nav__links" aria-label="ניווט ראשי">
+      <a href="../index.html" class="prac-nav__link">דף הבית</a>
+      <a href="./library.html" class="prac-nav__link">ספרייה</a>
+      <a href="./quiz.html" class="prac-nav__link">חידונים</a>
+      <a href="./practice.html" class="prac-nav__link prac-nav__link--active" aria-current="page">תרגול</a>
+    </nav>
+  </div>
+  <div class="prac-nav__left">
+    <a href="../index.html" class="prac-topbar__close" style="position:static;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)">
+      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+      <span>לפורטל</span>
+    </a>
+  </div>
+</header>
+
+<!-- ===== Main ===== -->
+<main class="prac-wrap" id="main" tabindex="-1">
+
+  <!-- ================================================================
+       VIEW: MENU
+       ================================================================ -->
+  <section id="view-menu" class="prac-view" aria-label="בחירת מודול לתרגול">
+
+    <div class="prac-menu__header">
+      <div class="prac-menu__eyebrow">תרגול פעיל</div>
+      <h1 class="prac-menu__title">שכלל את הידע שלך</h1>
+      <p class="prac-menu__sub">התאמה, סידור, השלמת משפטים — שלושה סוגי אתגר שמחזקים זיכרון לטווח ארוך.</p>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="prac-stats" role="region" aria-label="סטטיסטיקות">
+      <div class="prac-stat g" aria-label="סה״כ XP">
+        <div class="prac-stat__value" id="stat-xp">0</div>
+        <div class="prac-stat__label">סה״כ XP</div>
+      </div>
+      <div class="prac-stat g" aria-label="רצף ימים">
+        <div class="prac-stat__value" id="stat-streak">0</div>
+        <div class="prac-stat__label">רצף ימים</div>
+      </div>
+      <div class="prac-stat g" aria-label="ציון אחרון">
+        <div class="prac-stat__value" id="stat-last">—</div>
+        <div class="prac-stat__label">ציון אחרון</div>
+      </div>
+    </div>
+
+    <!-- Module grid — rendered by JS -->
+    <div class="prac-module-grid" id="module-grid" role="list" aria-label="מודולים לתרגול"></div>
+
+  </section>
+
+  <!-- ================================================================
+       VIEW: PLAY
+       ================================================================ -->
+  <section id="view-play" class="prac-view" aria-label="תרגול פעיל">
+
+    <!-- Top bar: progress + close -->
+    <div class="prac-topbar">
+      <div class="prac-topbar__progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="התקדמות">
+        <div class="prac-topbar__label">
+          <span id="play-progress-label">0 / 0</span>
+          <span> אתגרים</span>
+        </div>
+        <div class="prac-progress-bar">
+          <div class="prac-progress-bar__fill" id="play-progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <button type="button" class="prac-topbar__close" onclick="requestExit()" aria-label="יציאה מהתרגול">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        <span>יציאה</span>
+      </button>
+    </div>
+
+    <!-- Challenge card — rendered dynamically by JS -->
+    <div id="challenge-card"></div>
+
+    <!-- Extra bottom space so fixed bar doesn't cover content -->
+    <div style="height: 80px"></div>
+
+  </section>
+
+  <!-- ================================================================
+       VIEW: DONE (session complete)
+       ================================================================ -->
+  <section id="view-done" class="prac-view prac-done" aria-label="סיכום סשן">
+
+    <!-- Hero card -->
+    <div class="prac-done__hero g">
+      <!-- Gold particle burst -->
+      <div class="prac-done__particles" id="done-particles" aria-hidden="true"></div>
+
+      <div class="prac-done__xp-label">XP הרווחתם</div>
+      <div class="prac-done__xp" id="done-xp" aria-live="polite">+0</div>
+      <div class="prac-done__xp-sub" id="done-xp-sub">0 נקודות XP</div>
+
+      <div class="prac-done__stats" role="list">
+        <div role="listitem">
+          <div class="prac-done__stat-val" id="done-correct">0/0</div>
+          <div class="prac-done__stat-lbl">נכון / סך הכול</div>
+        </div>
+        <div role="listitem">
+          <div class="prac-done__stat-val" id="done-pct">0%</div>
+          <div class="prac-done__stat-lbl">דיוק</div>
+        </div>
+        <div role="listitem">
+          <div class="prac-done__stat-val" id="done-time">00:00</div>
+          <div class="prac-done__stat-lbl">זמן</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Streak block -->
+    <div class="prac-done__streak g" id="done-streak" aria-live="polite">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- Action buttons -->
+    <div class="prac-done__actions">
+      <button type="button" class="btn-gold" onclick="replaySession()">
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+        תרגל שוב
+      </button>
+      <button type="button" class="btn-ghost-dark" onclick="backToMenu()">
+        <i class="fa-solid fa-list" aria-hidden="true"></i>
+        חזרה לתפריט
+      </button>
+    </div>
+
+  </section>
+
+</main><!-- /.prac-wrap -->
+
+<!-- ================================================================
+     FIXED: action bar (בדוק תשובה)
+     ================================================================ -->
+<div class="prac-actions prac-actions--hidden" id="action-bar" aria-hidden="false">
+  <div class="prac-actions__inner">
+    <button type="button" class="btn-check" id="btn-check"
+            onclick="checkAnswer()" disabled aria-label="בדוק תשובה">
+      בדוק תשובה
+    </button>
+  </div>
+</div>
+
+<!-- ================================================================
+     FIXED: feedback panel (slide up)
+     ================================================================ -->
+<div class="prac-feedback" id="feedback-panel" role="status" aria-live="polite" aria-atomic="true">
+  <div class="prac-feedback__inner">
+    <div class="prac-feedback__icon" id="feedback-icon" aria-hidden="true"></div>
+    <div class="prac-feedback__text">
+      <div class="prac-feedback__verdict" id="feedback-verdict"></div>
+      <div class="prac-feedback__explanation" id="feedback-explanation" style="display:none"></div>
+    </div>
+    <button type="button" class="prac-feedback__btn" id="feedback-btn" aria-label="המשך לאתגר הבא">
+      המשך
+    </button>
+  </div>
+</div>
+
+<!-- ================================================================
+     MID-SESSION EXIT CONFIRMATION
+     ================================================================ -->
+<div class="prac-confirm-overlay" id="confirm-overlay"
+     role="dialog" aria-modal="true" aria-label="אישור יציאה"
+     aria-hidden="true">
+  <div class="prac-confirm-box g">
+    <h3>לצאת מהתרגול?</h3>
+    <p>ההתקדמות בסשן הנוכחי לא תישמר, אבל XP שהרווחתם על אתגרים שהושלמו נשמר.</p>
+    <div class="prac-confirm-box__btns">
+      <button type="button" class="btn-ghost-dark" onclick="cancelExit()" aria-label="בטל, חזור לתרגול">
+        ביטול
+      </button>
+      <button type="button" class="btn-gold" onclick="confirmExit()" aria-label="אישור יציאה">
+        <i class="fa-solid fa-door-open" aria-hidden="true"></i>
+        כן, צא
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCRIPTS (boot order: course-data → practice-data → practice)
+     ================================================================ -->
+<script src="../js/course-data.js"></script>
+<script src="../js/practice-data.js"></script>
+<script src="../js/practice.js"></script>
+
+</body>
+</html>

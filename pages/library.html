@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ספריית השיעורים — עסק ללא מתחרים</title>
+
+  <!-- Fonts loaded early to prevent FOUC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+
+  <!-- Design system (tokens + shared components) -->
+  <link rel="stylesheet" href="../assets/css/design-tokens.css">
+  <link rel="stylesheet" href="../assets/css/components.css">
+
+  <!-- Page-specific styles -->
+  <link rel="stylesheet" href="../css/library.css">
+
+  <style>
+    /* ---- FOUC prevention: base reset identical to index.html ---- */
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{background:#04161b;color:#fff;font-family:'Heebo',sans-serif;min-height:100vh;overflow-x:hidden;max-width:100vw;line-height:1.6;}
+    body{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+
+    a:focus-visible,button:focus-visible,input:focus-visible{
+      outline:3px solid var(--lg-gold,#E5B547);outline-offset:2px;border-radius:inherit;
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important;}
+    }
+
+    /* ---- Atmospheric background (copied from index.html) ---- */
+    .atmos{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;}
+    .atmos__base{position:absolute;inset:0;background:
+      radial-gradient(ellipse 60% 50% at 90% 12%, rgba(26,79,79,.7), transparent 60%),
+      radial-gradient(ellipse 55% 50% at 12% 88%, rgba(45,107,95,.6), transparent 60%),
+      radial-gradient(circle 480px at 70% 55%, rgba(212,165,116,.22), transparent 60%),
+      radial-gradient(circle 360px at 18% 18%, rgba(232,213,183,.13), transparent 60%),
+      linear-gradient(160deg,#0F2D2D 0%,#0a2528 55%,#0F2D2D 100%);}
+
+    .atmos__blob{position:absolute;border-radius:50%;filter:blur(120px);mix-blend-mode:screen;will-change:transform;}
+    .atmos__blob--a{width:600px;height:600px;background:#D4A574;opacity:.18;top:-220px;inset-inline-end:-180px;animation:lgFloatA 60s ease-in-out infinite;}
+    .atmos__blob--b{width:520px;height:520px;background:#2D6B5F;opacity:.22;bottom:-200px;inset-inline-start:-160px;animation:lgFloatB 60s ease-in-out infinite;}
+    .atmos__blob--c{width:380px;height:380px;background:#3FAABB;opacity:.15;top:38%;inset-inline-start:42%;animation:lgFloatC 38s ease-in-out infinite;}
+
+    @keyframes lgFloatA{0%,100%{transform:translate(0,0) rotate(0deg);}33%{transform:translate(-60px,40px) rotate(8deg);}66%{transform:translate(30px,-30px) rotate(-5deg);}}
+    @keyframes lgFloatB{0%,100%{transform:translate(0,0) rotate(0deg);}33%{transform:translate(50px,-40px) rotate(-6deg);}66%{transform:translate(-40px,30px) rotate(9deg);}}
+    @keyframes lgFloatC{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(-70px,-50px) scale(1.12);}}
+
+    .atmos__grid{position:absolute;inset:0;opacity:.06;mix-blend-mode:overlay;
+      background-image:linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px);
+      background-size:64px 64px;
+      -webkit-mask-image:radial-gradient(ellipse at center, black 30%, transparent 75%);
+      mask-image:radial-gradient(ellipse at center, black 30%, transparent 75%);}
+
+    .atmos__grain{position:absolute;inset:0;opacity:.045;mix-blend-mode:overlay;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/></svg>");}
+
+    body > *:not(.atmos){position:relative;z-index:1;}
+
+    /* ---- Glass card utility (from index.html) ---- */
+    .g{position:relative;isolation:isolate;
+      background:linear-gradient(135deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.05) 100%);
+      backdrop-filter:blur(40px) saturate(180%) brightness(1.05);
+      -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.05);
+      border:1px solid rgba(255,255,255,.16);
+      border-top-color:var(--lg-border-top,rgba(255,255,255,.28));
+      border-bottom-color:var(--lg-border-bottom,rgba(255,255,255,.06));
+      box-shadow:var(--lg-shadow,0 8px 32px rgba(0,0,0,.18)), inset 0 1px 0 rgba(255,255,255,.18);
+      transition:box-shadow .35s var(--ease-smooth,.32,.72,0,1), background .35s;}
+    .g::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+      background:linear-gradient(180deg,rgba(255,255,255,.10) 0%,rgba(255,255,255,.02) 35%,transparent 55%);
+      z-index:0;}
+    .g > *{position:relative;z-index:1;}
+
+    /* ---- Header (from index.html) ---- */
+    .v1-header{
+      position:sticky;top:0;z-index:var(--z-sticky,60);
+      display:flex;align-items:center;justify-content:space-between;gap:1rem;
+      padding:.75rem 1.25rem;
+      background:linear-gradient(180deg, rgba(15,45,45,.72) 0%, rgba(15,45,45,.55) 100%);
+      backdrop-filter:blur(60px) saturate(200%) brightness(1.05);
+      -webkit-backdrop-filter:blur(60px) saturate(200%) brightness(1.05);
+      border-bottom:1px solid rgba(255,255,255,.10);
+      box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 8px 24px rgba(0,0,0,.18);
+      height:var(--header-height-desktop,64px);
+      min-height:var(--header-height-desktop,64px);
+      box-sizing:border-box;
+    }
+    @media (max-width:768px){
+      .v1-header{height:var(--header-height-mobile,56px);min-height:var(--header-height-mobile,56px);padding:.5rem 1rem;}
+    }
+    .v1-hd__right,.v1-hd__center,.v1-hd__left{display:flex;align-items:center;gap:.55rem;}
+    .v1-hd__brand{display:flex;align-items:center;gap:.55rem;text-decoration:none;color:#fff;}
+    .v1-hd__brand-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--lg-gold,#E5B547),var(--lg-gold-deep,#D4A03B));display:grid;place-items:center;color:#1A2E2E;font-size:.95rem;box-shadow:0 4px 14px rgba(229,181,71,.3),inset 0 1px 0 rgba(255,255,255,.4);}
+    .v1-hd__brand span{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:.98rem;letter-spacing:-.01em;}
+    .v1-hd__brand b{color:var(--lg-gold,#E5B547);font-weight:900;}
+    .v1-hd__sep{width:1px;height:22px;background:rgba(255,255,255,.14);}
+    .v1-hd__course{font-size:.8rem;color:rgba(232,241,242,.7);font-weight:500;}
+
+    .v1-hd__pill{
+      position:relative;isolation:isolate;
+      display:inline-flex;align-items:center;gap:.45rem;
+      padding:.4rem .85rem;border-radius:50px;
+      background:linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter:blur(22px) saturate(220%);-webkit-backdrop-filter:blur(22px) saturate(220%);
+      color:#fff;font-size:.76rem;font-weight:600;font-family:inherit;cursor:default;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(0,0,0,.14),0 6px 18px rgba(0,0,0,.20);
+    }
+    .v1-hd__pill i.fa-circle{font-size:.4rem;color:var(--lg-gold,#E5B547);box-shadow:0 0 8px rgba(229,181,71,.6);border-radius:50%;}
+
+    .btn{position:relative;display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1rem;border-radius:10px;font-family:'Heebo',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:-.01em;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);cursor:pointer;text-decoration:none;transition:transform .2s,background .2s;isolation:isolate;overflow:hidden;white-space:nowrap;}
+    .btn--gold{background:linear-gradient(135deg,var(--lg-gold,#E5B547) 0%,var(--lg-gold-deep,#D4A03B) 50%,var(--lg-gold,#E5B547) 100%);background-size:200% 100%;color:#1A2E2E;border:1px solid rgba(229,181,71,.55);box-shadow:0 8px 22px rgba(229,181,71,.35),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.12);}
+    .btn--gold:hover{transform:translateY(-2px);}
+    .btn--clear{background:rgba(255,255,255,.08);color:#fff;}
+    .btn--sm{padding:.35rem .7rem;font-size:.72rem;border-radius:8px;}
+    @media (max-width:768px){.v1-hd__course,.v1-hd__sep,.v1-hd__pill{display:none;}}
+  </style>
+</head>
+
+<body>
+
+<!-- Atmospheric background -->
+<div class="atmos" aria-hidden="true">
+  <div class="atmos__base"></div>
+  <div class="atmos__blob atmos__blob--a"></div>
+  <div class="atmos__blob atmos__blob--b"></div>
+  <div class="atmos__blob atmos__blob--c"></div>
+  <div class="atmos__grid"></div>
+  <div class="atmos__grain"></div>
+</div>
+
+<!-- HEADER -->
+<header class="v1-header" aria-label="ניווט ראשי">
+  <div class="v1-hd__right">
+    <a class="v1-hd__brand" href="../hub.html" aria-label="עסק ללא מתחרים — חזרה לדף הבית">
+      <span class="v1-hd__brand-icon"><i class="fa-solid fa-rocket" aria-hidden="true"></i></span>
+      <span>עסק <b>ללא מתחרים</b></span>
+    </a>
+    <span class="v1-hd__sep" aria-hidden="true"></span>
+    <span class="v1-hd__course">תוכנית ההכשרה המלאה</span>
+  </div>
+
+  <div class="v1-hd__center">
+    <span class="v1-hd__pill" aria-current="page">
+      <i class="fa-solid fa-circle" aria-hidden="true"></i>
+      <span>ספריית השיעורים</span>
+    </span>
+  </div>
+
+  <div class="v1-hd__left">
+    <a href="../index.html" class="btn btn--clear btn--sm">
+      <i class="fa-solid fa-play" aria-hidden="true"></i> חזור לנגן
+    </a>
+    <a href="./practice.html" class="btn btn--clear btn--sm">
+      <i class="fa-solid fa-dumbbell" aria-hidden="true"></i> תרגול
+    </a>
+    <a href="../pages/quiz.html" class="btn btn--gold btn--sm">
+      <i class="fa-solid fa-circle-question" aria-hidden="true"></i> מבחני הבנה
+    </a>
+  </div>
+</header>
+
+<!-- PAGE CONTENT -->
+<main class="lib-page" id="main" tabindex="-1">
+
+  <!-- Page header -->
+  <div class="lib-header">
+    <h1 class="lib-header__title">ספריית השיעורים</h1>
+    <p class="lib-header__sub">
+      כל <span id="libSubtitleCount">132</span> השיעורים והסמינרים — לחיפוש מהיר, סינון לפי נושא, וקפיצה ישירה
+    </p>
+    <div class="lib-stats" role="status" aria-live="polite" aria-label="סטטיסטיקות התקדמות">
+      <span class="lib-stats__item">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <span class="lib-stats__num" id="libStatDone">0</span>
+        <span>נצפו</span>
+      </span>
+      <span class="lib-stats__dot" aria-hidden="true"></span>
+      <span class="lib-stats__item">
+        <i class="fa-regular fa-circle" aria-hidden="true"></i>
+        <span class="lib-stats__num" id="libStatRemain">0</span>
+        <span>נותרו</span>
+      </span>
+      <span class="lib-stats__dot" aria-hidden="true"></span>
+      <span class="lib-stats__item">
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        <span class="lib-stats__num" id="libStatTopics">0</span>
+        <span>נושאים</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="lib-filters g" role="search" aria-label="סינון שיעורים">
+
+    <!-- Mobile toggle (shown only below 768px) -->
+    <button
+      type="button"
+      class="lib-filters__mobile-toggle"
+      id="libFilterToggle"
+      aria-expanded="false"
+      aria-controls="libAdvanced"
+    >
+      <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+      <span>סינון</span>
+    </button>
+
+    <!-- Search — always visible -->
+    <div class="lib-filters__search">
+      <i class="fa-solid fa-magnifying-glass lib-filters__search-icon" aria-hidden="true"></i>
+      <input
+        type="search"
+        id="libSearch"
+        placeholder="חפש שיעור..."
+        aria-label="חיפוש שיעור"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <span class="lib-filters__kbd" aria-hidden="true">Ctrl K</span>
+    </div>
+
+    <!-- Advanced filters (collapsible on mobile) -->
+    <div class="lib-filters__advanced" id="libAdvanced">
+      <!-- Type -->
+      <select id="libTypeSelect" class="lib-filters__select" aria-label="סנן לפי סוג">
+        <option value="all">הכל</option>
+        <option value="modules">מודולים</option>
+        <option value="seminars">סמינרים</option>
+        <option value="ai">כלי AI</option>
+      </select>
+
+      <!-- Module -->
+      <select id="libModuleSelect" class="lib-filters__select" aria-label="סנן לפי מודול">
+        <option value="">כל המודולים</option>
+        <!-- populated by library.js -->
+      </select>
+
+      <!-- Topic -->
+      <select id="libTopicSelect" class="lib-filters__select" aria-label="סנן לפי נושא">
+        <option value="">כל הנושאים</option>
+        <!-- populated by library.js -->
+      </select>
+
+      <!-- Status toggle -->
+      <div class="lib-filters__toggle" role="group" aria-label="סנן לפי סטטוס">
+        <button type="button" class="lib-filters__toggle-btn active" data-status="all">הכל</button>
+        <button type="button" class="lib-filters__toggle-btn" data-status="watched">נצפו</button>
+        <button type="button" class="lib-filters__toggle-btn" data-status="unwatched">לא נצפו</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result count -->
+  <div class="lib-count-bar" aria-live="polite">
+    <p class="lib-count-bar__text">
+      מציג <b id="libCount">0</b> מתוך <b id="libTotal">0</b> שיעורים
+    </p>
+  </div>
+
+  <!-- Lesson list -->
+  <div class="lib-list" id="libList" role="list" aria-label="רשימת שיעורים"></div>
+
+  <!-- Empty state -->
+  <div class="lib-empty" id="libEmpty" hidden role="status" aria-live="polite">
+    <div class="lib-empty__icon"><i class="fa-regular fa-face-sad-tear" aria-hidden="true"></i></div>
+    <p class="lib-empty__text">לא נמצאו שיעורים תואמים. נסה מונחים אחרים.</p>
+  </div>
+
+</main>
+
+<script src="../js/course-data.js"></script>
+<script src="../js/library.js"></script>
+</body>
+</html>
