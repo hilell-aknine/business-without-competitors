@@ -9,7 +9,15 @@
    CONSTANTS
    ================================================================ */
 const STORAGE_KEY = 'bwc_practice_v1';
-const UNLOCKED_MODULE_IDX = 0; // Only module 0 has challenges for MVP
+
+/**
+ * A module is "unlocked" iff at least one challenge exists for it
+ * in window.PRACTICE_CHALLENGES. No more hardcoded MVP gate — modules
+ * appear/disappear from the practice menu purely as data is added.
+ */
+function isModuleUnlocked(idx) {
+  return (window.PRACTICE_CHALLENGES || []).some(c => c.moduleIdx === idx);
+}
 
 /* ================================================================
    UTILITIES
@@ -176,7 +184,7 @@ function renderMenu() {
   if (!grid) return;
 
   grid.innerHTML = MODULES.map((mod, idx) => {
-    const isUnlocked = idx === UNLOCKED_MODULE_IDX;
+    const isUnlocked = isModuleUnlocked(idx);
     const challenges = (window.PRACTICE_CHALLENGES || []).filter(c => c.moduleIdx === idx);
     const count = challenges.length;
 
@@ -896,7 +904,7 @@ function triggerParticleBurst() {
 
 window.replaySession = function() {
   // Replay with the same module index
-  const moduleIdx = state.challenges[0] ? state.challenges[0].moduleIdx : UNLOCKED_MODULE_IDX;
+  const moduleIdx = state.challenges[0] ? state.challenges[0].moduleIdx : 0;
   startSession(moduleIdx);
 };
 
