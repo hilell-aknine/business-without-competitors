@@ -4,6 +4,17 @@
    Matches the .v1-hd__pill aesthetic. RTL-aware via logical properties.
    ========================================================================== */
 
+/* The global body > *:not(.atmos) rule (specificity 0,1,1) was overriding the
+   header's own z-index (0,1,0) and pinning it to z-index:1 — same as the .g
+   content container. Same-level siblings stack by source order, so .g (later
+   in DOM) was painting on top of any dropdown overflowing the header. Boost
+   the header here so its absolutely-positioned dropdown actually shows.
+   !important is needed because navbar-more.css loads before the inline <style>
+   block in index.html that declares the conflicting body > * rule. */
+body > .v1-header{
+  z-index: var(--z-sticky, 60) !important;
+}
+
 /* Wrapper around the More trigger + the dropdown panel. */
 .v1-hd__more-wrap{
   position:relative;

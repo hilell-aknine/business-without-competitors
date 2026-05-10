@@ -25,28 +25,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
     <link rel="stylesheet" href="../css/shared.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-        <a href="../hub.html" class="navbar-brand">
-            <div class="brand-icon"><i class="fa-solid fa-rocket"></i></div>
-            עסק <span>ללא מתחרים</span>
-        </a>
-        <div class="navbar-links" id="navLinks">
-            <a href="../hub.html#seminars">סמינרים</a>
-            <a href="../hub.html#modules">מודולים</a>
-            <a href="../index.html" class="navbar-cta">
-                <i class="fa-solid fa-play"></i>
-                כניסה לתוכנית
-            </a>
-        </div>
-        <button class="navbar-mobile-toggle" onclick="toggleNav()">
-            <i class="fa-solid fa-bars" id="navToggleIcon"></i>
-        </button>
-    </nav>
+    <header class="gnav" data-page="seminars"></header>
 
     <!-- Page Hero -->
     <section class="page-hero reveal">
@@ -72,14 +57,6 @@
     <!-- Seminars Content -->
     <div id="seminarsContent">
         <!-- Populated by JS -->
-    </div>
-
-    <!-- Back to hub -->
-    <div style="text-align: center; padding: 2rem;">
-        <a href="../hub.html" class="hero-cta" style="display: inline-flex;">
-            <i class="fa-solid fa-th-large"></i>
-            חזרה לדף הראשי
-        </a>
     </div>
 
     <!-- Footer -->
@@ -167,13 +144,7 @@
         revealObserver.observe(el);
     });
 
-    // Mobile nav toggle
-    function toggleNav() {
-        const links = document.getElementById('navLinks');
-        const icon = document.getElementById('navToggleIcon');
-        links.classList.toggle('open');
-        icon.className = links.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
-    }
     </script>
+    <script src="../js/global-nav.js" defer></script>
 </body>
 </html>

@@ -43,26 +43,6 @@
   function buildFlatList() {
     const list = [];
 
-    SEMINARS.forEach((sem, si) => {
-      sem.parts.forEach((part, pi) => {
-        const key = `s${si}-${pi}`;
-        const title = part.title === 'הסמינר המלא' ? sem.title : `${sem.title} — ${part.title}`;
-        list.push({
-          key,
-          type: 'seminar',
-          si, pi,
-          title,
-          displayTitle: part.title,
-          seminarTitle: sem.title,
-          meta: `סמינר ${si + 1}: ${sem.title} · חלק ${pi + 1}`,
-          videoId: part.videoId,
-          isAiTool: false,
-          url: `../index.html?seminar=${si}&part=${pi}`,
-          tags: getTags(sem.title + ' ' + part.title)
-        });
-      });
-    });
-
     MODULES.forEach((mod, mi) => {
       mod.weeks.forEach((week, wi) => {
         week.days.forEach((day, di) => {
@@ -88,6 +68,26 @@
               : `../index.html?module=${mi}&week=${wi}&day=${di}`,
             tags: getTags(mod.title + ' ' + title)
           });
+        });
+      });
+    });
+
+    SEMINARS.forEach((sem, si) => {
+      sem.parts.forEach((part, pi) => {
+        const key = `s${si}-${pi}`;
+        const title = part.title === 'הסמינר המלא' ? sem.title : `${sem.title} — ${part.title}`;
+        list.push({
+          key,
+          type: 'seminar',
+          si, pi,
+          title,
+          displayTitle: part.title,
+          seminarTitle: sem.title,
+          meta: `סמינר ${si + 1}: ${sem.title} · חלק ${pi + 1}`,
+          videoId: part.videoId,
+          isAiTool: false,
+          url: `../index.html?seminar=${si}&part=${pi}`,
+          tags: getTags(sem.title + ' ' + part.title)
         });
       });
     });

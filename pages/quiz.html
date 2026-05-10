@@ -22,6 +22,7 @@
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
     </script>
     <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
     <script src="../js/theme-toggle.js" defer></script>
     <style>
         /* Tokens come from /assets/css/design-tokens.css                  */
@@ -705,33 +706,11 @@
 </head>
 <body>
     <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
-    <nav class="top-nav app-header" aria-label="ניווט ראשי">
-        <div class="top-nav-right">
-            <a href="../hub.html" class="brand-link app-header__brand" aria-label="עסק ללא מתחרים — דף הבית">
-                <span class="app-header__brand-icon"><i class="fa-solid fa-rocket"></i></span>
-                <span class="app-header__brand-text">עסק ללא מתחרים</span>
-            </a>
-            <span class="breadcrumb">
-                <i class="fa-solid fa-chevron-left"></i>
-                <span id="breadcrumbCurrent">מבחני הבנה</span>
-            </span>
-        </div>
-        <div class="top-nav-left">
-            <!-- theme toggle injected by theme-toggle.js -->
-            <a href="./library.html" class="nav-back app-header__back" aria-label="ספריית השיעורים">
-                <i class="fa-solid fa-book-open"></i>
-                <span>ספרייה</span>
-            </a>
-            <a href="./practice.html" class="nav-back app-header__back" aria-label="תרגול פעיל">
-                <i class="fa-solid fa-dumbbell"></i>
-                <span>תרגול</span>
-            </a>
-            <a href="../index.html" class="nav-back app-header__back" aria-label="חזרה לפורטל הלמידה">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>חזרה לפורטל</span>
-            </a>
-        </div>
-    </nav>
+    <header class="gnav" data-page="quiz"></header>
+    <div class="breadcrumb" style="padding: 0.5rem 1.5rem; background: var(--deep-petrol); color: rgba(232,241,242,0.7); font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+        <i class="fa-solid fa-chevron-left" style="font-size:0.7rem;opacity:0.5;"></i>
+        <span id="breadcrumbCurrent">מבחני הבנה</span>
+    </div>
 
     <main class="quiz-wrap" id="main" tabindex="-1">
         <!-- ===== Module Selection View ===== -->
@@ -828,6 +807,7 @@
         </section>
     </main>
 
+    <script src="../js/global-nav.js" defer></script>
     <script src="../js/quiz-data.js"></script>
     <script>
     // ===== State =====

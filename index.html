@@ -32,9 +32,8 @@
 <link rel="stylesheet" href="css/onboarding.css">
 <link rel="stylesheet" href="css/sidebar-accordion.css">
 <link rel="stylesheet" href="css/empty-state.css">
-<link rel="stylesheet" href="css/navbar-more.css">
+<link rel="stylesheet" href="css/global-nav.css">
 <link rel="stylesheet" href="css/a11y.css">
-<script src="js/navbar-more.js" defer></script>
 <style>
   /* ==================== TOKENS ==================== */
   /* All design tokens are defined in /assets/css/design-tokens.css */
@@ -793,42 +792,7 @@
 <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
 
 <!-- HEADER -->
-<header class="v1-header app-header" aria-label="ניווט ראשי">
-  <div class="v1-hd__right">
-    <a class="v1-hd__brand app-header__brand" href="hub.html" aria-label="עסק ללא מתחרים — חזרה לדף הבית">
-      <span class="v1-hd__brand-icon app-header__brand-icon"><i class="fa-solid fa-rocket"></i></span>
-      <span class="app-header__brand-text">עסק <b>ללא מתחרים</b></span>
-    </a>
-    <span class="v1-hd__sep"></span>
-    <span class="v1-hd__course">תוכנית ההכשרה המלאה</span>
-  </div>
-
-  <div class="v1-hd__center">
-    <button class="v1-hd__pill">
-      <i class="fa-solid fa-circle"></i>
-      <span>תוכנית ההכשרה</span>
-    </button>
-    <div class="v1-hd__progress" aria-label="התקדמות">
-      <span class="v1-hd__label">התקדמות</span>
-      <span class="v1-hd__progress-bar"><span id="headerProgressFill" style="width:0%"></span></span>
-      <b id="headerProgressPct">0%</b>
-    </div>
-  </div>
-
-  <div class="v1-hd__left">
-    <a href="pages/quiz.html" class="btn btn--gold btn--sm js-quiz-link"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</a>
-    <div class="v1-hd__more-wrap">
-      <button type="button" class="v1-hd__more" aria-label="עוד" aria-haspopup="menu" aria-expanded="false" aria-controls="navbarMoreMenu"><i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i></button>
-      <div class="v1-hd__more-menu" id="navbarMoreMenu" role="menu" aria-label="פעולות נוספות" hidden>
-        <a href="pages/library.html" class="btn btn--clear v1-hd__more-item" role="menuitem" aria-label="ספריית כל השיעורים"><i class="fa-solid fa-book-open" aria-hidden="true"></i><span>ספרייה</span></a>
-        <a href="pages/practice.html" class="btn btn--clear v1-hd__more-item" role="menuitem" aria-label="תרגול פעיל"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>תרגול</span></a>
-        <a href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener" class="btn btn--clear v1-hd__more-item" role="menuitem" aria-label="תיקיית תמלולים מלאים" title="תמלולים מלאים"><i class="fa-solid fa-folder-open" aria-hidden="true"></i><span>תיקייה</span></a>
-        <button type="button" class="btn btn--clear v1-hd__more-item v1-bell" role="menuitem" aria-label="התראות"><i class="fa-regular fa-bell" aria-hidden="true"></i><span>התראות</span></button>
-      </div>
-    </div>
-    <button class="btn btn--clear btn--sm v1-mobile-toggle" id="sidebarToggle" aria-label="פתח תפריט שיעורים" aria-expanded="false" aria-controls="sidebar"><i class="fa-solid fa-list" aria-hidden="true"></i></button>
-  </div>
-</header>
+<header class="gnav" data-page="home"></header>
 
 <!-- BODY -->
 <div class="v1-body">
@@ -1101,16 +1065,16 @@ let notesDebounce = null;
 let flatLessons = [];
 function buildFlat(){
   flatLessons = [];
-  SEMINARS.forEach((sem, si) => {
-    sem.parts.forEach((part, pi) => {
-      if (part.videoId) flatLessons.push({type:'seminar', si, pi, videoId:part.videoId, title:`${sem.title} · ${part.title}`});
-    });
-  });
   MODULES.forEach((mod, mi) => {
     mod.weeks.forEach((week, wi) => {
       week.days.forEach((day, di) => {
         if (day.videoId) flatLessons.push({type:'module', mi, wi, di, videoId:day.videoId, title:`${mod.title} · ${day.title}`});
       });
+    });
+  });
+  SEMINARS.forEach((sem, si) => {
+    sem.parts.forEach((part, pi) => {
+      if (part.videoId) flatLessons.push({type:'seminar', si, pi, videoId:part.videoId, title:`${sem.title} · ${part.title}`});
     });
   });
 }
@@ -1157,54 +1121,7 @@ function renderSidebar(filter=''){
   // Transcripts highlight (was "community" in V1 — adapted)
   html += `<a class="v1-side__hl" href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener"><i class="fa-solid fa-folder-open"></i><span>תמלולים מלאים</span></a>`;
 
-  // Seminars
-  const seminarMatches = SEMINARS.map((sem, si) => ({sem, si})).filter(({sem, si}) => {
-    if (!q) return true;
-    if (sem.title.toLowerCase().includes(q)) return true;
-    return sem.parts.some(p => p.title.toLowerCase().includes(q));
-  });
-  if (seminarMatches.length) {
-    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">סמינרים חיים</h3>`;
-    seminarMatches.forEach(({sem, si}) => {
-      const matchesCurrent = currentType === 'seminar' && currentSi === si;
-      const isOpen = (window.SidebarAccordion
-        ? window.SidebarAccordion.shouldStartOpen('seminar', si, matchesCurrent || !!q)
-        : matchesCurrent) || !!q;
-      const partsHtml = sem.parts.map((part, pi) => {
-        if (q && !part.title.toLowerCase().includes(q) && !sem.title.toLowerCase().includes(q)) return '';
-        const key = `s${si}-${pi}`;
-        const done = completedLessons.includes(key);
-        const active = currentType === 'seminar' && currentSi === si && currentPi === pi;
-        const thumb = part.videoId
-          ? `<img src="https://img.youtube.com/vi/${part.videoId}/mqdefault.jpg" loading="lazy" alt="" onerror="this.style.display='none'">`
-          : `<i class="fa-solid fa-circle-play"></i>`;
-        const overlay = done
-          ? `<i class="fa-solid fa-check v1-les__check"></i>`
-          : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
-        const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
-        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi},true)" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
-          <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
-          <span class="v1-les__txt">
-            <span class="v1-les__title">${part.title}</span>
-            <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${sem.title}</span></span>
-          </span>
-        </button>`;
-      }).join('');
-      const presentation = sem.presentationUrl ? `<a class="v1-side__resource" href="${sem.presentationUrl}" target="_blank" rel="noopener"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>` : '';
-      const semListId = `sem-list-${si}`;
-      html += `<div class="v1-mod ${isOpen?'open':''}" data-sem="${si}">
-        <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${semListId}">
-          <span class="v1-mod__num seminar" aria-hidden="true"><i class="fa-solid ${sem.icon||'fa-video'}"></i></span>
-          <span class="v1-mod__title">${sem.title}</span>
-          <span class="v1-mod__count" aria-label="${sem.parts.length} שיעורים">${sem.parts.length}</span>
-          <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
-        </button>
-        <div class="v1-mod__list" id="${semListId}">${partsHtml}${presentation}</div>
-      </div>`;
-    });
-  }
-
-  // Modules
+  // Modules (primary learning track — comes first)
   const moduleMatches = MODULES.map((mod, mi) => ({mod, mi})).filter(({mod}) => {
     if (!q) return true;
     if (mod.title.toLowerCase().includes(q)) return true;
@@ -1264,6 +1181,53 @@ function renderSidebar(filter=''){
           ${modProgressHtml}
         </button>
         <div class="v1-mod__list" id="${modListId}">${weeksHtml}${extraResources.join('')}</div>
+      </div>`;
+    });
+  }
+
+  // Seminars (companion track — comes after modules)
+  const seminarMatches = SEMINARS.map((sem, si) => ({sem, si})).filter(({sem, si}) => {
+    if (!q) return true;
+    if (sem.title.toLowerCase().includes(q)) return true;
+    return sem.parts.some(p => p.title.toLowerCase().includes(q));
+  });
+  if (seminarMatches.length) {
+    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">סמינרים חיים</h3>`;
+    seminarMatches.forEach(({sem, si}) => {
+      const matchesCurrent = currentType === 'seminar' && currentSi === si;
+      const isOpen = (window.SidebarAccordion
+        ? window.SidebarAccordion.shouldStartOpen('seminar', si, matchesCurrent || !!q)
+        : matchesCurrent) || !!q;
+      const partsHtml = sem.parts.map((part, pi) => {
+        if (q && !part.title.toLowerCase().includes(q) && !sem.title.toLowerCase().includes(q)) return '';
+        const key = `s${si}-${pi}`;
+        const done = completedLessons.includes(key);
+        const active = currentType === 'seminar' && currentSi === si && currentPi === pi;
+        const thumb = part.videoId
+          ? `<img src="https://img.youtube.com/vi/${part.videoId}/mqdefault.jpg" loading="lazy" alt="" onerror="this.style.display='none'">`
+          : `<i class="fa-solid fa-circle-play"></i>`;
+        const overlay = done
+          ? `<i class="fa-solid fa-check v1-les__check"></i>`
+          : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
+        const lessonAria = `${part.title}${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
+        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectSeminar(${si},${pi},true)" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+          <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
+          <span class="v1-les__txt">
+            <span class="v1-les__title">${part.title}</span>
+            <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${sem.title}</span></span>
+          </span>
+        </button>`;
+      }).join('');
+      const presentation = sem.presentationUrl ? `<a class="v1-side__resource" href="${sem.presentationUrl}" target="_blank" rel="noopener"><i class="fa-solid fa-file-powerpoint"></i> מצגת הסמינר</a>` : '';
+      const semListId = `sem-list-${si}`;
+      html += `<div class="v1-mod ${isOpen?'open':''}" data-sem="${si}">
+        <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${semListId}">
+          <span class="v1-mod__num seminar" aria-hidden="true"><i class="fa-solid ${sem.icon||'fa-video'}"></i></span>
+          <span class="v1-mod__title">${sem.title}</span>
+          <span class="v1-mod__count" aria-label="${sem.parts.length} שיעורים">${sem.parts.length}</span>
+          <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
+        </button>
+        <div class="v1-mod__list" id="${semListId}">${partsHtml}${presentation}</div>
       </div>`;
     });
   }
@@ -2031,6 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ONBOARDING MODAL — first-time visitor flow (Endowed Progress Effect) -->
 <div class="onb-overlay" id="onbOverlay" hidden dir="rtl"></div>
 <script src="js/onboarding.js"></script>
+<script src="js/global-nav.js" defer></script>
 
 </body>
 </html>

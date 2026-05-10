@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003B46">
-    <title>עסק ללא מתחרים - תוכנית ההכשרה המלאה</title>
-    <meta name="description" content="תוכנית ההכשרה המלאה ״עסק ללא מתחרים״ - 8 מודולים, 120+ שיעורי וידאו, 7 סמינרים חיים וכלי AI">
+    <title>השיטה האטומית — עסק ללא מתחרים</title>
+    <meta name="description" content="השיטה האטומית: 8 מודולים, 7 סמינרים, 3 סוכני AI. הפילוסופיה והכלים מאחורי תוכנית ההכשרה ״עסק ללא מתחרים״.">
     <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="עסק ללא מתחרים - תוכנית ההכשרה המלאה">
@@ -26,6 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/global-nav.css">
     <style>
         /* ===== Home Page Specific Styles ===== */
 
@@ -350,27 +351,7 @@
 
     <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
 
-    <!-- Navbar -->
-    <nav class="navbar app-header" aria-label="ניווט ראשי">
-        <a href="hub.html" class="navbar-brand app-header__brand" aria-label="עסק ללא מתחרים — דף הבית">
-            <div class="brand-icon"><i class="fa-solid fa-rocket"></i></div>
-            <span class="app-header__brand-text">עסק <span>ללא מתחרים</span></span>
-        </a>
-        <div class="navbar-links" id="navLinks">
-            <a href="#method">השיטה</a>
-            <a href="#modules">מודולים</a>
-            <a href="#seminars">סמינרים</a>
-            <a href="pages/library.html">ספרייה</a>
-            <a href="pages/practice.html">תרגול</a>
-            <a href="index.html" class="navbar-cta">
-                <i class="fa-solid fa-play"></i>
-                כניסה לתוכנית
-            </a>
-        </div>
-        <button class="navbar-mobile-toggle" onclick="toggleNav()" aria-label="פתח תפריט ניווט" aria-expanded="false" aria-controls="navLinks">
-            <i class="fa-solid fa-bars" id="navToggleIcon"></i>
-        </button>
-    </nav>
+    <header class="gnav" data-page="hub"></header>
 
     <!-- ========== 1. HERO ========== -->
     <section class="hero reveal" id="main" tabindex="-1">
@@ -402,7 +383,7 @@
 
         <a href="index.html" class="hero-cta">
             <i class="fa-solid fa-play"></i>
-            התחילו את המסע
+            כניסה לפורטל
         </a>
     </section>
 
@@ -588,18 +569,6 @@
         </div>
     </section>
 
-    <!-- ========== 9. FINAL CTA ========== -->
-    <section class="quick-access reveal">
-        <div class="quick-access-inner">
-            <h3><i class="fa-solid fa-rocket" style="color: var(--gold); margin-left: 0.5rem;"></i> מוכנים לצאת מהתחרות?</h3>
-            <p>היכנסו לסביבת הלמידה המלאה — כל השיעורים, הסמינרים, וכלי ה-AI מחכים לכם</p>
-            <a href="index.html" class="hero-cta" style="margin-top: 0.5rem;">
-                <i class="fa-solid fa-play"></i>
-                התחילו את המסע עכשיו
-            </a>
-        </div>
-    </section>
-
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-brand">
@@ -609,6 +578,7 @@
         <p>תוכנית ההכשרה המלאה לבניית עסק ללא מתחרים</p>
     </footer>
 
+    <script src="js/global-nav.js" defer></script>
     <script src="js/course-data.js"></script>
     <script>
     // Render seminar cards
@@ -673,14 +643,6 @@
         document.getElementById('totalLessons').textContent = total + '+';
     }
 
-    // Mobile nav toggle
-    function toggleNav() {
-        const links = document.getElementById('navLinks');
-        const icon = document.getElementById('navToggleIcon');
-        links.classList.toggle('open');
-        icon.className = links.classList.contains('open') ? 'fa-solid fa-times' : 'fa-solid fa-bars';
-    }
-
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -688,8 +650,6 @@
             if (target) {
                 e.preventDefault();
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                document.getElementById('navLinks').classList.remove('open');
-                document.getElementById('navToggleIcon').className = 'fa-solid fa-bars';
             }
         });
     });

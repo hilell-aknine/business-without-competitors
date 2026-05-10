@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="../assets/css/design-tokens.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../css/practice.css">
+<link rel="stylesheet" href="../css/global-nav.css">
 
 <script>
   /* FOUC prevention — match index.html pattern */
@@ -43,28 +44,7 @@
 <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
 
 <!-- ===== Top navigation ===== -->
-<header class="prac-nav" role="banner">
-  <div class="prac-nav__right">
-    <a href="../index.html" class="prac-nav__brand" aria-label="עסק ללא מתחרים — דף הבית">
-      <div class="prac-nav__brand-icon">
-        <i class="fa-solid fa-rocket" aria-hidden="true"></i>
-      </div>
-      <span>עסק ללא <b>מתחרים</b></span>
-    </a>
-    <nav class="prac-nav__links" aria-label="ניווט ראשי">
-      <a href="../index.html" class="prac-nav__link">דף הבית</a>
-      <a href="./library.html" class="prac-nav__link">ספרייה</a>
-      <a href="./quiz.html" class="prac-nav__link">חידונים</a>
-      <a href="./practice.html" class="prac-nav__link prac-nav__link--active" aria-current="page">תרגול</a>
-    </nav>
-  </div>
-  <div class="prac-nav__left">
-    <a href="../index.html" class="prac-topbar__close" style="position:static;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)">
-      <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-      <span>לפורטל</span>
-    </a>
-  </div>
-</header>
+<header class="gnav" data-page="practice"></header>
 
 <!-- ===== Main ===== -->
 <main class="prac-wrap" id="main" tabindex="-1">
@@ -236,6 +216,7 @@
 <script src="../js/course-data.js"></script>
 <script src="../js/practice-data.js"></script>
 <script src="../js/practice.js"></script>
+<script src="../js/global-nav.js" defer></script>
 
 </body>
 </html>
