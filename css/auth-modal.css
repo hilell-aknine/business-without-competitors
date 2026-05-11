@@ -211,6 +211,37 @@
   color: var(--color-success, #10B981);
 }
 
+/* ===== Forgot password link ===== */
+.bwc-auth-forgot {
+  margin-top: 0.55rem;
+  text-align: center;
+}
+
+.bwc-auth-forgot-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: rgba(212, 175, 55, 0.75);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: rgba(212, 175, 55, 0.35);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.bwc-auth-forgot-btn:hover {
+  color: #D4AF37;
+  text-decoration-color: rgba(212, 175, 55, 0.7);
+}
+
+.bwc-auth-forgot-btn:focus-visible {
+  outline: 2px solid var(--accent-gold, #D4AF37);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
 /* ===== Footer hint ===== */
 .bwc-auth-hint {
   margin-top: 1rem;

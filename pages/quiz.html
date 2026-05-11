@@ -838,12 +838,90 @@
             total: total
         };
         localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+        // Fire-and-forget: sync this module's updated score to Supabase
+        _syncModuleToSupabase(quizIdx, scores[quizIdx]);
+    }
+
+    // ===== Supabase sync =====
+
+    // Merge a Supabase rows array into the current localStorage scores.
+    // For each module: take higher best_score, sum attempts, OR passed flags.
+    function _mergeSupabaseScores(rows) {
+        if (!rows || rows.length === 0) return;
+        const scores = loadScores();
+        rows.forEach(row => {
+            const idx = row.module_idx;
+            const prev = scores[idx] || { best: 0, attempts: 0, passed: false, lastScore: 0, total: 5 };
+            scores[idx] = {
+                best:      Math.max(prev.best,     row.best_score),
+                attempts:  prev.attempts + row.attempts,
+                passed:    prev.passed || row.passed,
+                lastScore: row.last_score,          // remote is authoritative for display
+                total:     row.total
+            };
+        });
+        localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
+    }
+
+    // Fetch all quiz_scores rows for the current user and merge into localStorage.
+    // Non-blocking — called in the background.
+    function _fetchAndMergeFromSupabase() {
+        if (!window.bwcAuth || !window.bwcSupabase) return;
+        const user = bwcAuth.getUser();
+        if (!user) return;
+
+        bwcSupabase
+            .from('quiz_scores')
+            .select('module_idx, best_score, attempts, passed, last_score, total')
+            .eq('user_id', user.id)
+            .then(({ data, error }) => {
+                if (error) { console.warn('[quiz] Supabase fetch error:', error.message); return; }
+                _mergeSupabaseScores(data);
+                // Refresh the UI with the merged data
+                renderModuleGrid();
+                renderOverallStats();
+            });
+    }
+
+    // Upsert a single module's score to Supabase. Fire-and-forget.
+    function _syncModuleToSupabase(quizIdx, entry) {
+        if (!window.bwcAuth || !window.bwcSupabase) return;
+        const user = bwcAuth.getUser();
+        if (!user) return;
+
+        bwcSupabase
+            .from('quiz_scores')
+            .upsert({
+                user_id:    user.id,
+                module_idx: quizIdx,
+                best_score: entry.best,
+                attempts:   entry.attempts,
+                passed:     entry.passed,
+                last_score: entry.lastScore,
+                total:      entry.total,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id,module_idx' })
+            .then(({ error }) => {
+                if (error) console.warn('[quiz] Supabase upsert error:', error.message);
+            });
     }
 
     // ===== Init =====
     document.addEventListener('DOMContentLoaded', () => {
         renderModuleGrid();
         renderOverallStats();
+
+        // After auth is ready: fetch from Supabase and merge (non-blocking)
+        if (window.bwcAuth) {
+            bwcAuth.ready().then(() => {
+                _fetchAndMergeFromSupabase();
+            });
+
+            // If user logs in while on this page, re-fetch
+            bwcAuth.onChange(() => {
+                _fetchAndMergeFromSupabase();
+            });
+        }
 
         // Deep link: ?quiz=N
         const params = new URLSearchParams(window.location.search);

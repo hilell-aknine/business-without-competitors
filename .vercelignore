@@ -26,3 +26,7 @@
 
 # Databases
 *.db
+
+# Supabase migration files + dev-only test page (not for public site)
+/supabase/
+/supabase-test.html

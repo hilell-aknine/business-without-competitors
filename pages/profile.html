@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>הפרופיל שלי - עסק ללא מתחרים</title>
+    <meta name="description" content="ניהול חשבון, שינוי סיסמה ויצוא נתונים — עסק ללא מתחרים.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <script>
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
+    <link rel="stylesheet" href="../css/auth-modal.css">
+    <script src="../js/theme-toggle.js" defer></script>
+
+    <style>
+        /* ===== Reset & base ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: var(--bg-primary, #04161b);
+            color: var(--text-primary, #fff);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        a:focus-visible, button:focus-visible {
+            outline: 2px solid var(--accent-gold, #D4AF37);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== Atmospheric background ===== */
+        .atmos {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .atmos::before {
+            content: "";
+            position: absolute;
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(47, 133, 146, 0.12) 0%, transparent 65%);
+            top: -200px; right: -200px;
+            border-radius: 50%;
+        }
+        .atmos::after {
+            content: "";
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.06) 0%, transparent 60%);
+            bottom: -100px; left: -100px;
+            border-radius: 50%;
+        }
+
+        /* ===== Page layout ===== */
+        .profile-wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2.5rem 1.25rem 5rem;
+        }
+
+        /* ===== Gate (shown while checking auth) ===== */
+        #authGate {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            gap: 1.25rem;
+            text-align: center;
+        }
+        #authGate.hidden { display: none; }
+
+        .gate-icon {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: grid;
+            place-items: center;
+            font-size: 1.8rem;
+            color: var(--accent-gold, #D4AF37);
+        }
+        .gate-title {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary, #fff);
+        }
+        .gate-sub {
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+            font-size: 0.95rem;
+            max-width: 360px;
+        }
+        .gate-login-btn {
+            padding: 0.75rem 2rem;
+            background: var(--gradient-gold, linear-gradient(135deg, #D4AF37, #E6C65A));
+            border: none;
+            border-radius: 999px;
+            color: #1A2E2E;
+            font-family: 'Heebo', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.30);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .gate-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(229, 181, 71, 0.38);
+        }
+
+        /* ===== Main content (hidden until auth confirmed) ===== */
+        #profileContent { display: none; }
+        #profileContent.visible { display: block; }
+
+        /* ===== Page header ===== */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        .page-header .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            color: var(--accent-gold, #D4AF37);
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        .page-header h1 {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            font-weight: 900;
+            color: var(--text-primary, #fff);
+            line-height: 1.2;
+            margin-bottom: 0.4rem;
+        }
+        .page-header .user-email {
+            color: var(--text-muted, rgba(232,241,242,0.55));
+            font-size: 0.92rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            direction: ltr;
+            justify-content: flex-end;
+        }
+        .page-header .user-email i {
+            color: var(--accent-teal, #2F8592);
+            direction: rtl;
+        }
+
+        /* ===== Glass card sections ===== */
+        .profile-section {
+            background: rgba(255, 255, 255, 0.055);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            backdrop-filter: blur(18px) saturate(160%);
+            -webkit-backdrop-filter: blur(18px) saturate(160%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.10),
+                0 12px 36px rgba(0, 0, 0, 0.22);
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-section::before {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; left: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1.4rem;
+        }
+        .section-icon {
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(229, 181, 71, 0.20), rgba(229, 181, 71, 0.06));
+            border: 1px solid rgba(229, 181, 71, 0.30);
+            color: var(--accent-gold, #D4AF37);
+            display: grid;
+            place-items: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .section-icon.teal {
+            background: linear-gradient(135deg, rgba(47, 133, 146, 0.22), rgba(47, 133, 146, 0.06));
+            border-color: rgba(47, 133, 146, 0.32);
+            color: var(--accent-teal-bright, #3FAABB);
+        }
+        .section-icon.danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.04));
+            border-color: rgba(239, 68, 68, 0.28);
+            color: #F87171;
+        }
+        .section-title {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary, #fff);
+            margin: 0;
+        }
+        .section-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted, rgba(232,241,242,0.55));
+            margin-top: 0.1rem;
+        }
+
+        /* ===== Form fields ===== */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            margin-bottom: 0.9rem;
+        }
+        .form-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.72rem 0.9rem;
+            background: rgba(0, 0, 0, 0.30);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 10px;
+            color: var(--text-primary, #fff);
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.97rem;
+            direction: ltr;
+            text-align: right;
+            transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-gold, #D4AF37);
+            background: rgba(0, 0, 0, 0.40);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+        .form-input::placeholder {
+            color: rgba(232, 241, 242, 0.30);
+            direction: rtl;
+        }
+
+        /* ===== Status messages ===== */
+        .form-status {
+            min-height: 1.4rem;
+            font-size: 0.88rem;
+            padding: 0.1rem 0;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .form-status:empty { visibility: hidden; }
+        .form-status.error { color: #F87171; }
+        .form-status.success { color: #6EE7B7; }
+
+        /* ===== Buttons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Heebo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #D4AF37 0%, #E6C65A 50%, #D4AF37 100%);
+            color: #1A2E2E;
+            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.28);
+        }
+        .btn-gold:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(229, 181, 71, 0.38);
+        }
+
+        .btn-teal {
+            background: linear-gradient(135deg, rgba(47, 133, 146, 0.70), rgba(63, 170, 187, 0.55));
+            border: 1px solid rgba(63, 170, 187, 0.40);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(47, 133, 146, 0.20);
+        }
+        .btn-teal:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, rgba(47, 133, 146, 0.85), rgba(63, 170, 187, 0.70));
+            box-shadow: 0 8px 22px rgba(47, 133, 146, 0.30);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(239, 68, 68, 0.08));
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #F87171;
+        }
+        .btn-danger:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.30), rgba(239, 68, 68, 0.14));
+            border-color: rgba(239, 68, 68, 0.55);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+        }
+        .btn-ghost:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.10);
+            color: #fff;
+        }
+
+        .btn-sm {
+            padding: 0.55rem 1.1rem;
+            font-size: 0.88rem;
+        }
+
+        .btn-full { width: 100%; }
+
+        /* ===== Export section ===== */
+        .export-desc {
+            font-size: 0.88rem;
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+            margin-bottom: 1.1rem;
+            line-height: 1.6;
+        }
+        .export-list {
+            list-style: none;
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .export-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.85rem;
+            color: var(--text-muted, rgba(232,241,242,0.55));
+        }
+        .export-list li i {
+            color: var(--accent-teal-bright, #3FAABB);
+            width: 16px;
+            text-align: center;
+        }
+
+        /* ===== Delete confirmation inline dialog ===== */
+        #deleteConfirmDialog {
+            display: none;
+            margin-top: 1.25rem;
+            padding: 1.25rem;
+            background: rgba(239, 68, 68, 0.07);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: 12px;
+            animation: slideDown 0.22s ease;
+        }
+        #deleteConfirmDialog.open { display: block; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .delete-confirm-text {
+            font-size: 0.88rem;
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+            margin-bottom: 0.85rem;
+            line-height: 1.6;
+        }
+        .delete-confirm-text strong {
+            color: #F87171;
+        }
+        .delete-confirm-row {
+            display: flex;
+            gap: 0.65rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .delete-confirm-field {
+            flex: 1;
+            min-width: 160px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .delete-confirm-field label {
+            font-size: 0.82rem;
+            color: var(--text-muted, rgba(232,241,242,0.55));
+        }
+
+        /* ===== Warning text ===== */
+        .warning-block {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.9rem 1rem;
+            background: rgba(239, 68, 68, 0.07);
+            border: 1px solid rgba(239, 68, 68, 0.20);
+            border-radius: 10px;
+            margin-bottom: 1.25rem;
+        }
+        .warning-block i {
+            color: #F87171;
+            margin-top: 0.1rem;
+            flex-shrink: 0;
+        }
+        .warning-block p {
+            font-size: 0.88rem;
+            color: var(--text-secondary, rgba(232,241,242,0.76));
+            line-height: 1.6;
+        }
+
+        /* ===== Spinner ===== */
+        .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.65s linear infinite;
+            flex-shrink: 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== Toast notification ===== */
+        #profileToast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(12px);
+            background: rgba(10, 30, 32, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+            color: var(--text-primary, #fff);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+            z-index: var(--z-toast, 110);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease, transform 0.22s ease;
+            white-space: nowrap;
+            max-width: 90vw;
+        }
+        #profileToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        #profileToast.toast-success i { color: #6EE7B7; }
+        #profileToast.toast-error i { color: #F87171; }
+
+        /* ===== Mobile ===== */
+        @media (max-width: 640px) {
+            .profile-wrap { padding: 1.5rem 1rem 4rem; }
+            .profile-section { padding: 1.25rem; }
+            .delete-confirm-row { flex-direction: column; }
+            .delete-confirm-row .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+    <div class="atmos" aria-hidden="true"></div>
+
+    <header class="gnav" data-page="profile"></header>
+
+    <main class="profile-wrap" id="main" tabindex="-1">
+
+        <!-- ===== Auth gate (shown while loading / if not logged in) ===== -->
+        <div id="authGate">
+            <div class="gate-icon" aria-hidden="true">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h1 class="gate-title">נדרשת התחברות</h1>
+            <p class="gate-sub">כדי לגשת לדף הפרופיל יש להתחבר לחשבון שלך.</p>
+            <button class="gate-login-btn" onclick="openLoginModal()">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                התחבר
+            </button>
+        </div>
+
+        <!-- ===== Profile content (shown after auth confirmed) ===== -->
+        <div id="profileContent">
+
+            <!-- Page header -->
+            <div class="page-header">
+                <div class="eyebrow">
+                    <i class="fa-solid fa-user-circle" aria-hidden="true"></i>
+                    ניהול חשבון
+                </div>
+                <h1>הפרופיל שלי</h1>
+                <div class="user-email">
+                    <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+                    <span id="userEmailDisplay">—</span>
+                </div>
+            </div>
+
+            <!-- ===== Section 1: Change Password ===== -->
+            <section class="profile-section" aria-labelledby="pwSectionTitle">
+                <div class="section-header">
+                    <div class="section-icon" aria-hidden="true">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-title" id="pwSectionTitle">שינוי סיסמה</h2>
+                        <p class="section-sub">עדכן את הסיסמה שלך לכניסה לחשבון</p>
+                    </div>
+                </div>
+
+                <form id="passwordForm" novalidate>
+                    <div class="form-group">
+                        <label class="form-label" for="newPassword">סיסמה חדשה</label>
+                        <input
+                            type="password"
+                            id="newPassword"
+                            class="form-input"
+                            placeholder="לפחות 6 תווים"
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirmPassword">אישור סיסמה חדשה</label>
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            class="form-input"
+                            placeholder="הקלד שוב את הסיסמה"
+                            autocomplete="new-password"
+                            minlength="6"
+                        >
+                    </div>
+                    <div class="form-status" id="pwStatus" role="status" aria-live="polite"></div>
+                    <button type="submit" class="btn btn-gold" id="pwSubmitBtn">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        שמור סיסמה חדשה
+                    </button>
+                </form>
+            </section>
+
+            <!-- ===== Section 2: Export Data ===== -->
+            <section class="profile-section" aria-labelledby="exportSectionTitle">
+                <div class="section-header">
+                    <div class="section-icon teal" aria-hidden="true">
+                        <i class="fa-solid fa-download"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-title" id="exportSectionTitle">יצוא נתונים</h2>
+                        <p class="section-sub">הורד עותק של כל הנתונים שלך</p>
+                    </div>
+                </div>
+
+                <p class="export-desc">
+                    הקובץ יכלול את כל ההתקדמות, ציוני המבחנים, תרגולים והערות שלך — גם מהדפדפן המקומי וגם מהשרת.
+                </p>
+                <ul class="export-list" aria-label="תוכן הייצוא">
+                    <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i> התקדמות שיעורים</li>
+                    <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i> ציוני מבחנים</li>
+                    <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i> נתוני תרגול</li>
+                    <li><i class="fa-solid fa-check-circle" aria-hidden="true"></i> הערות אישיות</li>
+                </ul>
+                <div class="form-status" id="exportStatus" role="status" aria-live="polite"></div>
+                <button class="btn btn-teal" id="exportBtn" onclick="handleExport()">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    הורד את הנתונים שלי
+                </button>
+            </section>
+
+            <!-- ===== Section 3: Delete Account ===== -->
+            <section class="profile-section" aria-labelledby="deleteSectionTitle">
+                <div class="section-header">
+                    <div class="section-icon danger" aria-hidden="true">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div>
+                        <h2 class="section-title" id="deleteSectionTitle">מחיקת חשבון</h2>
+                        <p class="section-sub">פעולה בלתי הפיכה — יש לקרוא לפני ביצוע</p>
+                    </div>
+                </div>
+
+                <div class="warning-block" role="alert">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <p>
+                        פעולה זו <strong style="color:#F87171;">בלתי הפיכה</strong>.
+                        כל ההתקדמות שלך, ציוני המבחנים, התרגולים וההערות <strong style="color:#F87171;">יימחקו לצמיתות</strong>
+                        ולא ניתן יהיה לשחזרם.
+                    </p>
+                </div>
+
+                <button class="btn btn-danger" id="deleteInitBtn" onclick="openDeleteConfirm()">
+                    <i class="fa-solid fa-trash-can"></i>
+                    מחק את החשבון שלי
+                </button>
+
+                <!-- Inline confirmation dialog -->
+                <div id="deleteConfirmDialog" role="region" aria-label="אישור מחיקת חשבון">
+                    <p class="delete-confirm-text">
+                        כדי לאשר את המחיקה, הקלד <strong>מחק</strong> בתיבה למטה ולחץ על הכפתור האדום.
+                    </p>
+                    <div class="delete-confirm-row">
+                        <div class="delete-confirm-field">
+                            <label for="deleteConfirmInput">הקלד "מחק" לאישור</label>
+                            <input
+                                type="text"
+                                id="deleteConfirmInput"
+                                class="form-input"
+                                placeholder='הקלד: מחק'
+                                autocomplete="off"
+                                oninput="onDeleteInputChange()"
+                                dir="rtl"
+                            >
+                        </div>
+                        <button class="btn btn-danger" id="deleteConfirmBtn" disabled onclick="handleDeleteAccount()">
+                            <i class="fa-solid fa-trash-can"></i>
+                            אשר מחיקה
+                        </button>
+                        <button class="btn btn-ghost btn-sm" onclick="closeDeleteConfirm()">
+                            ביטול
+                        </button>
+                    </div>
+                    <div class="form-status" id="deleteStatus" role="status" aria-live="polite"></div>
+                </div>
+            </section>
+
+        </div><!-- /profileContent -->
+
+    </main>
+
+    <!-- Toast -->
+    <div id="profileToast" role="status" aria-live="polite">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+        <span id="profileToastMsg"></span>
+    </div>
+
+    <!-- Scripts — exact loading order from quiz.html pattern -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/sync-localstorage.js" defer></script>
+    <script src="../js/global-nav.js" defer></script>
+
+    <script>
+    /* ==========================================================
+       profile.js — inline script for profile/settings page
+       ========================================================== */
+    'use strict';
+
+    /* ---- Helpers ---- */
+
+    var toastTimer = null;
+    function showToast(msg, type) {
+        var toast = document.getElementById('profileToast');
+        var msgEl = document.getElementById('profileToastMsg');
+        var icon  = toast.querySelector('i');
+        if (!toast || !msgEl) return;
+
+        // Clear previous
+        clearTimeout(toastTimer);
+        toast.className = 'show toast-' + (type || 'success');
+        icon.className = 'fa-solid ' + (type === 'error' ? 'fa-circle-xmark' : 'fa-circle-check');
+        msgEl.textContent = msg;
+
+        toastTimer = setTimeout(function () {
+            toast.classList.remove('show');
+        }, 3800);
+    }
+
+    function setStatus(id, msg, type) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = msg;
+        el.className = 'form-status ' + (type || '');
+    }
+
+    function setLoading(btnId, loading, originalHTML) {
+        var btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.disabled = loading;
+        if (loading) {
+            btn.innerHTML = '<span class="spinner" aria-hidden="true"></span> אנא המתן...';
+        } else if (originalHTML) {
+            btn.innerHTML = originalHTML;
+        }
+    }
+
+    /* ---- Auth gate ---- */
+
+    function openLoginModal() {
+        if (window.bwcAuthModal && typeof window.bwcAuthModal.open === 'function') {
+            window.bwcAuthModal.open('login');
+        }
+    }
+
+    function showProfile(user) {
+        document.getElementById('authGate').classList.add('hidden');
+        document.getElementById('profileContent').classList.add('visible');
+        var emailEl = document.getElementById('userEmailDisplay');
+        if (emailEl) emailEl.textContent = (user && user.email) ? user.email : '—';
+    }
+
+    function showGate() {
+        document.getElementById('authGate').classList.remove('hidden');
+        document.getElementById('profileContent').classList.remove('visible');
+    }
+
+    /* ---- Section 1: Change Password ---- */
+
+    var pwForm = null;
+    var pwSubmitOriginalHTML = '<i class="fa-solid fa-floppy-disk"></i> שמור סיסמה חדשה';
+
+    function initPasswordForm() {
+        pwForm = document.getElementById('passwordForm');
+        if (!pwForm) return;
+        pwForm.addEventListener('submit', handlePasswordSubmit);
+    }
+
+    async function handlePasswordSubmit(e) {
+        e.preventDefault();
+        setStatus('pwStatus', '', '');
+
+        var newPw  = document.getElementById('newPassword').value;
+        var confPw = document.getElementById('confirmPassword').value;
+
+        // Client-side validation
+        if (!newPw || newPw.length < 6) {
+            setStatus('pwStatus', 'הסיסמה חייבת להכיל לפחות 6 תווים.', 'error');
+            document.getElementById('newPassword').focus();
+            return;
+        }
+        if (newPw !== confPw) {
+            setStatus('pwStatus', 'הסיסמאות אינן תואמות. נסה שוב.', 'error');
+            document.getElementById('confirmPassword').focus();
+            return;
+        }
+
+        // Check auth
+        if (!window.bwcSupabase) {
+            setStatus('pwStatus', 'שגיאת מערכת. רענן את הדף ונסה שוב.', 'error');
+            return;
+        }
+
+        setLoading('pwSubmitBtn', true);
+
+        try {
+            var res = await window.bwcSupabase.auth.updateUser({ password: newPw });
+            if (res.error) {
+                var errMsg = translateAuthError(res.error.message);
+                setStatus('pwStatus', errMsg, 'error');
+            } else {
+                setStatus('pwStatus', 'הסיסמה עודכנה בהצלחה!', 'success');
+                pwForm.reset();
+                showToast('הסיסמה עודכנה בהצלחה', 'success');
+            }
+        } catch (err) {
+            console.error('[profile] updateUser error', err);
+            setStatus('pwStatus', 'אירעה שגיאה. נסה שוב.', 'error');
+        } finally {
+            setLoading('pwSubmitBtn', false, pwSubmitOriginalHTML);
+        }
+    }
+
+    function translateAuthError(msg) {
+        if (!msg) return 'משהו השתבש. נסה שוב.';
+        var m = msg.toLowerCase();
+        if (m.includes('same password')) return 'הסיסמה החדשה זהה לסיסמה הנוכחית.';
+        if (m.includes('weak password') || m.includes('too short')) return 'הסיסמה חלשה מדי. בחר סיסמה חזקה יותר.';
+        if (m.includes('not authenticated') || m.includes('session')) return 'פג תוקף ההתחברות. התחבר מחדש.';
+        if (m.includes('rate limit')) return 'יותר מדי ניסיונות. נסה שוב בעוד דקה.';
+        return msg;
+    }
+
+    /* ---- Section 2: Export Data ---- */
+
+    var exportOriginalHTML = '<i class="fa-solid fa-file-arrow-down"></i> הורד את הנתונים שלי';
+
+    async function handleExport() {
+        setStatus('exportStatus', '', '');
+        setLoading('exportBtn', true);
+
+        var user = window.bwcAuth ? window.bwcAuth.getUser() : null;
+
+        try {
+            // 1. Collect localStorage data
+            var local = {
+                completed:    safeParse(localStorage.getItem('bwc_completed')),
+                quiz_scores:  safeParse(localStorage.getItem('bwc_quiz_scores')),
+                practice:     safeParse(localStorage.getItem('bwc_practice_v1')),
+                notes:        safeParse(localStorage.getItem('bwc_notes'))
+            };
+
+            // 2. Fetch Supabase data (if authenticated)
+            var remote = {};
+            if (user && window.bwcSupabase) {
+                var uid = user.id;
+
+                var [cpRes, qsRes, psRes, unRes] = await Promise.allSettled([
+                    window.bwcSupabase.from('course_progress').select('*').eq('user_id', uid),
+                    window.bwcSupabase.from('quiz_scores').select('*').eq('user_id', uid),
+                    window.bwcSupabase.from('practice_stats').select('*').eq('user_id', uid),
+                    window.bwcSupabase.from('user_notes').select('*').eq('user_id', uid)
+                ]);
+
+                remote.course_progress = extractData(cpRes);
+                remote.quiz_scores     = extractData(qsRes);
+                remote.practice_stats  = extractData(psRes);
+                remote.user_notes      = extractData(unRes);
+            }
+
+            // 3. Build export object
+            var exportData = {
+                exported_at: new Date().toISOString(),
+                user_email:  user ? user.email : null,
+                source: {
+                    local:  local,
+                    remote: remote
+                }
+            };
+
+            // 4. Download as JSON
+            var blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            var url  = URL.createObjectURL(blob);
+            var today = new Date().toISOString().slice(0, 10);
+            var a    = document.createElement('a');
+            a.href     = url;
+            a.download = 'bwc-export-' + today + '.json';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function () { URL.revokeObjectURL(url); document.body.removeChild(a); }, 2000);
+
+            setStatus('exportStatus', 'הקובץ הורד בהצלחה!', 'success');
+            showToast('הנתונים יוצאו בהצלחה', 'success');
+
+        } catch (err) {
+            console.error('[profile] export error', err);
+            setStatus('exportStatus', 'אירעה שגיאה בייצוא הנתונים. נסה שוב.', 'error');
+            showToast('שגיאה בייצוא הנתונים', 'error');
+        } finally {
+            setLoading('exportBtn', false, exportOriginalHTML);
+        }
+    }
+
+    function safeParse(str) {
+        if (!str) return null;
+        try { return JSON.parse(str); } catch (_) { return null; }
+    }
+
+    function extractData(settledResult) {
+        if (!settledResult || settledResult.status !== 'fulfilled') return null;
+        var val = settledResult.value;
+        if (val && val.error) return null;
+        return (val && val.data) ? val.data : null;
+    }
+
+    /* ---- Section 3: Delete Account ---- */
+
+    function openDeleteConfirm() {
+        var dialog = document.getElementById('deleteConfirmDialog');
+        var input  = document.getElementById('deleteConfirmInput');
+        if (!dialog) return;
+        dialog.classList.add('open');
+        setStatus('deleteStatus', '', '');
+        if (input) { input.value = ''; input.focus(); }
+        document.getElementById('deleteConfirmBtn').disabled = true;
+        // Scroll into view smoothly
+        dialog.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function closeDeleteConfirm() {
+        var dialog = document.getElementById('deleteConfirmDialog');
+        if (dialog) dialog.classList.remove('open');
+        setStatus('deleteStatus', '', '');
+        var input = document.getElementById('deleteConfirmInput');
+        if (input) input.value = '';
+        document.getElementById('deleteConfirmBtn').disabled = true;
+    }
+
+    function onDeleteInputChange() {
+        var input  = document.getElementById('deleteConfirmInput');
+        var btn    = document.getElementById('deleteConfirmBtn');
+        if (!input || !btn) return;
+        btn.disabled = input.value.trim() !== 'מחק';
+    }
+
+    var deleteOriginalHTML = '<i class="fa-solid fa-trash-can"></i> אשר מחיקה';
+
+    async function handleDeleteAccount() {
+        var input = document.getElementById('deleteConfirmInput');
+        if (!input || input.value.trim() !== 'מחק') {
+            setStatus('deleteStatus', 'יש להקליד "מחק" לאישור.', 'error');
+            return;
+        }
+
+        setStatus('deleteStatus', '', '');
+        setLoading('deleteConfirmBtn', true);
+
+        try {
+            var deleted = false;
+
+            // Attempt to call the delete_user RPC
+            if (window.bwcSupabase) {
+                var res = await window.bwcSupabase.rpc('delete_user');
+                if (!res.error) {
+                    deleted = true;
+                } else {
+                    console.warn('[profile] delete_user RPC error:', res.error.message);
+                }
+            }
+
+            if (!deleted) {
+                // RPC doesn't exist or failed — inform the user
+                setStatus('deleteStatus',
+                    'לא ניתן למחוק את החשבון כרגע. פנה אלינו ישירות לקבלת עזרה.',
+                    'error');
+                showToast('לא ניתן למחוק כרגע — פנה אלינו', 'error');
+                setLoading('deleteConfirmBtn', false, deleteOriginalHTML);
+                return;
+            }
+
+            // Sign out and redirect
+            showToast('החשבון נמחק. מנתק...', 'success');
+            if (window.bwcAuth) {
+                try { await window.bwcAuth.signOut(); } catch (_) {}
+            }
+            setTimeout(function () {
+                window.location.href = '../index.html';
+            }, 1500);
+
+        } catch (err) {
+            console.error('[profile] delete account error', err);
+            setStatus('deleteStatus',
+                'לא ניתן למחוק את החשבון כרגע. פנה אלינו ישירות לקבלת עזרה.',
+                'error');
+            showToast('שגיאה במחיקת חשבון', 'error');
+            setLoading('deleteConfirmBtn', false, deleteOriginalHTML);
+        }
+    }
+
+    /* ---- Bootstrap: wait for auth ---- */
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initPasswordForm();
+
+        // Wait for bwcAuth to be ready (it may load after this inline script)
+        function checkAuth() {
+            if (!window.bwcAuth) {
+                // auth.js not yet executed (defer timing) — try again shortly
+                setTimeout(checkAuth, 80);
+                return;
+            }
+
+            window.bwcAuth.ready().then(function () {
+                var user = window.bwcAuth.getUser();
+                if (user) {
+                    showProfile(user);
+                } else {
+                    showGate();
+                }
+
+                // React to future auth state changes (login from gate, logout from nav)
+                window.bwcAuth.onChange(function (u) {
+                    if (u) {
+                        showProfile(u);
+                    } else {
+                        // Signed out — close confirm dialog, show gate
+                        closeDeleteConfirm();
+                        showGate();
+                    }
+                });
+            });
+        }
+
+        checkAuth();
+    });
+    </script>
+</body>
+</html>

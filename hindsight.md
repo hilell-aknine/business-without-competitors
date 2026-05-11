@@ -28,6 +28,13 @@ Each entry follows:
 - **Fix:** Every property line MUST end with comma. `wrongExplanations` MUST be array with `null` at correct index.
 - **Rule:** When creating game data files: (1) always trail with comma, (2) `wrongExplanations` is array where `null` marks correct answer position, (3) test in browser console after editing.
 
+### Hebrew in SQL `--` comments breaks Supabase SQL editor
+- **Date:** 2026-05-11
+- **Problem:** Migration failed with `syntax error at or near "Initial"` on the very first comment line `-- Initial schema — עסק ללא מתחרים`.
+- **Root Cause:** Supabase SQL editor (Monaco) is bidi-aware. When a `--` line-comment contains Hebrew, the visual order flips: the `--` marker ends up at the END of the visual line instead of the start. The parser still reads logical order, but the rendered text shown in the error message displayed the Hebrew reversed and the `--` after the words — making it look like the parser saw `Initial schema...` as code. Either way: don't mix RTL text with `--` markers.
+- **Fix:** Strip all Hebrew from `--` comments. Use ASCII-only comments inside `.sql` files that will run in the Supabase SQL editor.
+- **Rule:** SQL files for Supabase: comments in English only. Hebrew belongs in the `README.md` next to the file, not inside the SQL.
+
 ### `:not()` boosts specificity — global rules can pin header z-index
 - **Date:** 2026-05-10
 - **Problem:** Navbar 3-dot dropdown opened but was hidden behind hero card. Header had `.v1-header{z-index:60}` declared inline; should have rendered above `.g` (z-index:1). It didn't.

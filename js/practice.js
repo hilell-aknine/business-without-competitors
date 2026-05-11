@@ -10,6 +10,168 @@
    ================================================================ */
 const STORAGE_KEY = 'bwc_practice_v1';
 
+/* ================================================================
+   SUPABASE SYNC LAYER
+   Authenticated users: Supabase is source-of-truth.
+   Guests: localStorage only (no change to existing behavior).
+   All Supabase operations are fire-and-forget — never block the UI.
+   ================================================================ */
+
+/**
+ * Convert a localStorage data object to a Supabase practice_stats row.
+ * Column mapping:
+ *   xp        → total_xp
+ *   streak    → current_streak   (longest_streak = max of current and existing)
+ *   lastDate  → last_practice_date
+ *   completed → challenges_completed
+ */
+function localToSupabase(userId, data) {
+  return {
+    user_id:              userId,
+    total_xp:             data.xp || 0,
+    current_streak:       data.streak || 0,
+    last_practice_date:   data.lastDate || null,
+    challenges_completed: data.completed || {},
+    updated_at:           new Date().toISOString()
+  };
+}
+
+/**
+ * Convert a Supabase practice_stats row to the localStorage shape.
+ */
+function supabaseToLocal(row) {
+  return {
+    xp:       row.total_xp || 0,
+    streak:   row.current_streak || 0,
+    lastDate: row.last_practice_date || null,
+    completed: row.challenges_completed || {}
+  };
+}
+
+/**
+ * Merge localStorage data and Supabase row data, taking the best of each:
+ * - XP: max
+ * - streak: max
+ * - lastDate: the more recent date (or whichever is non-null)
+ * - completed: union (keep highest accuracy per challenge)
+ */
+function mergeData(local, remote) {
+  const merged = {
+    xp:       Math.max(local.xp || 0, remote.xp || 0),
+    streak:   Math.max(local.streak || 0, remote.streak || 0),
+    lastDate: null,
+    completed: {}
+  };
+
+  // Pick more recent lastDate
+  if (local.lastDate && remote.lastDate) {
+    merged.lastDate = local.lastDate >= remote.lastDate ? local.lastDate : remote.lastDate;
+  } else {
+    merged.lastDate = local.lastDate || remote.lastDate || null;
+  }
+
+  // Union of completed challenges — keep best accuracy for each
+  const allKeys = new Set([
+    ...Object.keys(local.completed || {}),
+    ...Object.keys(remote.completed || {})
+  ]);
+  allKeys.forEach(k => {
+    const lv = (local.completed || {})[k];
+    const rv = (remote.completed || {})[k];
+    if (lv === undefined) merged.completed[k] = rv;
+    else if (rv === undefined) merged.completed[k] = lv;
+    else merged.completed[k] = Math.max(lv, rv);
+  });
+
+  return merged;
+}
+
+/**
+ * Fetch the user's row from Supabase, merge with localStorage, and save merged
+ * result back to localStorage. Also upserts merged data back to Supabase so
+ * any local-only progress is pushed up.
+ * Non-blocking: errors are logged silently.
+ */
+async function syncFromSupabase() {
+  try {
+    const user = window.bwcAuth && window.bwcAuth.getUser();
+    if (!user) return; // guest — nothing to sync
+
+    const supabase = window.bwcSupabase;
+    if (!supabase) return;
+
+    const { data: rows, error } = await supabase
+      .from('practice_stats')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('[practice] Supabase fetch error:', error.message);
+      return;
+    }
+
+    const local = loadData();
+
+    let merged;
+    if (rows) {
+      const remote = supabaseToLocal(rows);
+      merged = mergeData(local, remote);
+    } else {
+      // No remote row yet — local data is the source of truth
+      merged = local;
+    }
+
+    // Save merged to localStorage so the UI updates immediately
+    saveDataLocal(merged);
+
+    // Push merged data back to Supabase (upsert)
+    upsertToSupabase(user.id, merged);
+  } catch (err) {
+    console.warn('[practice] syncFromSupabase error:', err);
+  }
+}
+
+/**
+ * Fire-and-forget upsert of data to Supabase practice_stats.
+ * Computes longest_streak as max(current_streak, existing longest_streak).
+ */
+async function upsertToSupabase(userId, data) {
+  try {
+    const supabase = window.bwcSupabase;
+    if (!supabase) return;
+
+    // Fetch current longest_streak before overwriting so we never regress it
+    let longestStreak = data.streak || 0;
+    const { data: existing } = await supabase
+      .from('practice_stats')
+      .select('longest_streak')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existing && existing.longest_streak > longestStreak) {
+      longestStreak = existing.longest_streak;
+    }
+
+    const row = localToSupabase(userId, data);
+    row.longest_streak = longestStreak;
+
+    const { error } = await supabase
+      .from('practice_stats')
+      .upsert(row, { onConflict: 'user_id' });
+
+    if (error) {
+      console.warn('[practice] Supabase upsert error:', error.message);
+    }
+  } catch (err) {
+    console.warn('[practice] upsertToSupabase error:', err);
+  }
+}
+
+/* ================================================================
+   STORAGE (localStorage — original + Supabase-aware wrapper)
+   ================================================================ */
+
 /**
  * A module is "unlocked" iff at least one challenge exists for it
  * in window.PRACTICE_CHALLENGES. No more hardcoded MVP gate — modules
@@ -72,9 +234,23 @@ function loadData() {
   }
 }
 
-/** Save persistent practice data to localStorage. */
-function saveData(data) {
+/** Save persistent practice data to localStorage only (internal helper). */
+function saveDataLocal(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+}
+
+/**
+ * Save persistent practice data.
+ * Always writes to localStorage immediately (non-blocking, synchronous).
+ * If the user is authenticated, also fire-and-forgets an upsert to Supabase.
+ */
+function saveData(data) {
+  saveDataLocal(data);
+  // Fire-and-forget Supabase sync for authenticated users
+  const user = window.bwcAuth && window.bwcAuth.getUser();
+  if (user) {
+    upsertToSupabase(user.id, data);
+  }
 }
 
 /**
@@ -127,7 +303,49 @@ const state = {
    INITIALIZATION
    ================================================================ */
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  // Wait for auth to resolve before initialising the UI so that
+  // authenticated users get their Supabase data merged before first render.
+  const authReady = (window.bwcAuth && typeof window.bwcAuth.ready === 'function')
+    ? window.bwcAuth.ready()
+    : Promise.resolve();
+
+  authReady
+    .then(async () => {
+      // If the user is logged in, merge Supabase data into localStorage first
+      if (window.bwcAuth && window.bwcAuth.getUser()) {
+        await syncFromSupabase();
+      }
+      init();
+
+      // Subscribe to future auth state changes
+      if (window.bwcAuth && typeof window.bwcAuth.onChange === 'function') {
+        let previousUserId = window.bwcAuth.getUser()
+          ? window.bwcAuth.getUser().id
+          : null;
+
+        window.bwcAuth.onChange(async (user) => {
+          if (user && user.id !== previousUserId) {
+            // User just logged IN — merge remote data and re-render menu
+            previousUserId = user.id;
+            await syncFromSupabase();
+            // Re-render menu stats if currently on menu view
+            if (state.view === 'menu') {
+              renderMenu();
+            }
+          } else if (!user) {
+            // User logged OUT — keep using localStorage as-is
+            previousUserId = null;
+          }
+        });
+      }
+    })
+    .catch(err => {
+      // Auth check failed — fall back to guest mode
+      console.warn('[practice] Auth ready error, falling back to guest mode:', err);
+      init();
+    });
+});
 
 function init() {
   // Guard: if practice-data.js didn't load or has no content

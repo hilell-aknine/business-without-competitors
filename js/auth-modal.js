@@ -32,6 +32,7 @@
   var tabLogin = null;
   var tabSignup = null;
   var hintEl = null;
+  var forgotEl = null;
   var lastFocused = null;
   var mode = 'login';
   var mounted = false;
@@ -81,6 +82,7 @@
           '</div>' +
           '<button type="submit" class="bwc-auth-submit">התחבר</button>' +
           '<div class="bwc-auth-status" role="status" aria-live="polite"></div>' +
+          '<p class="bwc-auth-forgot"><button type="button" class="bwc-auth-forgot-btn">שכחתי סיסמה</button></p>' +
           '<p class="bwc-auth-hint">אין לך עדיין חשבון? לחץ על "הרשמה".</p>' +
         '</form>' +
       '</div>';
@@ -104,6 +106,7 @@
     tabLogin    = root.querySelector('[data-mode="login"]');
     tabSignup   = root.querySelector('[data-mode="signup"]');
     hintEl      = root.querySelector('.bwc-auth-hint');
+    forgotEl    = root.querySelector('.bwc-auth-forgot');
 
     /* Tab switch */
     tabLogin.addEventListener('click', function () { setMode('login'); });
@@ -127,6 +130,11 @@
       submit();
     });
 
+    /* Forgot password */
+    root.querySelector('.bwc-auth-forgot-btn').addEventListener('click', function () {
+      forgotPassword();
+    });
+
     mounted = true;
   }
 
@@ -144,6 +152,7 @@
     if (tabLogin)  tabLogin.setAttribute('aria-selected', mode === 'login' ? 'true' : 'false');
     if (tabSignup) tabSignup.setAttribute('aria-selected', mode === 'signup' ? 'true' : 'false');
     if (pw2Field)  pw2Field.hidden = (mode !== 'signup');
+    if (forgotEl)  forgotEl.hidden = (mode !== 'login');
     if (pwInput)   pwInput.setAttribute('autocomplete', mode === 'signup' ? 'new-password' : 'current-password');
     if (hintEl) {
       hintEl.textContent = (mode === 'signup')
@@ -198,6 +207,45 @@
       busy = false;
       submitBtn.disabled = false;
       submitBtn.textContent = prevText;
+    }
+  }
+
+  async function forgotPassword() {
+    var email = (emailInput ? emailInput.value : '').trim();
+    if (!email) {
+      setStatus('יש להזין מייל תחילה.');
+      if (emailInput) emailInput.focus();
+      return;
+    }
+    if (!/.+@.+\..+/.test(email)) {
+      setStatus('כתובת המייל אינה תקינה.');
+      if (emailInput) emailInput.focus();
+      return;
+    }
+
+    /* Build absolute URL to reset-password.html regardless of which page
+       the modal is opened from (root pages vs. /pages/ subdirectory). */
+    var resetPath = /\/pages\//.test(window.location.pathname)
+      ? window.location.pathname.replace(/\/[^/]*$/, '') + '/reset-password.html'
+      : '/pages/reset-password.html';
+    var redirectTo = window.location.origin + resetPath;
+
+    setStatus('');
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+      var res = await window.bwcSupabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectTo
+      });
+      if (res.error) {
+        setStatus('שגיאה בשליחה. נסה שוב.');
+      } else {
+        setStatus('שלחנו אליך קישור לאיפוס הסיסמה. בדוק את תיבת הדואר שלך.', true);
+      }
+    } catch (e) {
+      setStatus('שגיאת רשת. נסה שוב.');
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   }
 

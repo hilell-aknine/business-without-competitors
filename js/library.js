@@ -106,6 +106,45 @@
     }
   }
 
+  /* ---- Merge a Supabase lesson-key array into localStorage and return merged array ----
+     Union: a lesson is complete if either source says so. */
+  function mergeCompleted(remoteKeys) {
+    if (!Array.isArray(remoteKeys) || remoteKeys.length === 0) return getCompleted();
+    const local = getCompleted();
+    const merged = Array.from(new Set([...local, ...remoteKeys]));
+    if (merged.length !== local.length) {
+      try { localStorage.setItem('bwc_completed', JSON.stringify(merged)); } catch (_) {}
+    }
+    return merged;
+  }
+
+  /* ---- Fetch course_progress rows for the logged-in user from Supabase ---- */
+  async function fetchRemoteCompleted(userId) {
+    try {
+      if (!window.bwcSupabase) return null;
+      const { data, error } = await window.bwcSupabase
+        .from('course_progress')
+        .select('lesson_key')
+        .eq('user_id', userId);
+      if (error) { console.warn('[library] fetchRemoteCompleted error', error); return null; }
+      return (data || []).map(r => r.lesson_key).filter(k => typeof k === 'string' && k.length > 0);
+    } catch (e) {
+      console.warn('[library] fetchRemoteCompleted exception', e);
+      return null;
+    }
+  }
+
+  /* ---- Pull from Supabase, merge with localStorage, re-render ---- */
+  async function syncAndRefresh(allLessons, refreshFn) {
+    const user = window.bwcAuth && window.bwcAuth.getUser ? window.bwcAuth.getUser() : null;
+    if (!user || !user.id) return; // guest — no action needed
+    const remoteKeys = await fetchRemoteCompleted(user.id);
+    if (remoteKeys === null) return; // fetch failed — keep existing state
+    mergeCompleted(remoteKeys);
+    updateStats(getCompleted(), allLessons.length);
+    refreshFn();
+  }
+
   /* ---- Build set of unique topic tags that appear in the list ---- */
   function collectTopics(list) {
     const seen = new Set();
@@ -401,5 +440,20 @@
 
     /* Initial render */
     refresh();
+
+    /* ---- Supabase sync: pull remote progress after auth is ready ---- */
+    if (window.bwcAuth && typeof window.bwcAuth.ready === 'function') {
+      window.bwcAuth.ready().then(() => {
+        // Sync once on page load (handles page refresh while logged in)
+        syncAndRefresh(allLessons, refresh);
+
+        // Re-sync on every auth state change (handles login while page is open)
+        window.bwcAuth.onChange((user) => {
+          if (user && user.id) {
+            syncAndRefresh(allLessons, refresh);
+          }
+        });
+      });
+    }
   });
 })();
