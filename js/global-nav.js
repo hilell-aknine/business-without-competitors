@@ -34,7 +34,9 @@
       icon: 'fa-folder-open',
       href: 'https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing',
       external: true
-    }
+    },
+    { id: 'progress', label: 'ההתקדמות שלי', icon: 'fa-chart-line', path: 'pages/progress.html' },
+    { id: 'profile',  label: 'הפרופיל שלי',  icon: 'fa-user-gear',  path: 'pages/profile.html'  }
   ];
 
   /**

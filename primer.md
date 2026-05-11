@@ -3,7 +3,8 @@
 
 ## Current State
 - **Status:** **LIVE on Vercel** at `https://business-without-competitors.vercel.app` (also live on GitHub Pages at `https://hilell-aknine.github.io/business-without-competitors/`)
-- **Last task completed (2026-05-11, NOT yet committed):** **Supabase Phase 3 — bidirectional real-time sync + account pages.** 5 files changed in parallel:
+- **Last task completed (2026-05-11, NOT yet committed):** **דשבורד התקדמות.** New `pages/progress.html` — 3-stat header (lessons/quizzes/XP+streak), per-module progress bars with quiz badges, practice summary card. Immediate render from localStorage; Supabase merge for authenticated users. `js/global-nav.js` updated: "ההתקדמות שלי" + "הפרופיל שלי" added to More menu on all pages.
+- **Previous task (2026-05-11, commit `c5c0088`):** **Supabase Phase 3 — bidirectional real-time sync + account pages.** 5 files changed in parallel:
   1. `js/practice.js` — full Supabase sync: on load merges remote `practice_stats` with localStorage (max XP, max streak, union of completed challenges); every `saveData()` upserts to Supabase fire-and-forget; `bwcAuth.onChange` handles login events.
   2. `pages/quiz.html` — `_fetchAndMergeFromSupabase()` on load + `_syncModuleToSupabase()` after every quiz completion. Merges by highest `best_score`, summed `attempts`, ORed `passed`.
   3. `js/library.js` + `pages/library.html` — `fetchRemoteCompleted()` + `mergeCompleted()` + `syncAndRefresh()` on load and on login. Script loading order fixed (all `defer`, Supabase chain before `library.js`).

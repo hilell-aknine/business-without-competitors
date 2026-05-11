@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>ההתקדמות שלי - עסק ללא מתחרים</title>
+    <meta name="description" content="כל ההתקדמות שלך — שיעורים, מבחנים ותרגול — במקום אחד.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <script>
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            min-height: 100vh;
+            font-family: 'Heebo', sans-serif;
+            direction: rtl;
+            background: #001e24;
+            color: #e8f1f2;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* Atmospheric blobs */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::before {
+            width: 60vw; height: 60vw;
+            top: -20vw; right: -10vw;
+            background: radial-gradient(circle, rgba(0,96,107,.35) 0%, transparent 70%);
+        }
+        body::after {
+            width: 50vw; height: 50vw;
+            bottom: -15vw; left: -10vw;
+            background: radial-gradient(circle, rgba(47,133,146,.2) 0%, transparent 70%);
+        }
+
+        /* Layout */
+        .prog-page {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 1rem 4rem;
+        }
+
+        .prog-header {
+            padding: 2.5rem 0 1.5rem;
+        }
+        .prog-title {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: clamp(1.8rem, 5vw, 2.6rem);
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: .3rem;
+        }
+        .prog-subtitle {
+            color: rgba(232,241,242,.55);
+            font-size: .95rem;
+        }
+
+        /* Sync badge */
+        .prog-sync {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            font-size: .78rem;
+            color: rgba(212,175,55,.75);
+            margin-top: .55rem;
+        }
+        .prog-sync.is-hidden { display: none; }
+
+        /* Glass card */
+        .glass-card {
+            background: rgba(0,59,70,.45);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212,175,55,.15);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        /* Stats row */
+        .prog-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: .75rem;
+            margin-bottom: 1.75rem;
+        }
+        @media (max-width: 560px) {
+            .prog-stats { grid-template-columns: 1fr; }
+        }
+
+        .stat-card {
+            padding: 1.4rem 1rem;
+            text-align: center;
+        }
+        .stat-card__value {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #D4AF37;
+            line-height: 1.1;
+            display: block;
+        }
+        .stat-card__sub {
+            font-size: .82rem;
+            color: rgba(232,241,242,.5);
+            display: block;
+            margin-top: .15rem;
+        }
+        .stat-card__label {
+            font-size: .78rem;
+            color: rgba(232,241,242,.55);
+            margin-top: .35rem;
+            display: block;
+        }
+
+        /* Section */
+        .prog-section { margin-bottom: 1.5rem; }
+        .prog-section__title {
+            font-size: .82rem;
+            font-weight: 700;
+            color: rgba(212,175,55,.8);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-bottom: .7rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        .prog-section__title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(212,175,55,.15);
+        }
+
+        /* Module rows */
+        .module-list {
+            display: flex;
+            flex-direction: column;
+            gap: .55rem;
+        }
+
+        .module-row {
+            padding: .9rem 1.25rem;
+            display: grid;
+            grid-template-columns: 2rem 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            transition: border-color .2s;
+        }
+        .module-row:hover { border-color: rgba(212,175,55,.3); }
+
+        @media (max-width: 500px) {
+            .module-row {
+                grid-template-columns: 1.75rem 1fr;
+                row-gap: .4rem;
+            }
+            .module-row .quiz-badge {
+                grid-column: 2;
+                justify-self: start;
+            }
+        }
+
+        .module-row__icon {
+            color: rgba(212,175,55,.65);
+            font-size: 1rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .module-row__body { min-width: 0; }
+        .module-row__name {
+            font-size: .88rem;
+            font-weight: 600;
+            color: #e8f1f2;
+            margin-bottom: .45rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .prog-bar {
+            height: 5px;
+            border-radius: 3px;
+            background: rgba(255,255,255,.1);
+            overflow: hidden;
+        }
+        .prog-bar__fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #b8922a, #D4AF37, #f0d060);
+            transition: width .7s cubic-bezier(.4,0,.2,1);
+        }
+
+        .prog-meta {
+            font-size: .72rem;
+            color: rgba(232,241,242,.4);
+            margin-top: .3rem;
+        }
+
+        /* Quiz badge */
+        .quiz-badge {
+            font-size: .72rem;
+            font-weight: 600;
+            padding: .22rem .55rem;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .quiz-badge--passed {
+            background: rgba(212,175,55,.14);
+            color: #D4AF37;
+            border: 1px solid rgba(212,175,55,.32);
+        }
+        .quiz-badge--failed {
+            background: rgba(220,53,69,.1);
+            color: #ff8a8a;
+            border: 1px solid rgba(220,53,69,.28);
+        }
+        .quiz-badge--untried {
+            background: rgba(255,255,255,.05);
+            color: rgba(232,241,242,.35);
+            border: 1px solid rgba(255,255,255,.1);
+        }
+
+        /* Practice card */
+        .practice-card {
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .practice-stat {
+            text-align: center;
+            flex: 1;
+            min-width: 80px;
+        }
+        .practice-stat__value {
+            font-family: 'Frank Ruhl Libre', serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #D4AF37;
+            display: block;
+            line-height: 1.15;
+        }
+        .practice-stat__label {
+            font-size: .75rem;
+            color: rgba(232,241,242,.5);
+            margin-top: .25rem;
+        }
+
+        /* Guest nudge */
+        .guest-nudge {
+            padding: .9rem 1.2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-size: .875rem;
+            color: rgba(232,241,242,.7);
+            border-right: 3px solid rgba(212,175,55,.4);
+            flex-wrap: wrap;
+        }
+        .guest-nudge i { color: rgba(212,175,55,.7); flex-shrink: 0; }
+        .guest-nudge button {
+            background: none;
+            border: none;
+            color: #D4AF37;
+            font: inherit;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .guest-nudge.is-hidden { display: none; }
+    </style>
+    <script>
+        /* ================================================================
+           Progress dashboard — inline init
+           Runs on DOMContentLoaded (after all defer scripts have run).
+           ================================================================ */
+        document.addEventListener('DOMContentLoaded', function () {
+            'use strict';
+
+            /* ---- DOM refs ---- */
+            var statLessons = document.getElementById('statLessons');
+            var statQuizzes = document.getElementById('statQuizzes');
+            var statXP      = document.getElementById('statXP');
+            var statStreak  = document.getElementById('statStreak');
+            var modulesList = document.getElementById('modulesList');
+            var practiceEl  = document.getElementById('practiceCard');
+            var syncBadge   = document.getElementById('syncBadge');
+            var guestNudge  = document.getElementById('guestNudge');
+            var loginBtn    = document.getElementById('nudgeLoginBtn');
+
+            /* ---- Helpers ---- */
+
+            function safeJson(key, def) {
+                try { return JSON.parse(localStorage.getItem(key) || '') || def; }
+                catch (_) { return def; }
+            }
+
+            function escHtml(s) {
+                return String(s).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
+            function getLocalData() {
+                return {
+                    completed:  safeJson('bwc_completed', {}),
+                    quizScores: safeJson('bwc_quiz_scores', {}),
+                    practice:   safeJson('bwc_practice_v1', { xp: 0, streak: 0, lastDate: null, completed: {} })
+                };
+            }
+
+            /* ---- Stats calculation ---- */
+
+            var _mods = (typeof MODULES !== 'undefined') ? MODULES : [];
+            var _sems = (typeof SEMINARS !== 'undefined') ? SEMINARS : [];
+
+            function calcTotalLessons() {
+                var t = 0;
+                _mods.forEach(function (m) { m.weeks.forEach(function (w) { t += w.days.length; }); });
+                _sems.forEach(function (s) { t += s.parts.length; });
+                return t;
+            }
+
+            function calcTotalCompleted(completed) {
+                var done = 0;
+                _mods.forEach(function (mod, mi) {
+                    mod.weeks.forEach(function (week, wi) {
+                        week.days.forEach(function (day, di) {
+                            if (completed['m' + mi + '-' + wi + '-' + di]) done++;
+                        });
+                    });
+                });
+                _sems.forEach(function (sem, si) {
+                    sem.parts.forEach(function (part, pi) {
+                        if (completed['s' + si + '-' + pi]) done++;
+                    });
+                });
+                return done;
+            }
+
+            function calcModuleStats(mi, completed) {
+                var mod = _mods[mi];
+                if (!mod) return { total: 0, done: 0, pct: 0 };
+                var total = 0, done = 0;
+                mod.weeks.forEach(function (week, wi) {
+                    week.days.forEach(function (day, di) {
+                        total++;
+                        if (completed['m' + mi + '-' + wi + '-' + di]) done++;
+                    });
+                });
+                return { total: total, done: done, pct: total ? Math.round(done / total * 100) : 0 };
+            }
+
+            function calcQuizzesPassed(quizScores) {
+                var passed = 0;
+                _mods.forEach(function (mod, mi) {
+                    if (quizScores[mi] && quizScores[mi].passed) passed++;
+                });
+                return passed;
+            }
+
+            /* ---- Render ---- */
+
+            function render(completed, quizScores, practice) {
+                var totalLessons  = calcTotalLessons();
+                var totalDone     = calcTotalCompleted(completed);
+                var quizzesPassed = calcQuizzesPassed(quizScores);
+                var totalModules  = _mods.length || 8;
+                var xp     = practice.xp || 0;
+                var streak = practice.streak || 0;
+
+                if (statLessons) statLessons.textContent = totalDone + ' / ' + totalLessons;
+                if (statQuizzes) statQuizzes.textContent = quizzesPassed + ' / ' + totalModules;
+                if (statXP)      statXP.textContent      = xp.toLocaleString('he') + ' XP';
+                if (statStreak)  statStreak.textContent  = (streak > 0 ? '🔥 ' : '') + streak + ' ימים ברצף';
+
+                /* Module rows */
+                if (modulesList) {
+                    modulesList.innerHTML = '';
+                    _mods.forEach(function (mod, mi) {
+                        var stats = calcModuleStats(mi, completed);
+                        var score = quizScores[mi];
+                        var badgeCls, badgeText;
+                        if (score && score.passed) {
+                            badgeCls = 'quiz-badge--passed'; badgeText = '✓ עבר';
+                        } else if (score && score.attempts > 0) {
+                            badgeCls = 'quiz-badge--failed'; badgeText = '✗ לא עבר';
+                        } else {
+                            badgeCls = 'quiz-badge--untried'; badgeText = 'טרם נסה';
+                        }
+
+                        var row = document.createElement('div');
+                        row.className = 'module-row glass-card';
+                        row.innerHTML =
+                            '<div class="module-row__icon"><i class="fa-solid ' + escHtml(mod.icon || 'fa-circle') + '" aria-hidden="true"></i></div>' +
+                            '<div class="module-row__body">' +
+                              '<div class="module-row__name">מודול ' + (mi + 1) + ' — ' + escHtml(mod.title) + '</div>' +
+                              '<div class="prog-bar" role="progressbar" aria-valuenow="' + stats.pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + escHtml(mod.title) + ': ' + stats.pct + '%">' +
+                                '<div class="prog-bar__fill" style="width:' + stats.pct + '%"></div>' +
+                              '</div>' +
+                              '<div class="prog-meta">' + stats.done + ' מתוך ' + stats.total + ' שיעורים (' + stats.pct + '%)</div>' +
+                            '</div>' +
+                            '<div class="quiz-badge ' + escHtml(badgeCls) + '">' + escHtml(badgeText) + '</div>';
+                        modulesList.appendChild(row);
+                    });
+                }
+
+                /* Practice */
+                if (practiceEl) {
+                    var challengesDone = Object.keys(practice.completed || {}).length;
+                    practiceEl.innerHTML =
+                        '<div class="practice-stat">' +
+                          '<span class="practice-stat__value">' + xp.toLocaleString('he') + '</span>' +
+                          '<div class="practice-stat__label">נקודות XP</div>' +
+                        '</div>' +
+                        '<div class="practice-stat">' +
+                          '<span class="practice-stat__value">' + (streak > 0 ? '🔥 ' : '') + streak + '</span>' +
+                          '<div class="practice-stat__label">ימים ברצף</div>' +
+                        '</div>' +
+                        '<div class="practice-stat">' +
+                          '<span class="practice-stat__value">' + challengesDone + ' / 72</span>' +
+                          '<div class="practice-stat__label">אתגרים הושלמו</div>' +
+                        '</div>';
+                }
+            }
+
+            /* ---- Merge helpers ---- */
+
+            function mergeCompleted(local, remoteKeys) {
+                var merged = Object.assign({}, local);
+                (remoteKeys || []).forEach(function (k) { merged[k] = true; });
+                return merged;
+            }
+
+            function mergeQuizScores(local, remoteRows) {
+                var merged = Object.assign({}, local);
+                (remoteRows || []).forEach(function (row) {
+                    var mi = row.module_idx;
+                    var ex = merged[mi] || { best: 0, attempts: 0, passed: false, lastScore: 0, total: 5 };
+                    merged[mi] = {
+                        best:      Math.max(ex.best || 0, row.best_score || 0),
+                        attempts:  (ex.attempts || 0) + (row.attempts || 0),
+                        passed:    ex.passed || row.passed || false,
+                        lastScore: (row.last_score != null) ? row.last_score : (ex.lastScore || 0),
+                        total:     ex.total || 5
+                    };
+                });
+                return merged;
+            }
+
+            function mergePractice(local, remoteRow) {
+                if (!remoteRow) return local;
+                return {
+                    xp:       Math.max(local.xp || 0, remoteRow.total_xp || 0),
+                    streak:   Math.max(local.streak || 0, remoteRow.current_streak || 0),
+                    lastDate: local.lastDate || remoteRow.last_practice_date || null,
+                    completed: Object.assign({}, local.completed || {})
+                };
+            }
+
+            /* ---- Supabase fetch ---- */
+
+            async function fetchAndMerge(userId) {
+                if (!window.bwcSupabase) return;
+                try {
+                    var results = await Promise.allSettled([
+                        window.bwcSupabase.from('course_progress')
+                            .select('lesson_key').eq('user_id', userId),
+                        window.bwcSupabase.from('quiz_scores')
+                            .select('module_idx,best_score,last_score,attempts,passed').eq('user_id', userId),
+                        window.bwcSupabase.from('practice_stats')
+                            .select('total_xp,current_streak,last_practice_date').eq('user_id', userId).maybeSingle()
+                    ]);
+
+                    var local = getLocalData();
+
+                    var completedKeys = (results[0].status === 'fulfilled' && results[0].value.data)
+                        ? results[0].value.data.map(function (r) { return r.lesson_key; }) : [];
+                    var quizRows = (results[1].status === 'fulfilled' && results[1].value.data)
+                        ? results[1].value.data : [];
+                    var practiceRow = (results[2].status === 'fulfilled')
+                        ? results[2].value.data : null;
+
+                    render(
+                        mergeCompleted(local.completed, completedKeys),
+                        mergeQuizScores(local.quizScores, quizRows),
+                        mergePractice(local.practice, practiceRow)
+                    );
+
+                    if (syncBadge) syncBadge.classList.remove('is-hidden');
+                    if (guestNudge) guestNudge.classList.add('is-hidden');
+                } catch (e) {
+                    console.warn('[progress] Supabase fetch failed:', e);
+                }
+            }
+
+            /* ---- Init ---- */
+
+            // Immediate render from localStorage
+            var local = getLocalData();
+            render(local.completed, local.quizScores, local.practice);
+
+            // Auth-aware Supabase sync
+            if (window.bwcAuth) {
+                window.bwcAuth.ready().then(function () {
+                    var user = window.bwcAuth.getUser();
+                    if (user) {
+                        fetchAndMerge(user.id);
+                    } else {
+                        if (guestNudge) guestNudge.classList.remove('is-hidden');
+                    }
+                });
+
+                window.bwcAuth.onChange(function (user) {
+                    if (user) {
+                        if (guestNudge) guestNudge.classList.add('is-hidden');
+                        fetchAndMerge(user.id);
+                    } else {
+                        if (syncBadge)  syncBadge.classList.add('is-hidden');
+                        if (guestNudge) guestNudge.classList.remove('is-hidden');
+                        // Re-render from localStorage only
+                        var d = getLocalData();
+                        render(d.completed, d.quizScores, d.practice);
+                    }
+                });
+            } else {
+                if (guestNudge) guestNudge.classList.remove('is-hidden');
+            }
+
+            if (loginBtn) {
+                loginBtn.addEventListener('click', function () {
+                    if (window.bwcAuthModal) window.bwcAuthModal.open('login');
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+    <header class="gnav" data-page="progress"></header>
+
+    <main class="prog-page" role="main">
+        <div class="prog-header">
+            <h1 class="prog-title">ההתקדמות שלי</h1>
+            <p class="prog-subtitle">כל הלמידה, התרגול והמבחנים במקום אחד</p>
+            <span class="prog-sync is-hidden" id="syncBadge" aria-live="polite">
+                <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i> מסונכרן עם הענן
+            </span>
+        </div>
+
+        <div class="glass-card guest-nudge is-hidden" id="guestNudge" role="note">
+            <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+            <span>התחבר כדי לסנכרן את ההתקדמות שלך בין מכשירים.</span>
+            <button id="nudgeLoginBtn" type="button">התחבר</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="prog-stats" role="region" aria-label="סטטיסטיקות">
+            <div class="stat-card glass-card">
+                <span class="stat-card__value" id="statLessons" aria-label="שיעורים שהושלמו">…</span>
+                <span class="stat-card__label">שיעורים הושלמו</span>
+            </div>
+            <div class="stat-card glass-card">
+                <span class="stat-card__value" id="statQuizzes" aria-label="מבחנים שעברתי">…</span>
+                <span class="stat-card__label">מבחנים עברתי</span>
+            </div>
+            <div class="stat-card glass-card">
+                <span class="stat-card__value" id="statXP">…</span>
+                <span class="stat-card__sub"  id="statStreak">…</span>
+                <span class="stat-card__label">תרגול פעיל</span>
+            </div>
+        </div>
+
+        <!-- Modules -->
+        <div class="prog-section">
+            <div class="prog-section__title" aria-hidden="true">
+                <i class="fa-solid fa-layer-group"></i> מודולים
+            </div>
+            <div class="module-list" id="modulesList" role="list" aria-label="התקדמות לפי מודול"></div>
+        </div>
+
+        <!-- Practice -->
+        <div class="prog-section">
+            <div class="prog-section__title" aria-hidden="true">
+                <i class="fa-solid fa-dumbbell"></i> תרגול
+            </div>
+            <div class="practice-card glass-card" id="practiceCard" role="region" aria-label="סטטיסטיקות תרגול"></div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/sync-localstorage.js" defer></script>
+    <script src="../js/course-data.js" defer></script>
+    <script src="../js/global-nav.js" defer></script>
+</body>
+</html>
