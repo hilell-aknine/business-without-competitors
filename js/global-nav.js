@@ -103,6 +103,19 @@
         '<ul class="gnav__nav" role="list">' + primary + '</ul>' +
       '</nav>' +
       '<div class="gnav__end">' +
+        '<div class="gnav__auth-wrap" data-gnav-auth>' +
+          '<button type="button" class="gnav__auth gnav__auth--guest" data-gnav-auth-trigger aria-label="התחברות" aria-haspopup="dialog">' +
+            '<i class="fa-solid fa-user" aria-hidden="true"></i>' +
+            '<span class="gnav__auth-label">התחברות</span>' +
+          '</button>' +
+          '<div class="gnav__auth-menu" id="gnavAuthMenu" role="menu" aria-label="פעולות חשבון" hidden>' +
+            '<div class="gnav__auth-email" data-gnav-auth-email></div>' +
+            '<button type="button" class="gnav__auth-item" role="menuitem" data-gnav-auth-signout>' +
+              '<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>' +
+              '<span>התנתקות</span>' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
         '<div class="gnav__more-wrap">' +
           '<button type="button" class="gnav__more" aria-label="עוד" aria-haspopup="menu" aria-expanded="false" aria-controls="gnavMoreMenu">' +
             '<i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>' +
@@ -176,6 +189,117 @@
     });
   }
 
+  /* ----- Auth button controller (guest -> opens modal; signed-in -> menu) ----- */
+  function wireAuth(root) {
+    var wrap    = root.querySelector('[data-gnav-auth]');
+    var trigger = root.querySelector('[data-gnav-auth-trigger]');
+    var menu    = root.querySelector('#gnavAuthMenu');
+    var emailEl = root.querySelector('[data-gnav-auth-email]');
+    var signout = root.querySelector('[data-gnav-auth-signout]');
+    if (!wrap || !trigger) return;
+
+    function getInitial(email) {
+      if (!email) return '?';
+      return String(email.trim().charAt(0) || '?').toUpperCase();
+    }
+
+    function setSignedOutUI() {
+      trigger.classList.add('gnav__auth--guest');
+      trigger.classList.remove('gnav__auth--user');
+      trigger.setAttribute('aria-label', 'התחברות');
+      trigger.setAttribute('aria-haspopup', 'dialog');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.innerHTML =
+        '<i class="fa-solid fa-user" aria-hidden="true"></i>' +
+        '<span class="gnav__auth-label">התחברות</span>';
+      if (menu) { menu.hidden = true; menu.classList.remove('is-open'); }
+    }
+
+    function setSignedInUI(user) {
+      trigger.classList.remove('gnav__auth--guest');
+      trigger.classList.add('gnav__auth--user');
+      trigger.setAttribute('aria-label', 'חשבון: ' + (user.email || ''));
+      trigger.setAttribute('aria-haspopup', 'menu');
+      trigger.setAttribute('aria-controls', 'gnavAuthMenu');
+      trigger.innerHTML =
+        '<span class="gnav__auth-initial" aria-hidden="true">' + escapeHtml(getInitial(user.email)) + '</span>';
+      if (emailEl) emailEl.textContent = user.email || '';
+    }
+
+    function openMenu() {
+      if (!menu) return;
+      menu.hidden = false;
+      requestAnimationFrame(function () { menu.classList.add('is-open'); });
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+    function closeMenu() {
+      if (!menu) return;
+      menu.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      setTimeout(function () {
+        if (!menu.classList.contains('is-open')) menu.hidden = true;
+      }, 220);
+    }
+
+    /* Click handler: guest -> open modal, user -> toggle menu */
+    trigger.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var user = window.bwcAuth ? window.bwcAuth.getUser() : null;
+      if (!user) {
+        if (window.bwcAuthModal && typeof window.bwcAuthModal.open === 'function') {
+          window.bwcAuthModal.open('login');
+        } else {
+          console.error('[gnav] auth modal not loaded');
+        }
+        return;
+      }
+      if (menu && menu.hidden) openMenu();
+      else closeMenu();
+    });
+
+    if (signout) {
+      signout.addEventListener('click', function (e) {
+        e.preventDefault();
+        closeMenu();
+        if (window.bwcAuth) window.bwcAuth.signOut();
+      });
+    }
+
+    /* Outside click closes the user menu */
+    document.addEventListener('click', function (e) {
+      if (!menu || menu.hidden) return;
+      var t = e.target;
+      if (!(t instanceof Node)) return;
+      if (menu.contains(t) || trigger.contains(t)) return;
+      closeMenu();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && menu && !menu.hidden) {
+        e.preventDefault();
+        closeMenu();
+        try { trigger.focus(); } catch (_) {}
+      }
+    });
+
+    /* React to auth state changes (login from another tab, logout, etc.) */
+    function applyState(user) {
+      if (user) setSignedInUI(user);
+      else setSignedOutUI();
+    }
+
+    if (window.bwcAuth) {
+      window.bwcAuth.onChange(applyState);
+    } else {
+      // auth.js may load after global-nav.js (defer order). Listen for the event.
+      window.addEventListener('bwc:auth-change', function (ev) {
+        var user = ev && ev.detail && ev.detail.user;
+        applyState(user);
+      });
+    }
+  }
+
   /**
    * Mount the navbar into the given element with the given current page id.
    * If `el` is omitted, looks up `header.gnav[data-page]`.
@@ -189,6 +313,7 @@
     el.setAttribute('aria-label', 'ניווט ראשי');
     el.innerHTML = buildHTML(currentPage);
     wireMoreMenu(el);
+    wireAuth(el);
     return el;
   }
 

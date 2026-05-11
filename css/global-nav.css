@@ -371,10 +371,169 @@ body > header.gnav {
   outline-offset: 2px;
 }
 
+/* ====================== End cluster: Auth button ====================== */
+.gnav__auth-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.gnav__auth {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  height: 36px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06));
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(22px) saturate(220%);
+  -webkit-backdrop-filter: blur(22px) saturate(220%);
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.14),
+    0 6px 18px rgba(0, 0, 0, 0.20);
+  transition: transform 0.18s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.gnav__auth:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(255, 255, 255, 0.08));
+}
+
+.gnav__auth:focus-visible {
+  outline: 2px solid var(--lg-gold, #E5B547);
+  outline-offset: 2px;
+}
+
+.gnav__auth--user {
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--lg-gold, #E5B547), var(--lg-gold-deep, #D4A03B));
+  color: #1A2E2E;
+  font-weight: 700;
+}
+
+.gnav__auth--user:hover {
+  background: linear-gradient(135deg, var(--accent-gold-light, #E6C65A), var(--lg-gold, #E5B547));
+}
+
+.gnav__auth-initial {
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gnav__auth-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .gnav__auth--guest .gnav__auth-label {
+    display: none;
+  }
+  .gnav__auth--guest {
+    width: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Auth dropdown menu (when signed in) */
+.gnav__auth-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  inset-inline-end: 0;
+  min-width: 220px;
+  padding: 8px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(10, 30, 32, 0.96);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  z-index: var(--z-dropdown, 80);
+  opacity: 0;
+  transform: translateY(-4px) scale(0.98);
+  transform-origin: top center;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  pointer-events: none;
+}
+
+.gnav__auth-menu[hidden] { display: none; }
+
+.gnav__auth-menu.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.gnav__auth-email {
+  padding: 0.35rem 0.7rem 0.55rem;
+  font-size: 0.78rem;
+  color: rgba(232, 241, 242, 0.65);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 4px;
+  word-break: break-all;
+  direction: ltr;
+  text-align: right;
+}
+
+.gnav__auth-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-align: start;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.gnav__auth-item i {
+  width: 18px;
+  text-align: center;
+  color: var(--lg-gold, #E5B547);
+  font-size: 0.95rem;
+}
+
+.gnav__auth-item:hover,
+.gnav__auth-item:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.gnav__auth-item:focus-visible {
+  outline: 2px solid var(--lg-gold, #E5B547);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .gnav__link,
   .gnav__more,
-  .gnav__more-menu {
+  .gnav__more-menu,
+  .gnav__auth,
+  .gnav__auth-menu {
     transition: none !important;
   }
 }
