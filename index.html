@@ -289,6 +289,18 @@
   .v1-side__hl.welcome{background:linear-gradient(135deg,rgba(63,170,187,.16),rgba(47,133,146,.06));border-color:rgba(63,170,187,.22);}
   .v1-side__hl.welcome:hover{background:linear-gradient(135deg,rgba(63,170,187,.24),rgba(47,133,146,.1));}
   .v1-side__hl.welcome i{color:#9FDBE5;}
+  .v1-side__hl--sm{font-size:.8rem;padding:.55rem .75rem;flex:1;}
+
+  /* Library + expand-all row */
+  .v1-side__nav-row{display:flex;align-items:center;gap:.5rem;}
+  .v1-side__expand-btn{
+    flex-shrink:0;
+    padding:.45rem .7rem;border-radius:10px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.13);
+    font-family:inherit;font-size:.74rem;color:rgba(232,241,242,.75);cursor:pointer;
+    white-space:nowrap;transition:background .18s,color .18s;
+  }
+  .v1-side__expand-btn:hover{background:rgba(255,255,255,.13);color:#fff;}
 
   /* "Promo" card in sidebar — adapted from partners banner */
   .v1-side__promo{
@@ -1120,6 +1132,15 @@ function renderSidebar(filter=''){
 
   // Transcripts highlight (was "community" in V1 — adapted)
   html += `<a class="v1-side__hl" href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener"><i class="fa-solid fa-folder-open"></i><span>תמלולים מלאים</span></a>`;
+
+  // Library link + expand-all toggle
+  const allOpen = window.SidebarAccordion
+    ? MODULES.every((_, mi) => window.SidebarAccordion.isOpen('module', mi, true))
+    : true;
+  html += `<div class="v1-side__nav-row">
+    <a class="v1-side__hl v1-side__hl--sm" href="pages/library.html"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>ספרייה — כל השיעורים</span></a>
+    <button id="sideExpandToggle" type="button" class="v1-side__expand-btn" onclick="window.SidebarAccordion&&window.SidebarAccordion.setAll(!!document.querySelector('.v1-mod:not(.open)'))" aria-label="פתח או סגור את כל המודולים">${allOpen ? '⊖ סגור הכל' : '⊕ פתח הכל'}</button>
+  </div>`;
 
   // Modules (primary learning track — comes first)
   const moduleMatches = MODULES.map((mod, mi) => ({mod, mi})).filter(({mod}) => {

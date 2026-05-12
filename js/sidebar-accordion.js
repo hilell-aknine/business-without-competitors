@@ -22,7 +22,7 @@
 
   function readState() {
     try {
-      var raw = sessionStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return {};
       var parsed = JSON.parse(raw);
       return (parsed && typeof parsed === 'object') ? parsed : {};
@@ -33,8 +33,8 @@
 
   function writeState(state) {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch (e) { /* sessionStorage may be unavailable */ }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) { /* localStorage may be unavailable */ }
   }
 
   function keyFor(type, idx) {
@@ -95,9 +95,36 @@
   function shouldStartOpen(type, idx, matchesCurrent) {
     if (matchesCurrent) return true;
     if (hasExplicitChoice(type, idx)) {
-      return isOpen(type, idx, false);
+      return isOpen(type, idx, true);
     }
-    return false;
+    return true;
+  }
+
+  /**
+   * Expand or collapse every module and seminar accordion at once.
+   * Updates both DOM and stored state.
+   */
+  function setAll(open) {
+    var nodes = document.querySelectorAll('.v1-side .v1-mod');
+    var state = readState();
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var miAttr = el.getAttribute('data-mod');
+      var siAttr = el.getAttribute('data-sem');
+      if (miAttr !== null) state['m' + miAttr] = open;
+      if (siAttr !== null) state['s' + siAttr] = open;
+      if (open) {
+        el.classList.add('open');
+      } else {
+        el.classList.remove('open');
+      }
+      var hd = el.querySelector('.v1-mod__hd');
+      if (hd) hd.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    writeState(state);
+    // Update toggle button label
+    var btn = document.getElementById('sideExpandToggle');
+    if (btn) btn.textContent = open ? '⊖ סגור הכל' : '⊕ פתח הכל';
   }
 
   /**
@@ -199,6 +226,7 @@
     shouldStartOpen: shouldStartOpen,
     applyOpenStates: applyOpenStates,
     openForCurrent: openForCurrent,
+    setAll: setAll,
     modulePercent: modulePercent,
     progressBarHtml: progressBarHtml,
     init: init
