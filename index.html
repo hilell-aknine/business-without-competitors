@@ -434,6 +434,39 @@
     background:linear-gradient(90deg,var(--lg-gold-deep),var(--lg-gold),var(--lg-cream),var(--lg-gold),var(--lg-gold-deep));
     background-size:200% 100%;animation:lgGoldShimmer 3.5s linear infinite;
     box-shadow:0 0 14px rgba(229,181,71,.55);}
+  .v1-hero__progress-quiz{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:rgba(255,255,255,.55);margin-top:.15rem;}
+  .v1-hero__progress-quiz i{color:var(--lg-gold);opacity:.85;font-size:.78rem;}
+  .v1-hero__progress-quiz b{color:rgba(255,255,255,.85);font-weight:600;font-variant-numeric:tabular-nums;}
+
+  /* Welcome banner — shown to logged-in members above the hero */
+  .v1-welcome{display:flex;justify-content:space-between;align-items:center;gap:.75rem;
+    padding:.7rem 1rem;margin-bottom:.85rem;border-radius:16px;
+    background:linear-gradient(135deg,rgba(229,181,71,.10),rgba(229,181,71,.04));
+    border:1px solid rgba(229,181,71,.22);}
+  .v1-welcome__txt{display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;min-width:0;}
+  .v1-welcome__hi{color:rgba(255,255,255,.85);font-size:.92rem;font-weight:600;}
+  .v1-welcome__name{color:var(--lg-gold);font-size:.92rem;font-weight:700;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:280px;}
+  .v1-welcome__link{display:inline-flex;align-items:center;gap:.4rem;
+    padding:.45rem .8rem;border-radius:12px;text-decoration:none;
+    background:rgba(255,255,255,.04);color:rgba(255,255,255,.85);
+    border:1px solid rgba(255,255,255,.08);font-size:.82rem;font-weight:600;
+    transition:background .18s,border-color .18s,transform .18s;flex-shrink:0;}
+  .v1-welcome__link:hover{background:rgba(229,181,71,.10);border-color:rgba(229,181,71,.3);
+    color:var(--lg-cream);transform:translateY(-1px);}
+  .v1-welcome__link i:first-child{color:var(--lg-gold);font-size:.85rem;}
+  .v1-welcome__link i:last-child{font-size:.7rem;opacity:.6;}
+  @media (max-width:560px){
+    .v1-welcome{flex-direction:column;align-items:stretch;}
+    .v1-welcome__link{justify-content:center;}
+  }
+
+  /* Clickable stat cubes — cursor + subtle hover. Stat boxes link to relevant pages. */
+  .v1-stat{cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;}
+  .v1-stat:hover{transform:translateY(-2px);
+    border-color:rgba(229,181,71,.35);
+    box-shadow:0 8px 24px rgba(229,181,71,.12);}
+  .v1-stat:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
 
   .v1-hero__preview{
     position:relative;aspect-ratio:16/10;border-radius:24px;overflow:hidden;
@@ -812,6 +845,19 @@
   <!-- MAIN -->
   <main class="v1-main" id="main" tabindex="-1">
 
+    <!-- MEMBER WELCOME — shown only when user is logged in. Hidden by default; populated + revealed by renderHero(). -->
+    <section class="v1-welcome g" id="memberWelcome" hidden aria-label="ברוך הבא">
+      <div class="v1-welcome__txt">
+        <span class="v1-welcome__hi">ברוך השב <span aria-hidden="true">👋</span></span>
+        <span class="v1-welcome__name" id="memberWelcomeName">—</span>
+      </div>
+      <a class="v1-welcome__link" href="pages/progress.html">
+        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+        <span>ההתקדמות שלי</span>
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </a>
+    </section>
+
     <!-- HERO -->
     <section class="v1-hero" id="hero" aria-label="המשך ללמוד">
       <div class="v1-hero__orb"></div>
@@ -835,6 +881,10 @@
             <span class="v1-hero__progress-pct" id="heroProgressPct">0%</span>
           </div>
           <div class="v1-hero__progress-bar"><span id="heroProgressFill" style="width:0%"></span></div>
+          <div class="v1-hero__progress-quiz" id="heroQuizLine">
+            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+            <span>ועברת <b id="heroQuizCount">0</b> מתוך <b>8</b> מבחני הבנה</span>
+          </div>
         </div>
       </div>
       <button class="v1-hero__preview" id="heroPreview" aria-label="הפעל שיעור">
@@ -1374,6 +1424,18 @@ function renderHero(){
   document.getElementById('heroTotalCount').textContent = total;
   document.getElementById('heroProgressPct').textContent = pct + '%';
   document.getElementById('heroProgressFill').style.width = pct + '%';
+
+  // Quiz mastery: count how many of the 8 module quizzes the user has passed.
+  // Source: bwc_quiz_scores in localStorage (synced from Supabase quiz_scores on login).
+  try {
+    const quizScores = JSON.parse(localStorage.getItem('bwc_quiz_scores') || '{}');
+    let quizzesPassed = 0;
+    for (const k in quizScores) {
+      if (quizScores[k] && quizScores[k].passed) quizzesPassed++;
+    }
+    const qEl = document.getElementById('heroQuizCount');
+    if (qEl) qEl.textContent = quizzesPassed;
+  } catch (_) { /* no-op, default 0 already in HTML */ }
   document.getElementById('headerProgressFill').style.width = pct + '%';
   document.getElementById('headerProgressPct').textContent = pct + '%';
   document.getElementById('sideFill').style.width = pct + '%';
@@ -2007,6 +2069,67 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ===== Auth-aware welcome banner =====
+// Shows a "ברוך השב" greeting + link to /pages/progress.html when user is logged in.
+// Hidden for guests. Auth state may resolve AFTER DOMContentLoaded (deferred scripts),
+// so we register an onChange listener AND check current state on init.
+function applyAuthState(user) {
+  const banner = document.getElementById('memberWelcome');
+  const nameEl = document.getElementById('memberWelcomeName');
+  if (!banner) return;
+  if (user && user.email) {
+    // Show only the email's local part (before @) — shorter, more personal.
+    const handle = String(user.email).split('@')[0] || user.email;
+    if (nameEl) nameEl.textContent = handle;
+    banner.hidden = false;
+    document.body.classList.add('is-member');
+  } else {
+    banner.hidden = true;
+    document.body.classList.remove('is-member');
+  }
+  // Re-read progress from localStorage and refresh hero/stats — login may have triggered
+  // a Supabase merge that updated bwc_completed / bwc_quiz_scores in another module.
+  try {
+    completedLessons = JSON.parse(localStorage.getItem('bwc_completed') || '[]');
+  } catch (_) { completedLessons = []; }
+  if (typeof renderHero === 'function')      renderHero();
+  if (typeof renderStats === 'function')     renderStats();
+  if (typeof renderQuizStats === 'function') renderQuizStats();
+}
+
+// ===== Clickable stat cubes =====
+// The 3 stat cubes under the hero now navigate to relevant pages.
+// Works for guests AND members — useful in both cases.
+function wireStatCubes() {
+  const cubes = document.querySelectorAll('.v1-stats .v1-stat');
+  if (cubes.length < 3) return;
+  const targets = [
+    { href: '#', getHref: () => {
+        // "במודול הנוכחי" — go to the current module's page
+        const n = nextUncompleted() || flatLessons[0];
+        if (n && n.type === 'module') return `pages/module.html?module=${n.mi}`;
+        return 'pages/library.html';
+      }, label: 'פתח את המודול הנוכחי' },
+    { href: 'pages/progress.html', label: 'פתח דף התקדמות' },
+    { href: 'pages/practice.html', label: 'פתח תרגול פעיל' }
+  ];
+  cubes.forEach((cube, idx) => {
+    const t = targets[idx];
+    if (!t) return;
+    cube.setAttribute('role', 'link');
+    cube.setAttribute('tabindex', '0');
+    cube.setAttribute('aria-label', t.label);
+    const go = () => {
+      const href = t.getHref ? t.getHref() : t.href;
+      window.location.href = href;
+    };
+    cube.addEventListener('click', go);
+    cube.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); }
+    });
+  });
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
   buildFlat();
@@ -2015,6 +2138,28 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStats();
   renderQuizStats();
   renderAboutEmptyState();
+  wireStatCubes();
+
+  // Auth state — set up listener once auth.js has loaded.
+  // auth.js dispatches `bwc:auth-change` on login/logout from any tab.
+  window.addEventListener('bwc:auth-change', (ev) => {
+    const user = ev && ev.detail && ev.detail.user;
+    applyAuthState(user);
+  });
+  // Also check current state (auth may have resolved before this handler attached).
+  // Cap retries at ~5s; the bwc:auth-change event above will catch any later changes.
+  let authInitRetries = 0;
+  const tryInit = () => {
+    if (window.bwcAuth && typeof window.bwcAuth.getUser === 'function') {
+      applyAuthState(window.bwcAuth.getUser());
+      if (typeof window.bwcAuth.ready === 'function') {
+        window.bwcAuth.ready().then(() => applyAuthState(window.bwcAuth.getUser()));
+      }
+    } else if (authInitRetries++ < 25) {
+      setTimeout(tryInit, 200);
+    }
+  };
+  tryInit();
 
   // Deep link
   const params = new URLSearchParams(window.location.search);
