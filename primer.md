@@ -1,23 +1,31 @@
 # Primer — עסק ללא מתחרים
-> Last updated: 2026-05-11 by Claude Code
+> Last updated: 2026-05-15 by Claude Code
 
 ## Current State
 - **Status:** **LIVE on Vercel** at `https://business-without-competitors.vercel.app` (also live on GitHub Pages at `https://hilell-aknine.github.io/business-without-competitors/`)
-- **Last task completed (2026-05-11, NOT yet committed):** **דשבורד התקדמות.** New `pages/progress.html` — 3-stat header (lessons/quizzes/XP+streak), per-module progress bars with quiz badges, practice summary card. Immediate render from localStorage; Supabase merge for authenticated users. `js/global-nav.js` updated: "ההתקדמות שלי" + "הפרופיל שלי" added to More menu on all pages.
+- **Last task completed (2026-05-15, NOT yet pushed):** **Professionalization Phase 1 — repo cleanup + auth-aware hero copy.** Removed dead architecture and tightened landing UX. Specifically:
+  1. **Deleted dead folders/files** (after `git tag pre-cleanup-2026-05-15` rollback point): `backend/` (FastAPI never deployed), `frontend/` (Next.js never deployed), `docker-compose.yml`, `css/navbar-more.css`, `js/navbar-more.js`, `index-classic.html`, `CLAUDE CODE INSTRUCTIONS.txt` (stale FastAPI spec).
+  2. **Archived background docs:** PDF + ZIP moved from repo root → `docs-archive/` (gitignored + vercelignored).
+  3. **`.gitignore`** now blocks `*.zip` and `docs-archive/`.
+  4. **`.vercelignore`** cleaned — removed entries for deleted paths, kept what's still needed.
+  5. **`CLAUDE.md` fully rewritten** to reflect the actual static stack (HTML/CSS/JS + Supabase + Vercel serverless `/api/*`). The previous version described a FastAPI+Next.js+SQLite+Docker architecture that never shipped and was misleading every AI agent loading this project.
+  6. **Hero copy in `index.html`** now branches on progress state. Three states: `done === 0` → "השיעור הראשון שלך · התחל ללמוד"; `0 < done < total` → "המשך מהשיעור שעצרת בו · המשך ללמוד"; `done === total` → "סיימת את כל השיעורים 🎉 · תרגול ומבחנים" with CTA redirected to `pages/practice.html`. Previously the eyebrow was static "השיעור הבא שלך" and a completed user saw "next lesson = lesson 1" again.
+  7. **All 9 pages** verified to mount `<header class="gnav" data-page="X">` correctly. No nav fixes needed.
+- **Previous task (2026-05-11, NOT yet committed):** **דשבורד התקדמות.** New `pages/progress.html` — 3-stat header (lessons/quizzes/XP+streak), per-module progress bars with quiz badges, practice summary card. Immediate render from localStorage; Supabase merge for authenticated users. `js/global-nav.js` updated: "ההתקדמות שלי" + "הפרופיל שלי" added to More menu on all pages.
 - **Previous task (2026-05-11, commit `c5c0088`):** **Supabase Phase 3 — bidirectional real-time sync + account pages.** 5 files changed in parallel:
   1. `js/practice.js` — full Supabase sync: on load merges remote `practice_stats` with localStorage (max XP, max streak, union of completed challenges); every `saveData()` upserts to Supabase fire-and-forget; `bwcAuth.onChange` handles login events.
   2. `pages/quiz.html` — `_fetchAndMergeFromSupabase()` on load + `_syncModuleToSupabase()` after every quiz completion. Merges by highest `best_score`, summed `attempts`, ORed `passed`.
   3. `js/library.js` + `pages/library.html` — `fetchRemoteCompleted()` + `mergeCompleted()` + `syncAndRefresh()` on load and on login. Script loading order fixed (all `defer`, Supabase chain before `library.js`).
   4. `pages/profile.html` (new) — account settings: change password, export data (localStorage + Supabase merged JSON), delete account (requires typing "מחק" to confirm). Auth guard: unauthenticated users see a locked gate with login button.
   5. `pages/reset-password.html` (new) — handles Supabase recovery links (`#access_token&type=recovery`). `js/auth-modal.js` — "שכחתי סיסמה" link added in login tab (calls `resetPasswordForEmail`, redirects to this page). `css/auth-modal.css` — forgot-password button styles.
-- **⚠️ NEEDS COMMIT + DEPLOY** — all changes are local, not pushed to git/Vercel yet.
+- **⚠️ NEEDS COMMIT + DEPLOY** — all changes (Phase 1 cleanup + Phase 3 Supabase sync + progress dashboard) are local, not pushed to git/Vercel yet. Rollback point: `git tag pre-cleanup-2026-05-15` (created 2026-05-15).
 - **Previous task (2026-05-11, commit `240a5d3`):** **Supabase Phase 2 — auth UI + one-time localStorage sync.**
 - **Previous task (2026-05-11):** **Supabase Phase 1 — infrastructure connected.** New Supabase project provisioned (`hiosnmkszdktirpfzjqi`). Migration `001_initial_schema.sql` applied via SQL editor, all 9 tests in `supabase-test.html` passed. 5 tables created: `profiles`, `course_progress`, `user_notes`, `quiz_scores`, `practice_stats`. RLS enforced on every table (user sees own rows; admin sees all except `user_notes`). Auto-create-profile trigger on `auth.users` wired. `js/supabase-config.js` initialises `window.bwcSupabase` client. `/supabase/` and `supabase-test.html` added to `.vercelignore` so they don't ship publicly. Hindsight entry added: Hebrew in `--` SQL comments breaks Supabase editor (bidi reverses the marker) — keep SQL comments ASCII-only.
 - **Previous task (2026-05-10):** **Site-wide navigation unification.** Built `js/global-nav.js` + `css/global-nav.css` — a single Liquid Glass navbar component used by all 7 active pages. Primary items (visible): בית · ספרייה · תרגול · מבחנים (gold accent). "More" menu (⋯): השיטה · מודולים · סמינרים · תמלולים מלאים. Active page highlighted with gold underline. Logo always returns to `index.html`. Mobile (<768px): primary items collapse to icons. RTL via logical properties; relative paths via `getBasePath()` so it works on Vercel + GitHub Pages + local file://. Each page now has `<header class="gnav" data-page="X"></header>` + linked css/js. Replaced 7 different navbars (each page had its own) with one.
   - **Page-specific changes alongside:** hub.html → repositioned as "השיטה האטומית" (title/meta/single CTA, removed duplicate "התחילו את המסע" buttons). quiz.html → 3 "back" buttons removed; module-specific breadcrumb extracted and kept. seminars.html → bottom "חזרה לדף הראשי" button removed (logo handles it). module.html + seminars.html → `assets/css/design-tokens.css` linked alongside legacy `shared.css`. `navbar-more.css/js` no longer loaded by any page (files kept in repo).
   - **Bundled with this commit:** Previous session's pending work — learning-order swap (modules before seminars in `buildFlat()`, `renderSidebar()`, `js/library.js`) + hindsight z-index entry. `css/navbar-more.css` z-index fix is now dead (file unloaded) but kept as documentation.
 - **Previous task (committed in `47d4059`):** Wave 3 — Practice game expanded to all 8 modules. 72 challenges total in `js/practice-data.js` (9 per module: 3 Match / 3 Order / 3 Cloze). `UNLOCKED_MODULE_IDX` constant replaced with `isModuleUnlocked(idx)` data-derived helper.
-- **Next planned task:** Commit Phase 3 changes to git + deploy to Vercel. Then lower-priority deferred items: (a) unified progress dashboard (single page showing completed lessons, quiz scores, practice XP), (b) breadcrumbs, (c) unify CSS design systems, (d) clean dead `.v1-header` inline styles. Also consider: add "הפרופיל שלי" link in navbar More menu (currently profile.html exists but is not linked from nav).
+- **Next planned task:** **Stage 1 review with Hillel → his approval → `git commit` of Phase 1 cleanup + Phase 3 sync + progress dashboard → push to `master` → Vercel auto-deploy.** Only after that comes Phase 2 (auth-state branching in index.html; quiz-as-completion; sharpen library vs module roles) and Phase 3 (unified completion store; CSS consolidation). Plan file: `C:/Users/saraa/.claude/plans/staged-brewing-quasar.md`.
 - **Blocking issues:** None.
 
 ## Protocol Architecture (added 2026-05-07)
@@ -32,6 +40,7 @@
 ## Recent Changes
 | Date | What Changed | Files Affected |
 |------|-------------|----------------|
+| 2026-05-15 | **Professionalization Phase 1 — cleanup + auth-aware hero copy.** Deleted `backend/`, `frontend/`, `docker-compose.yml`, `css/navbar-more.css`, `js/navbar-more.js`, `index-classic.html`, `CLAUDE CODE INSTRUCTIONS.txt`. Moved PDF+ZIP to `docs-archive/`. Rewrote `CLAUDE.md` to reflect actual static stack. Hero eyebrow + CTA now state-aware (fresh/mid/done). Rollback tag: `pre-cleanup-2026-05-15`. | `CLAUDE.md` (rewrite), `index.html` (heroEyebrowText + heroCtaText + renderHero state logic), `.gitignore`, `.vercelignore`, `מה-זה.txt`, `primer.md` |
 | 2026-05-11 | **Supabase Phase 2 — auth UI + one-time localStorage sync.** Login/signup modal in navbar (no separate page). Soft gating — guests can keep using the site. On first sign-in: best-effort upsert of `bwc_completed`, `bwc_quiz_scores`, `bwc_practice_v1` to Supabase, then a per-(device,user) flag prevents re-runs. All 7 pages wired with the same defer chain (Supabase CDN → config → auth → modal → sync → global-nav). Commit `240a5d3`. | `js/auth.js`, `js/auth-modal.js`, `js/sync-localstorage.js`, `css/auth-modal.css` (new) · `js/global-nav.js`, `css/global-nav.css` (auth button + dropdown) · `index.html`, `hub.html`, `pages/library.html`, `pages/module.html`, `pages/practice.html`, `pages/quiz.html`, `pages/seminars.html` (script chain wired) · `primer.md`, `מה-זה.txt` (status) |
 | 2026-05-11 | **Supabase Phase 1 — infrastructure.** New project `hiosnmkszdktirpfzjqi`. Migration with 5 tables + RLS + auto-profile trigger applied. Browser client wrapper created but not yet wired to any page. Hebrew-in-SQL-comments pitfall documented in hindsight. | `supabase/migrations/001_initial_schema.sql` (new) · `supabase/README.md` (new) · `js/supabase-config.js` (new) · `supabase-test.html` (new, gitignored from Vercel) · `.vercelignore`, `hindsight.md`, `primer.md` (updated) |
 | 2026-05-10 | **Site-wide navigation unification.** New `js/global-nav.js` + `css/global-nav.css` component renders one Liquid Glass navbar with active state + More menu, mounted into `<header class="gnav" data-page="X">` placeholders on all 7 pages. Each page's old custom nav was removed. hub.html repositioned as "השיטה האטומית" (single primary CTA). quiz.html lost 3 redundant "back" buttons (breadcrumb kept). seminars.html bottom CTA removed. module/seminars now also load `assets/css/design-tokens.css`. `navbar-more.css/js` no longer loaded anywhere. | `index.html`, `hub.html`, `pages/library.html`, `pages/practice.html`, `pages/quiz.html`, `pages/module.html`, `pages/seminars.html` (modified) · `js/global-nav.js`, `css/global-nav.css` (new) |
@@ -63,15 +72,17 @@
 - `css/theme.css` — Dark/light mode overrides
 - `js/theme-toggle.js` — Theme toggle with localStorage
 
-### Backend (FastAPI — not yet deployed)
-- `backend/` — FastAPI + SQLAlchemy + SQLite + Claude API
-- 3 AI agents: Coach, 10X Accelerator, Tools Arsenal
-- Not connected to static portal yet
+### AI Protocol API (Vercel serverless — live)
+- `api/transcript.js` — YouTube captions scraper
+- `api/protocol-extract.js` — Stage 1 (methodology extraction)
+- `api/protocol-active.js` — Stage 2 (habit / sim / investigate modes)
+- `api/_lib/providers.js` — Provider chain: Gemini 2.5 Flash → Groq Llama 3.3 70B → OpenRouter DeepSeek
+- Called from `js/protocol.js` only. Cache: `bwc_protocol_v1_<lessonKey>` in localStorage.
 
-### Frontend (Next.js — not yet deployed)
-- `frontend/` — Next.js 14 + React 18 + TypeScript + Tailwind
-- Has components (VideoPlayer, AgentChat, CourseMap)
-- Not connected to static portal yet
+### Removed (2026-05-15)
+- `backend/` (FastAPI) — never deployed, deleted
+- `frontend/` (Next.js) — never deployed, deleted
+- `docker-compose.yml`, `index-classic.html`, `navbar-more.css/js`, `CLAUDE CODE INSTRUCTIONS.txt` — dead weight, deleted
 
 ## Portal UX Features (Current)
 - Continue Learning hero card with gold CTA
@@ -99,12 +110,12 @@
 - Same theme system as portal (light/dark via `data-theme`, FOUC-prevented)
 
 ## Environment Notes
-- No deployment yet — runs as local static files
-- Backend needs `ANTHROPIC_API_KEY` in `backend/.env`
-- Frontend needs `frontend/.env.local`
-- Docker: `docker-compose.yml` available for full stack
+- **Live:** Vercel (primary) + GitHub Pages (mirror) — both deploy from `master`
+- **No build step.** Local dev: VS Code Live Server or `python -m http.server 8000`
+- **Supabase project:** `hiosnmkszdktirpfzjqi` — auth + 5 tables (profiles, course_progress, user_notes, quiz_scores, practice_stats)
+- **AI Protocol API keys** stored in Vercel env vars (GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY)
 
-## Open Questions
-- Game system: need more transcripts to generate per-lesson questions
-- Auth: placeholder only — no Supabase or FastAPI auth connected yet
-- Deployment: GitHub Pages planned (OG tags already configured for `hilell-aknine.github.io`)
+## Open Questions / Deferred
+- **Phase 2:** auth-state branching in `index.html`; quiz-as-completion (passing quiz marks `course_progress`); sharpen library vs module page roles
+- **Phase 3:** unified `progress-store.js` wrapping both completion trackers; CSS consolidation to single design-tokens system; DELETE in Supabase sync
+- **Custom domain:** Hillel to buy `business-without-competitors.com` and point at Vercel

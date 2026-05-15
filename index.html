@@ -816,13 +816,13 @@
     <section class="v1-hero" id="hero" aria-label="המשך ללמוד">
       <div class="v1-hero__orb"></div>
       <div class="v1-hero__content">
-        <span class="v1-hero__eyebrow"><i class="fa-solid fa-arrow-left"></i> השיעור הבא שלך</span>
+        <span class="v1-hero__eyebrow" id="heroEyebrow"><i class="fa-solid fa-arrow-left"></i> <span id="heroEyebrowText">השיעור הבא שלך</span></span>
         <h1 class="v1-hero__title" id="heroTitle">טוען…</h1>
         <div class="v1-hero__meta" id="heroMeta"></div>
         <div class="v1-hero__actions">
           <button class="v1-hero__cta" id="heroCta">
             <i class="fa-solid fa-play"></i>
-            <span>המשך ללמוד</span>
+            <span id="heroCtaText">המשך ללמוד</span>
             <span class="v1-hero__cta-arrow"><i class="fa-solid fa-arrow-left"></i></span>
           </button>
           <button class="btn btn--clear btn--sm v1-hero__skip" id="heroSkip">
@@ -1320,9 +1320,28 @@ function renderHero(){
   const total = flatLessons.length;
   const done  = flatLessons.filter(l => completedLessons.includes(lessonKey(l))).length;
   const pct   = total > 0 ? Math.round((done/total) * 100) : 0;
+  const allDone = total > 0 && done >= total;
+  const freshStart = done === 0;
 
   const next = nextUncompleted() || flatLessons[0];
   if (!next) return;
+
+  // Personalize eyebrow + CTA text based on progress state.
+  // Three states: fresh start (no progress) → "התחל את הקורס";
+  // mid-course → "המשך מהשיעור שעצרת בו";
+  // all done → celebrate + redirect CTA to practice.
+  const eyebrowEl = document.getElementById('heroEyebrowText');
+  const ctaTextEl = document.getElementById('heroCtaText');
+  if (eyebrowEl) {
+    eyebrowEl.textContent = allDone
+      ? 'סיימת את כל השיעורים 🎉'
+      : freshStart ? 'השיעור הראשון שלך' : 'המשך מהשיעור שעצרת בו';
+  }
+  if (ctaTextEl) {
+    ctaTextEl.textContent = allDone
+      ? 'תרגול ומבחנים'
+      : freshStart ? 'התחל ללמוד' : 'המשך ללמוד';
+  }
 
   document.getElementById('heroTitle').textContent = next.type === 'seminar'
     ? SEMINARS[next.si].parts[next.pi].title
@@ -1361,7 +1380,13 @@ function renderHero(){
   document.getElementById('sidePct').textContent = pct + '%';
   document.getElementById('sideCount').textContent = `${done}/${total} שיעורים`;
 
-  document.getElementById('heroCta').onclick = () => playByItem(next);
+  // When all lessons done, route the main CTA to practice instead of replaying lesson 1.
+  // Skip + preview keep their "play this lesson" behavior in case the user wants to revisit.
+  if (allDone) {
+    document.getElementById('heroCta').onclick = () => { window.location.href = 'pages/practice.html'; };
+  } else {
+    document.getElementById('heroCta').onclick = () => playByItem(next);
+  }
   document.getElementById('heroSkip').onclick = () => playByItem(next);
   document.getElementById('heroPreview').onclick = () => playByItem(next);
 }

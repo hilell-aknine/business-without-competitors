@@ -1,18 +1,14 @@
 # Dependencies
 node_modules/
-frontend/node_modules/
-frontend/.next/
 
 # Environment files
 .env
 .env.local
-backend/.env
-frontend/.env.local
 
 # Database
 *.db
 
-# Python
+# Python (legacy — kept in case scripts/ ever uses Python locally)
 __pycache__/
 *.pyc
 *.pyo
@@ -33,3 +29,7 @@ CLAUDE.md
 
 # Course materials (paid content — not for public repo)
 *.pdf
+*.zip
+
+# Archived background docs (PDFs, ZIPs, source materials)
+docs-archive/
