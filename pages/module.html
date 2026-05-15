@@ -72,8 +72,11 @@
     const params = new URLSearchParams(window.location.search);
     const moduleId = parseInt(params.get('id'));
 
+    // No specific module requested → send the user to the catalog filtered to modules,
+    // so they can pick one. Previous behavior bounced them to the methodology page
+    // (hub.html), which wasn't a sensible destination for "I want a module".
     if (isNaN(moduleId) || moduleId < 0 || moduleId >= MODULES.length) {
-        window.location.href = '../hub.html';
+        window.location.href = 'library.html?type=modules';
     }
 
     const mod = MODULES[moduleId];

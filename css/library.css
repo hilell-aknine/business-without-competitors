@@ -382,6 +382,40 @@
   transform: scale(1.03);
 }
 
+/* "מודול N" mini-badge — jumps to module.html for the focused weeks/days view.
+   Shown only for module-type rows (not seminars / AI tools). */
+.lib-row__modlink {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .3rem .55rem;
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.7);
+  font-family: 'Heebo', sans-serif;
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .18s, border-color .18s, color .18s;
+  white-space: nowrap;
+}
+.lib-row__modlink i {
+  color: var(--accent-gold);
+  font-size: .78rem;
+  opacity: .8;
+}
+.lib-row__modlink:hover {
+  background: rgba(212,175,55,.10);
+  border-color: rgba(212,175,55,.3);
+  color: var(--accent-gold);
+}
+@media (max-width: 640px) {
+  .lib-row__modlink span { display: none; }
+  .lib-row__modlink { padding: .35rem .5rem; }
+}
+
 /* AI tool row variant */
 .lib-row--ai .lib-row__title {
   color: #c4b5fd;

@@ -259,6 +259,18 @@
       right.insertBefore(chip, right.firstChild);
     }
 
+    /* Module-overview link: only for module lessons. Lets the user jump from the
+       flat catalog into the focused single-module page (weeks/days view). */
+    if (item.type === 'module') {
+      const modLink = document.createElement('a');
+      modLink.className = 'lib-row__modlink';
+      modLink.href = `module.html?id=${item.mi}`;
+      modLink.setAttribute('aria-label', `פתח את עמוד מודול ${item.moduleNum}`);
+      modLink.innerHTML = '<i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>מודול ' + item.moduleNum + '</span>';
+      modLink.addEventListener('click', e => e.stopPropagation());
+      right.appendChild(modLink);
+    }
+
     const cta = document.createElement('a');
     cta.className = 'lib-row__cta';
     cta.href = item.url;
@@ -352,6 +364,20 @@
       topicFilter: ''
     };
 
+    /* Apply pre-filters from URL params so deep links from the nav and module page
+       arrive at the right view. Supported: ?type=modules|seminars|ai · ?module=0..7 */
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const typeParam = urlParams.get('type');
+      if (typeParam && ['all', 'modules', 'seminars', 'ai'].includes(typeParam)) {
+        state.typeFilter = typeParam;
+      }
+      const modParam = urlParams.get('module');
+      if (modParam !== null && modParam !== '' && !isNaN(parseInt(modParam, 10))) {
+        state.moduleFilter = String(parseInt(modParam, 10));
+      }
+    } catch (_) { /* malformed query string — ignore */ }
+
     function refresh() {
       const filtered = applyFilters(allLessons, getCompleted(), state);
       renderList(filtered, getCompleted());
@@ -437,6 +463,13 @@
         if (icon) icon.className = isOpen ? 'fa-solid fa-chevron-up' : 'fa-solid fa-sliders';
       });
     }
+
+    /* Sync the dropdown selects to the initial state, so URL-driven filters
+       (?type=modules from the nav, etc.) appear pre-selected in the UI and
+       the user can clear them from the dropdown. */
+    const typeSelectEl = document.getElementById('libTypeSelect');
+    if (typeSelectEl && state.typeFilter !== 'all') typeSelectEl.value = state.typeFilter;
+    if (modSelect && state.moduleFilter !== '') modSelect.value = state.moduleFilter;
 
     /* Initial render */
     refresh();
