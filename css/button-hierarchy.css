@@ -9,9 +9,11 @@
    global button styles.
    ============================================================ */
 
-/* Tighten the gap so the primary CTA visually dominates */
+/* Spacing between primary CTA and tertiary skip-link.
+   24px (1.5rem) prevents mis-taps on RTL mobile while still
+   letting the gold CTA visually dominate. */
 .v1-hero__actions {
-  gap: 0.35rem;
+  gap: 1.5rem;
 }
 
 /* Tertiary text-link: no background, no border, soft turquoise.

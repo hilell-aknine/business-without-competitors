@@ -467,6 +467,8 @@
     border-color:rgba(229,181,71,.35);
     box-shadow:0 8px 24px rgba(229,181,71,.12);}
   .v1-stat:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;}
+  /* Empty-state copy replaces the big number for brand-new users */
+  .v1-stat__empty{font-size:1.05rem;font-weight:600;line-height:1.25;color:var(--lg-frost,#E8F1F2);}
 
   .v1-hero__preview{
     position:relative;aspect-ratio:16/10;border-radius:24px;overflow:hidden;
@@ -906,7 +908,7 @@
 
     <!-- STATS -->
     <section class="v1-stats" aria-label="סטטיסטיקות">
-      <div class="v1-stat g">
+      <div class="v1-stat g" id="statModuleCard">
         <div class="v1-stat__icon"><i class="fa-solid fa-layer-group"></i></div>
         <div class="v1-stat__num" id="statModuleNum">0<span>/0</span></div>
         <div class="v1-stat__label">במודול הנוכחי</div>
@@ -926,13 +928,12 @@
       </div>
     </section>
 
-    <!-- ANNOUNCE — compact when empty, expands when there's content -->
-    <section class="v1-announce g" aria-labelledby="announceTitle" aria-live="polite" aria-atomic="true">
+    <!-- ANNOUNCE — hidden by default; unhide via JS when announcements array has content. -->
+    <section class="v1-announce g" id="announceSection" style="display:none" aria-labelledby="announceTitle" aria-live="polite" aria-atomic="true">
       <header class="v1-announce__hd">
         <h2 id="announceTitle" class="v1-announce__title">
           <span class="v1-announce__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
           לוח מודעות
-          <span class="v1-announce__empty-line">אין מודעות חדשות כרגע · נעדכן אותך</span>
         </h2>
       </header>
     </section>
@@ -1069,7 +1070,7 @@
     <div class="v1-side__search" id="lessonSearchWrap" role="search">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
       <label for="lessonSearch" class="visually-hidden">חיפוש שיעור</label>
-      <input type="text" id="lessonSearch" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול. קיצור מקלדת Ctrl K" aria-describedby="lessonSearchCount" autocomplete="off">
+      <input type="text" id="lessonSearch" dir="rtl" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול. קיצור מקלדת Ctrl K" aria-describedby="lessonSearchCount" autocomplete="off">
       <kbd class="v1-side__search-kbd" aria-hidden="true">Ctrl K</kbd>
       <button type="button" class="v1-side__search-clear" id="lessonSearchClear" aria-label="נקה חיפוש"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       <div class="v1-side__search-count" id="lessonSearchCount" role="status" aria-live="polite"></div>
@@ -1374,7 +1375,15 @@ function renderHero(){
   const freshStart = done === 0;
 
   const next = nextUncompleted() || flatLessons[0];
-  if (!next) return;
+  if (!next) {
+    // No lesson data yet — make sure the CTA isn't a dead button.
+    // Sends the user to the library so they can pick something.
+    const ctaEl = document.getElementById('heroCta');
+    const skipEl = document.getElementById('heroSkip');
+    if (ctaEl)  ctaEl.onclick  = () => { window.location.href = 'pages/library.html'; };
+    if (skipEl) skipEl.onclick = () => { window.location.href = 'pages/library.html'; };
+    return;
+  }
 
   // Personalize eyebrow + CTA text based on progress state.
   // Three states: fresh start (no progress) → "התחל את הקורס";
@@ -1465,26 +1474,51 @@ function renderStats(){
   const done  = flatLessons.filter(l => completedLessons.includes(lessonKey(l))).length;
   const remain = total - done;
   const hoursLeft = Math.round(remain * 18 / 60); // ~18 min average
-  document.getElementById('statTimeNum').innerHTML = `${hoursLeft}<span> שעות</span>`;
-  document.getElementById('statTimeCtx').textContent = remain ? `${remain} שיעורים נותרו` : 'סיימת את כל השיעורים!';
+
+  // Time-remaining card: warm empty state for users who haven't started yet
+  const timeNum = document.getElementById('statTimeNum');
+  const timeCtx = document.getElementById('statTimeCtx');
+  if (done === 0) {
+    timeNum.innerHTML = `<span class="v1-stat__empty">⏱️ הגיע הזמן להתחיל</span>`;
+    timeCtx.textContent = 'השיעור הראשון מחכה';
+  } else {
+    timeNum.innerHTML = `${hoursLeft}<span> שעות</span>`;
+    timeCtx.textContent = remain ? `${remain} שיעורים נותרו` : 'סיימת את כל השיעורים!';
+  }
 
   // Streak
   const streak = parseInt(localStorage.getItem('bwc_streak') || '0');
-  document.getElementById('statStreakNum').innerHTML = `${streak}<span> ימים</span>`;
-  document.getElementById('statStreakCtx').textContent = streak >= 1 ? 'המשיכו את הרצף היום' : 'התחילו רצף — סיימו שיעור אחד';
+  const streakNum = document.getElementById('statStreakNum');
+  const streakCtx = document.getElementById('statStreakCtx');
+  if (streak === 0) {
+    streakNum.innerHTML = `<span class="v1-stat__empty">🔥 התחל את הרצף שלך היום!</span>`;
+    streakCtx.textContent = 'שיעור אחד מספיק להתחלה';
+  } else {
+    streakNum.innerHTML = `${streak}<span> ימים</span>`;
+    streakCtx.textContent = 'המשיכו את הרצף היום';
+  }
 
-  // Module progress (use the next module the user is in)
+  // Module progress card — hidden until the user is actually in a module/seminar with data
+  const moduleCard = document.getElementById('statModuleCard');
   const next = nextUncompleted() || flatLessons[0];
   if (next && next.type === 'module') {
     const mod = MODULES[next.mi];
     const totalLessons = mod.weeks.reduce((s,w) => s + w.days.filter(d => d.videoId).length, 0);
     const doneInMod = mod.weeks.reduce((s,w,wi) => s + w.days.filter((d,di) => d.videoId && completedLessons.includes(`m${next.mi}-${wi}-${di}`)).length, 0);
-    document.getElementById('statModuleNum').innerHTML = `${doneInMod}<span>/${totalLessons}</span>`;
-    document.getElementById('statModuleCtx').textContent = `${mod.title} · ${doneInMod === totalLessons ? 'הושלם' : (doneInMod/totalLessons >= .75 ? 'כמעט סיימת' : 'בתהליך')}`;
+    if (totalLessons === 0) {
+      moduleCard.style.display = 'none';
+    } else {
+      moduleCard.style.display = '';
+      document.getElementById('statModuleNum').innerHTML = `${doneInMod}<span>/${totalLessons}</span>`;
+      document.getElementById('statModuleCtx').textContent = `${mod.title} · ${doneInMod === totalLessons ? 'הושלם' : (doneInMod/totalLessons >= .75 ? 'כמעט סיימת' : 'בתהליך')}`;
+    }
   } else if (next && next.type === 'seminar') {
     const sem = SEMINARS[next.si];
+    moduleCard.style.display = '';
     document.getElementById('statModuleNum').innerHTML = `0<span>/${sem.parts.length}</span>`;
     document.getElementById('statModuleCtx').textContent = `סמינר: ${sem.title}`;
+  } else {
+    moduleCard.style.display = 'none';
   }
 }
 
@@ -1503,10 +1537,21 @@ function renderQuizStats(){
 }
 
 // ===== Selection =====
+function persistCurrentLesson(){
+  // Saved so prev/next labels survive a reload — read back in restoreCurrentLesson().
+  try {
+    const payload = currentType === 'seminar'
+      ? { type: 'seminar', si: currentSi, pi: currentPi }
+      : { type: 'module',  mi: currentMi, wi: currentWi, di: currentDi };
+    localStorage.setItem('bwc_current_lesson', JSON.stringify(payload));
+  } catch (_) { /* quota / private mode — non-fatal */ }
+}
+
 function selectSeminar(si, pi, autoPlay){
   currentType = 'seminar';
   currentSi = si; currentPi = pi;
   currentMi = currentWi = currentDi = -1;
+  persistCurrentLesson();
   if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('seminar', si);
   const sem = SEMINARS[si];
   const part = sem.parts[pi];
@@ -1519,6 +1564,7 @@ function selectLesson(mi, wi, di, autoPlay){
   currentType = 'module';
   currentMi = mi; currentWi = wi; currentDi = di;
   currentSi = currentPi = -1;
+  persistCurrentLesson();
   if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('module', mi);
   const day = MODULES[mi].weeks[wi].days[di];
   if (day.variants) {
@@ -2130,9 +2176,29 @@ function wireStatCubes() {
   });
 }
 
+// Restore the last viewed lesson so prev/next labels and breadcrumb populate
+// on a fresh page load instead of showing "—". Does not auto-play.
+function restoreCurrentLesson(){
+  try {
+    const raw = localStorage.getItem('bwc_current_lesson');
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s && s.type === 'module'
+        && Number.isInteger(s.mi) && Number.isInteger(s.wi) && Number.isInteger(s.di)
+        && MODULES[s.mi] && MODULES[s.mi].weeks[s.wi] && MODULES[s.mi].weeks[s.wi].days[s.di]) {
+      selectLesson(s.mi, s.wi, s.di);
+    } else if (s && s.type === 'seminar'
+        && Number.isInteger(s.si) && Number.isInteger(s.pi)
+        && SEMINARS[s.si] && SEMINARS[s.si].parts[s.pi]) {
+      selectSeminar(s.si, s.pi);
+    }
+  } catch (_) { /* malformed payload — ignore */ }
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
   buildFlat();
+  restoreCurrentLesson();
   renderSidebar();
   renderHero();
   renderStats();

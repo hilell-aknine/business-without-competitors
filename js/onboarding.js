@@ -23,7 +23,8 @@
     var STEP_BONUS = 1.5;       // percent per completed step
     var TOTAL_STEPS = 3;        // -> 4.5% max bonus
 
-    var KEY_DONE   = 'bwc_onboarding_completed';
+    var KEY_SEEN   = 'onboarding_seen';            // primary — set on any close
+    var KEY_DONE   = 'bwc_onboarding_completed';   // legacy — kept for read-side migration
     var KEY_BONUS  = 'bwc_onboarding_bonus_pct';
     var KEY_STEPS  = 'bwc_onboarding_steps';
     var KEY_GOAL   = 'bwc_weekly_goal';
@@ -64,7 +65,9 @@
         return n;
     }
 
-    function isCompleted() { return lsGet(KEY_DONE, '') === 'true'; }
+    function isCompleted() {
+        return lsGet(KEY_SEEN, '') === 'true' || lsGet(KEY_DONE, '') === 'true';
+    }
 
     // -------- Modal HTML rendering --------
     function buildModal() {
@@ -193,7 +196,7 @@
         try { if (typeof window.renderHero === 'function') window.renderHero(); } catch (e) {}
         // If all done, close + persist completion
         if (steps.video && steps.goal && steps.tour) {
-            lsSet(KEY_DONE, 'true');
+            lsSet(KEY_SEEN, 'true');
             // Small delay so user sees the final tick before close
             setTimeout(close, 700);
         }
@@ -267,6 +270,9 @@
     function close() {
         var root = document.getElementById('onbOverlay');
         if (!root) return;
+        // Any close (X / "דלג לעת עתה" / ESC / finish-all) marks the modal as
+        // seen so it never reopens on subsequent loads.
+        lsSet(KEY_SEEN, 'true');
         root.hidden = true;
         root.removeEventListener('keydown', onKeydown);
         document.body.style.overflow = '';
@@ -388,6 +394,7 @@
         close: close,
         reset: function () {
             try {
+                localStorage.removeItem(KEY_SEEN);
                 localStorage.removeItem(KEY_DONE);
                 localStorage.removeItem(KEY_BONUS);
                 localStorage.removeItem(KEY_STEPS);
