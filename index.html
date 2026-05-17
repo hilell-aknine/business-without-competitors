@@ -1445,11 +1445,18 @@ function renderHero(){
     const qEl = document.getElementById('heroQuizCount');
     if (qEl) qEl.textContent = quizzesPassed;
   } catch (_) { /* no-op, default 0 already in HTML */ }
-  document.getElementById('headerProgressFill').style.width = pct + '%';
-  document.getElementById('headerProgressPct').textContent = pct + '%';
-  document.getElementById('sideFill').style.width = pct + '%';
-  document.getElementById('sidePct').textContent = pct + '%';
-  document.getElementById('sideCount').textContent = `${done}/${total} שיעורים`;
+  // headerProgressFill / headerProgressPct were removed in the unified-nav redesign;
+  // guard each lookup so renderHero doesn't throw if any progress element is missing.
+  const headerFill = document.getElementById('headerProgressFill');
+  if (headerFill) headerFill.style.width = pct + '%';
+  const headerPct = document.getElementById('headerProgressPct');
+  if (headerPct) headerPct.textContent = pct + '%';
+  const sideFillEl = document.getElementById('sideFill');
+  if (sideFillEl) sideFillEl.style.width = pct + '%';
+  const sidePctEl = document.getElementById('sidePct');
+  if (sidePctEl) sidePctEl.textContent = pct + '%';
+  const sideCountEl = document.getElementById('sideCount');
+  if (sideCountEl) sideCountEl.textContent = `${done}/${total} שיעורים`;
 
   // When all lessons done, route the main CTA to practice instead of replaying lesson 1.
   // Skip + preview keep their "play this lesson" behavior in case the user wants to revisit.
