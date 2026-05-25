@@ -304,19 +304,38 @@ const state = {
    ================================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Wait for auth to resolve before initialising the UI so that
-  // authenticated users get their Supabase data merged before first render.
+  // Render the menu IMMEDIATELY from localStorage so the page is interactive
+  // within milliseconds. Supabase sync (if logged in) runs in the background
+  // and silently refreshes stats once data arrives.
+  init();
+
+  // Bind exit-confirm buttons via addEventListener (DOM is ready here).
+  // Inline onclick attributes were brittle if any code re-rendered the parent.
+  document.getElementById('exitBtn')
+    ?.addEventListener('click', () => window.requestExit());
+  document.getElementById('confirmExitBtn')
+    ?.addEventListener('click', () => window.confirmExit());
+  document.getElementById('cancelExitBtn')
+    ?.addEventListener('click', () => window.cancelExit());
+
+  // Background: wait for auth, then if logged-in pull Supabase data and
+  // silently refresh visible stats. Never blocks first paint, never interrupts
+  // a challenge in progress.
   const authReady = (window.bwcAuth && typeof window.bwcAuth.ready === 'function')
     ? window.bwcAuth.ready()
     : Promise.resolve();
 
   authReady
     .then(async () => {
-      // If the user is logged in, merge Supabase data into localStorage first
       if (window.bwcAuth && window.bwcAuth.getUser()) {
         await syncFromSupabase();
+        // Stats may have changed — refresh visible numbers if on menu.
+        // Do NOT re-init the engine; if the user is mid-challenge, leave them alone.
+        if (state.view === 'menu') {
+          refreshStats();
+          renderMenu();
+        }
       }
-      init();
 
       // Subscribe to future auth state changes
       if (window.bwcAuth && typeof window.bwcAuth.onChange === 'function') {
@@ -341,11 +360,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
     .catch(err => {
-      // Auth check failed — fall back to guest mode
-      console.warn('[practice] Auth ready error, falling back to guest mode:', err);
-      init();
+      // Auth check failed — guest mode is already running from the sync init() above
+      console.warn('[practice] Auth ready error, staying in guest mode:', err);
     });
 });
+
+/**
+ * Lightweight, idempotent refresh of the visible stats numbers from localStorage.
+ * Used after a background Supabase sync resolves — updates XP / streak / last
+ * score without re-rendering the whole module grid or interrupting a challenge.
+ */
+function refreshStats() {
+  const data = loadData();
+  const xpEl     = document.getElementById('stat-xp');
+  const streakEl = document.getElementById('stat-streak');
+  const lastEl   = document.getElementById('stat-last');
+  if (xpEl)     xpEl.textContent     = data.xp || 0;
+  if (streakEl) streakEl.textContent = data.streak || 0;
+  if (lastEl) {
+    const lastScore = getLastSessionScore(data);
+    lastEl.textContent = lastScore !== null ? lastScore + '%' : '—';
+  }
+}
 
 function init() {
   // Guard: if practice-data.js didn't load or has no content

@@ -172,15 +172,44 @@
     });
   }
 
-  /* ---- Apply all active filters and return matching subset ---- */
-  function applyFilters(list, completed, { query, typeFilter, moduleFilter, statusFilter, topicFilter }) {
-    const needle = query ? query.toLowerCase() : '';
+  /* ---- Apply all active filters and return matching subset ----
+     Empty query short-circuits the text-search block entirely so that
+     clearing #libSearch (via Backspace, browser X button, or Escape)
+     restores the full catalog without any stale needle. */
+  function applyFilters(list, completed, state) {
+    // Read the query freshly off the state object every call. We avoid
+    // destructuring `query` at the parameter level so there's no chance
+    // of a stale primitive snapshot if state.query is mutated mid-frame.
+    const rawQuery = (state && typeof state.query === 'string') ? state.query : '';
+    const needle = rawQuery.trim().toLowerCase();
+    const hasQuery = needle.length > 0;
+
+    const typeFilter   = state.typeFilter;
+    const moduleFilter = state.moduleFilter;
+    const statusFilter = state.statusFilter;
+    const topicFilter  = state.topicFilter;
 
     return list.filter(item => {
-      // Text search
-      if (needle) {
-        const haystack = (item.title + ' ' + item.meta).toLowerCase();
-        if (!haystack.includes(needle)) return false;
+      // Text search — search title, meta, tags, AND topic synonyms.
+      // Synonyms come from TOPIC_KEYWORDS: e.g. a query for "אווטאר"
+      // matches every lesson tagged 'קהל' because 'אווטאר' is listed
+      // as a synonym for that topic.
+      if (hasQuery) {
+        let matched = (item.title + ' ' + item.meta).toLowerCase().includes(needle);
+
+        if (!matched && Array.isArray(item.tags)) {
+          for (let i = 0; i < item.tags.length; i++) {
+            const tag = item.tags[i];
+            if (tag.toLowerCase().includes(needle)) { matched = true; break; }
+            const synonyms = TOPIC_KEYWORDS[tag];
+            if (synonyms && synonyms.some(s => s.toLowerCase().includes(needle))) {
+              matched = true;
+              break;
+            }
+          }
+        }
+
+        if (!matched) return false;
       }
 
       // Type filter
@@ -300,7 +329,10 @@
     if (remainEl) remainEl.textContent = remain;
   }
 
-  /* ---- Main render: write rows to DOM ---- */
+  /* ---- Main render: write rows to DOM ----
+     Empty-state toggle is computed up front from filtered.length so a
+     prior "no results" view can never linger after the user clears the
+     search (Backspace / browser X / Escape all funnel through here). */
   function renderList(filtered, completed) {
     const container = document.getElementById('libList');
     const empty     = document.getElementById('libEmpty');
@@ -311,15 +343,13 @@
 
     container.innerHTML = '';
 
+    const isEmpty = filtered.length === 0;
+
     if (countEl) countEl.textContent = filtered.length;
     if (totalEl) totalEl.textContent = window.__libTotalCount || filtered.length;
+    if (empty)   empty.hidden = !isEmpty;
 
-    if (filtered.length === 0) {
-      if (empty) empty.hidden = false;
-      return;
-    }
-
-    if (empty) empty.hidden = true;
+    if (isEmpty) return;
 
     const frag = document.createDocumentFragment();
     filtered.forEach(item => frag.appendChild(renderRow(item, completed)));

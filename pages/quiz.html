@@ -116,6 +116,12 @@
 
         .breadcrumb i { font-size: 0.7rem; opacity: 0.5; }
 
+        /* Hide breadcrumb during active quiz (it has no click handler — looks misleading).
+           Show it again on the results screen so the user can navigate back.
+           !important needed because the breadcrumb has an inline display:flex style. */
+        body.quiz-active .breadcrumb { display: none !important; }
+        body.quiz-active.quiz-results .breadcrumb { display: flex !important; }
+
         .nav-back {
             color: var(--frost-white);
             background: rgba(255, 255, 255, 0.08);
@@ -989,6 +995,8 @@
         document.getElementById('selectView').style.display = '';
         document.getElementById('quizFlow').classList.remove('active');
         document.getElementById('resultsView').classList.remove('active');
+        document.body.classList.remove('quiz-active');
+        document.body.classList.remove('quiz-results');
         document.getElementById('breadcrumbCurrent').textContent = 'מבחני הבנה';
         renderModuleGrid();
         renderOverallStats();
@@ -999,12 +1007,16 @@
         document.getElementById('selectView').style.display = 'none';
         document.getElementById('quizFlow').classList.add('active');
         document.getElementById('resultsView').classList.remove('active');
+        document.body.classList.add('quiz-active');
+        document.body.classList.remove('quiz-results');
     }
 
     function showResults() {
         document.getElementById('selectView').style.display = 'none';
         document.getElementById('quizFlow').classList.remove('active');
         document.getElementById('resultsView').classList.add('active');
+        document.body.classList.add('quiz-active');
+        document.body.classList.add('quiz-results');
     }
 
     // ===== Quiz flow =====

@@ -96,7 +96,7 @@
           <div class="prac-progress-bar__fill" id="play-progress-fill" style="width:0%"></div>
         </div>
       </div>
-      <button type="button" class="prac-topbar__close" onclick="requestExit()" aria-label="יציאה מהתרגול">
+      <button type="button" class="prac-topbar__close" id="exitBtn" aria-label="יציאה מהתרגול">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
         <span>יציאה</span>
       </button>
@@ -199,10 +199,10 @@
     <h3>לצאת מהתרגול?</h3>
     <p>ההתקדמות בסשן הנוכחי לא תישמר, אבל XP שהרווחתם על אתגרים שהושלמו נשמר.</p>
     <div class="prac-confirm-box__btns">
-      <button type="button" class="btn-ghost-dark" onclick="cancelExit()" aria-label="בטל, חזור לתרגול">
+      <button type="button" class="btn-ghost-dark" id="cancelExitBtn" aria-label="בטל, חזור לתרגול">
         ביטול
       </button>
-      <button type="button" class="btn-gold" onclick="confirmExit()" aria-label="אישור יציאה">
+      <button type="button" class="btn-gold" id="confirmExitBtn" aria-label="אישור יציאה">
         <i class="fa-solid fa-door-open" aria-hidden="true"></i>
         כן, צא
       </button>
