@@ -325,8 +325,13 @@
             }
 
             function getLocalData() {
+                var raw = safeJson('bwc_completed', []);
+                // bwc_completed is stored as string[]. Defensive: also accept legacy object shape.
+                var keys = Array.isArray(raw)
+                    ? raw
+                    : Object.keys(raw || {}).filter(function (k) { return raw[k]; });
                 return {
-                    completed:  safeJson('bwc_completed', {}),
+                    completed:  new Set(keys),
                     quizScores: safeJson('bwc_quiz_scores', {}),
                     practice:   safeJson('bwc_practice_v1', { xp: 0, streak: 0, lastDate: null, completed: {} })
                 };
@@ -349,13 +354,13 @@
                 _mods.forEach(function (mod, mi) {
                     mod.weeks.forEach(function (week, wi) {
                         week.days.forEach(function (day, di) {
-                            if (completed['m' + mi + '-' + wi + '-' + di]) done++;
+                            if (completed.has('m' + mi + '-' + wi + '-' + di)) done++;
                         });
                     });
                 });
                 _sems.forEach(function (sem, si) {
                     sem.parts.forEach(function (part, pi) {
-                        if (completed['s' + si + '-' + pi]) done++;
+                        if (completed.has('s' + si + '-' + pi)) done++;
                     });
                 });
                 return done;
@@ -368,7 +373,7 @@
                 mod.weeks.forEach(function (week, wi) {
                     week.days.forEach(function (day, di) {
                         total++;
-                        if (completed['m' + mi + '-' + wi + '-' + di]) done++;
+                        if (completed.has('m' + mi + '-' + wi + '-' + di)) done++;
                     });
                 });
                 return { total: total, done: done, pct: total ? Math.round(done / total * 100) : 0 };
@@ -450,8 +455,8 @@
             /* ---- Merge helpers ---- */
 
             function mergeCompleted(local, remoteKeys) {
-                var merged = Object.assign({}, local);
-                (remoteKeys || []).forEach(function (k) { merged[k] = true; });
+                var merged = new Set(local);  // local is already a Set
+                (remoteKeys || []).forEach(function (k) { merged.add(k); });
                 return merged;
             }
 
