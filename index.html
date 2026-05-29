@@ -2110,8 +2110,9 @@ document.addEventListener('keydown', e => {
   }
 });
 
-// Auto-close drawer when crossing back above mobile breakpoint
-const drawerMq = window.matchMedia('(min-width: 769px)');
+// Auto-close drawer when crossing back above the drawer breakpoint (1100px).
+// The drawer CSS applies at max-width:1100px, so it must auto-close at >=1101px.
+const drawerMq = window.matchMedia('(min-width: 1101px)');
 drawerMq.addEventListener('change', e => { if (e.matches && isDrawerOpen()) closeDrawer(); });
 
 // Close drawer when a lesson is selected from inside it (mobile UX)
