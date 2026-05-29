@@ -35,6 +35,13 @@ Each entry follows:
 - **Fix:** Strip all Hebrew from `--` comments. Use ASCII-only comments inside `.sql` files that will run in the Supabase SQL editor.
 - **Rule:** SQL files for Supabase: comments in English only. Hebrew belongs in the `README.md` next to the file, not inside the SQL.
 
+### Sync upserts fail with FK 23503 when the profiles row is missing
+- **Date:** 2026-05-29
+- **Problem:** `[sync] partial failure, will retry next sign-in Array(3)` looped on every sign-in for a logged-in user. Looked like a missing-column / schema problem; it wasn't — the schema columns matched the sync code exactly.
+- **Root Cause:** `course_progress`, `quiz_scores`, `practice_stats` all `REFERENCES public.profiles(id)`. The `handle_new_user()` trigger that creates the profiles row only fires on `auth.users` INSERT (signup). OAuth users and accounts created before the trigger existed have a valid session but NO profiles row, so every upsert hits a foreign-key violation (Postgres SQLSTATE `23503`). The client can't self-insert into profiles either — there is no INSERT-self RLS policy (only self_select/self_update). The real error was hidden because `console.warn('[sync] ...', results)` collapses the error objects into `Array(3)` in the console.
+- **Fix:** (1) `ensure_profile()` SECURITY DEFINER RPC (migration 003) self-heals the row; sync calls it before upserting. (2) Sync now logs each failed table's `{code, message, details, hint}` explicitly instead of dumping the collapsed results array.
+- **Rule:** When a Supabase upsert fails for a logged-in, RLS-correct user and the columns match, suspect a missing FK parent row (here: profiles) BEFORE schema. Always log `error.code` — `23503` = FK violation, `42501` = RLS denial. Never rely on a signup-only trigger to guarantee a profiles row; provide an idempotent `ensure_profile()` RPC for OAuth/legacy accounts.
+
 ### `:not()` boosts specificity — global rules can pin header z-index
 - **Date:** 2026-05-10
 - **Problem:** Navbar 3-dot dropdown opened but was hidden behind hero card. Header had `.v1-header{z-index:60}` declared inline; should have rendered above `.g` (z-index:1). It didn't.

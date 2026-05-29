@@ -89,6 +89,8 @@
   .btn--gold:hover{background-position:100% 0%;transform:translateY(-2px);box-shadow:0 14px 30px rgba(229,181,71,.5), inset 0 1px 0 rgba(255,255,255,.5);filter:brightness(1.06);}
   .btn--clear{background:rgba(255,255,255,.08);color:#fff;}
   .btn--clear:hover{background:rgba(255,255,255,.16);}
+  #markCompleteBtn.is-done{background:rgba(212,175,55,.18);color:#E6C65A;border:1px solid rgba(212,175,55,.45);}
+  #markCompleteBtn.is-done:hover{background:rgba(212,175,55,.26);}
   .btn--icon{padding:.55rem .65rem;border-radius:50%;}
   .btn--sm{padding:.35rem .7rem;font-size:.72rem;border-radius:8px;}
 
@@ -1592,7 +1594,8 @@ function selectLesson(mi, wi, di, autoPlay){
   currentSi = currentPi = -1;
   persistCurrentLesson();
   if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('module', mi);
-  const day = MODULES[mi].weeks[wi].days[di];
+  const day = MODULES?.[mi]?.weeks?.[wi]?.days?.[di];
+  if (!day) { console.warn('[selectLesson] no lesson at', { mi, wi, di }); return; }
   if (day.variants) {
     currentVideoId = day.variants[0].videoId;
     renderVariants(day.variants);
@@ -1737,7 +1740,14 @@ function updateLessonNav(){
   prevBtn.onclick = () => { if (idx > 0) playByItem(flatLessons[idx-1]); };
   nextBtn.onclick = () => { if (idx < total - 1) playByItem(flatLessons[idx+1]); };
 
-  document.getElementById('markCompleteBtn').onclick = markCurrentComplete;
+  const markBtn = document.getElementById('markCompleteBtn');
+  markBtn.onclick = markCurrentComplete;
+  const isDone = completedLessons.includes(currentLessonKey());
+  markBtn.classList.toggle('is-done', isDone);
+  markBtn.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+  markBtn.innerHTML = isDone
+    ? '<i class="fa-solid fa-circle-check"></i> הושלם'
+    : '<i class="fa-solid fa-check"></i> סמן כהושלם';
 }
 
 function updateAboutTab(){

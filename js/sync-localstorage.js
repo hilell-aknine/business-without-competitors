@@ -123,11 +123,40 @@
     }
   }
 
+  // All three target tables FK-reference public.profiles(id). The auto-profile
+  // trigger only fires on auth.users INSERT (signup), so OAuth users or accounts
+  // created before the trigger have no profiles row -> every upsert fails with
+  // a foreign-key violation (Postgres 23503). ensure_profile() (migration 003)
+  // is a SECURITY DEFINER RPC that self-heals the row before we sync.
+  async function ensureProfile() {
+    try {
+      var res = await sb.rpc('ensure_profile');
+      if (res && res.error) {
+        console.warn('[sync] ensure_profile RPC failed (run migration 003?)',
+          { code: res.error.code, message: res.error.message });
+      }
+    } catch (e) {
+      console.warn('[sync] ensure_profile threw', e);
+    }
+  }
+
+  function logFailures(results) {
+    results.forEach(function (r) {
+      if (r && !r.ok && r.error) {
+        var e = r.error;
+        console.error('[sync] FAILED table "' + r.label + '" ->', {
+          code: e.code, message: e.message, details: e.details, hint: e.hint
+        });
+      }
+    });
+  }
+
   async function runOnce(userId) {
     if (!userId || inFlight) return null;
     if (isAlreadySynced(userId)) return { skipped: true };
     inFlight = true;
     try {
+      await ensureProfile();
       var results = await Promise.all([
         syncCompleted(userId),
         syncQuizScores(userId),
@@ -139,6 +168,7 @@
         console.info('[sync] localStorage -> Supabase OK', results);
       } else {
         console.warn('[sync] partial failure, will retry next sign-in', results);
+        logFailures(results);
       }
       try {
         window.dispatchEvent(new CustomEvent('bwc:sync-done', { detail: { allOk: allOk, results: results } }));

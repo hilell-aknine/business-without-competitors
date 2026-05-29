@@ -381,9 +381,18 @@
     if (topicCountEl) topicCountEl.textContent = topics.length;
     updateStats(completed, allLessons.length);
 
-    /* Update total count in subtitle */
+    /* Update total count in subtitle.
+       The portal counts only video lessons (131); the AI-tool item has no video
+       and is not "completable", so we list it separately instead of folding it
+       into the lesson count — keeps this page honest against the portal number. */
     const subtitleCount = document.getElementById('libSubtitleCount');
-    if (subtitleCount) subtitleCount.textContent = allLessons.length;
+    if (subtitleCount) {
+      const videoCount = allLessons.filter(l => l.videoId).length;
+      const aiCount = allLessons.filter(l => l.isAiTool).length;
+      subtitleCount.textContent = aiCount > 0
+        ? `${videoCount} שיעורים וסמינרים + ${aiCount === 1 ? 'כלי AI אחד' : aiCount + ' כלי AI'}`
+        : `${allLessons.length} שיעורים וסמינרים`;
+    }
 
     /* Filter state */
     let state = {

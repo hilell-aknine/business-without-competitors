@@ -430,3 +430,11 @@ function getTotalLessonCount() {
     MODULES.forEach(m => count += getModuleLessonCount(m));
     return count;
 }
+
+// Expose source-of-truth data globally for devtools/debugging. Top-level `const`
+// is a lexical global (reachable from other scripts) but NOT a window property,
+// which made `window.MODULES` undefined and broke console-driven calls.
+if (typeof window !== 'undefined') {
+  window.MODULES = MODULES;
+  window.SEMINARS = SEMINARS;
+}
