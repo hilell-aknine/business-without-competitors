@@ -33,3 +33,7 @@ CLAUDE.md
 
 # Archived background docs (PDFs, ZIPs, source materials)
 docs-archive/
+
+# Workbook builder + generated workbooks (audio, transcripts, drafts, PDFs)
+/tools/
+/workbooks/

@@ -21,3 +21,7 @@
 # Supabase migration files + dev-only test page (not for public site)
 /supabase/
 /supabase-test.html
+
+# Workbook builder + generated workbooks (internal tooling, large media + PDFs)
+/tools/
+/workbooks/
