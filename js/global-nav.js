@@ -91,7 +91,10 @@
   }
 
   function buildHTML(currentPage) {
-    var primary = PRIMARY_ITEMS.map(function (i) { return renderPrimaryLink(i, currentPage); }).join('');
+    // FIX-ENGINE F-015 (2026-07-22): בדף הבית אין פריטי ניווט ראשיים (בית/ספרייה/תרגול/מבחנים)
+    // לבקשת הלל — הפורטל עצמו הוא המרכז. בשאר הדפים התפריט נשאר כדי שאפשר יהיה לחזור.
+    var primaryItems = currentPage === 'home' ? [] : PRIMARY_ITEMS;
+    var primary = primaryItems.map(function (i) { return renderPrimaryLink(i, currentPage); }).join('');
     var more    = MORE_ITEMS.map(renderMoreItem).join('');
     var brandHref = getBasePath() + 'index.html';
     return (

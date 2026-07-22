@@ -210,6 +210,27 @@
     box-shadow:0 20px 48px rgba(0,0,0,.3);
   }
 
+  /* FIX-ENGINE F-017 (2026-07-22): מיזעור מלא של הסרגל — דסקטופ בלבד (מתחת ל-1101px יש כבר drawer). */
+  .v1-side__collapse{display:none;}
+  .v1-side-expand{display:none;}
+  @media(min-width:1101px){
+    /* FIX-ENGINE F-020 (2026-07-22): הכפתור סטטי בתוך שורת הכותרת — לא צף ולא דורך על טקסט. */
+    .v1-side__collapse{display:flex;width:26px;height:26px;flex-shrink:0;margin-inline-start:.4rem;
+      align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+      border-radius:8px;color:rgba(232,241,242,.7);cursor:pointer;font-size:.68rem;transition:all .2s;}
+    .v1-side__collapse:hover{color:#fff;background:rgba(255,255,255,.12);}
+    body.side-collapsed .v1-body{grid-template-columns:1fr;}
+    body.side-collapsed .v1-side{display:none;}
+    body.side-collapsed .v1-side-expand{display:flex;position:fixed;top:50%;inset-inline-end:0;transform:translateY(-50%);
+      z-index:90;width:34px;height:64px;align-items:center;justify-content:center;border:none;cursor:pointer;
+      background:linear-gradient(135deg,rgba(230,198,90,.92),rgba(212,175,55,.82));color:#1a1205;font-size:.85rem;
+      border-start-start-radius:12px;border-end-start-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.35);}
+    body.side-collapsed .v1-side-expand:hover{filter:brightness(1.08);}
+    /* F-020: הכותרת דוחפת את המונה והכפתור לקצה — בלי חפיפות */
+    .v1-side__head-top{justify-content:flex-start;gap:.5rem;}
+    .v1-side__head-top .v1-side__h1{margin-inline-end:auto;}
+  }
+
   .v1-side__head{padding:.4rem .2rem;}
   .v1-side__head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.45rem;}
   .v1-side__h1{font-size:.85rem;font-weight:600;color:#fff;margin:0;}
@@ -276,6 +297,9 @@
     padding-inline-end:.5rem;margin-inline-end:-.5rem;
     scrollbar-color:rgba(230,198,90,.35) transparent;scrollbar-width:thin;
   }
+  /* FIX-ENGINE F-004 (2026-07-22): כרטיסי המודולים נמעכו/נחתכו — ילדי הרשימה נדחסו ע"י flex
+     (overflow:hidden על .v1-mod מאפס את הגובה המינימלי). ביטול הכיווץ מחזיר גלילה תקינה. */
+  .v1-side__list > *{flex-shrink:0;}
   .v1-side__list:focus-visible{outline:3px solid var(--lg-gold);outline-offset:2px;border-radius:6px;}
   .v1-side__list::-webkit-scrollbar{width:8px;}
   .v1-side__list::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:4px;}
@@ -474,6 +498,19 @@
     color:var(--lg-cream);transform:translateY(-1px);}
   .v1-welcome__link i:first-child{color:var(--lg-gold);font-size:.85rem;}
   .v1-welcome__link i:last-child{font-size:.7rem;opacity:.6;}
+  /* FIX-ENGINE F-011 (2026-07-22): רצועת רצף/מודול/התקדמות בתוך הברוכים-הבאים */
+  .v1-welcome__stats{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;min-width:0;}
+  .v1-welcome__stat{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;color:rgba(232,241,242,.78);white-space:nowrap;}
+  .v1-welcome__stat i{color:var(--lg-gold);font-size:.78rem;}
+  @media(max-width:760px){.v1-welcome__stats{gap:.6rem;}}
+  /* FIX-ENGINE F-018 (2026-07-22): הרצועה יושבת בהדר העליון — בלי מראה של כרטיס נוסף. */
+  .gnav__center .v1-welcome, .gnav__center .v1-welcome.g{
+    background:none;border:none;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding:0;margin:0;display:flex;align-items:center;gap:1.1rem;flex-wrap:nowrap;min-width:0;
+  }
+  .gnav__center .v1-welcome[hidden]{display:none;}
+  .gnav__center .v1-welcome .v1-welcome__stats{flex-wrap:nowrap;}
+  @media(max-width:1100px){.gnav__center .v1-welcome{display:none;}}
   @media (max-width:560px){
     .v1-welcome{flex-direction:column;align-items:stretch;}
     .v1-welcome__link{justify-content:center;}
@@ -624,30 +661,37 @@
     display:flex;align-items:center;justify-content:space-between;gap:.75rem;
     padding:.55rem .75rem;border-radius:18px;
   }
-  .v1-navbar__center{display:flex;align-items:center;gap:.8rem;font-size:.82rem;color:rgba(232,241,242,.7);}
-  .v1-navbar__counter strong{color:#fff;font-weight:700;font-size:.9rem;}
-  .v1-navbar__sep{width:1px;height:18px;background:rgba(255,255,255,.14);}
-  .v1-navbar__lbl{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;}
-  .v1-navbar__lbl strong{font-size:.88rem;font-weight:700;}
-  .v1-navbar__lbl small{font-size:.66rem;opacity:.7;font-weight:400;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* FIX-ENGINE F-022 (2026-07-22): הטקסט בניווט השיעור הוגדל לבקשת הלל. */
+  .v1-navbar__center{display:flex;align-items:center;gap:.8rem;font-size:.95rem;color:rgba(232,241,242,.75);}
+  .v1-navbar__counter strong{color:#fff;font-weight:700;font-size:1.05rem;}
+  .v1-navbar__sep{width:1px;height:20px;background:rgba(255,255,255,.14);}
+  .v1-navbar__lbl{display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;}
+  .v1-navbar__lbl strong{font-size:1rem;font-weight:700;}
+  .v1-navbar__lbl small{font-size:.8rem;opacity:.75;font-weight:400;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .v1-navbar .btn{font-size:.95rem;}
+  .v1-navbar .btn--sm{font-size:.88rem;}
 
-  /* ==================== TABS ==================== */
+  /* ==================== TABS → ACCORDION ==================== */
+  /* FIX-ENGINE F-006 (2026-07-22): לשוניות אופקיות הוחלפו באקורדיון אנכי נפתח, לבקשת הלל. */
   .v1-tabs{border-radius:28px;overflow:hidden;}
-  .v1-tabs__hd{display:flex;gap:.2rem;padding:.45rem;border-bottom:1px solid rgba(255,255,255,.06);overflow-x:auto;background:rgba(0,0,0,.18);}
-  .v1-tabs__hd::-webkit-scrollbar{height:0;}
+  .v1-acc__item{border-bottom:1px solid rgba(255,255,255,.06);}
+  .v1-acc__item:last-child{border-bottom:none;}
   .v1-tab{
-    display:inline-flex;align-items:center;gap:.45rem;
-    padding:.65rem 1.1rem;border-radius:14px;
-    background:none;border:1px solid transparent;color:rgba(232,241,242,.6);
-    font-family:inherit;font-size:.83rem;font-weight:500;cursor:pointer;
-    white-space:nowrap;transition:all .2s;
+    display:flex;width:100%;align-items:center;gap:.55rem;
+    padding:.95rem 1.4rem;text-align:start;
+    background:rgba(0,0,0,.14);border:none;color:rgba(232,241,242,.7);
+    font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;
+    transition:all .2s;
   }
-  .v1-tab:hover{color:#fff;background:rgba(255,255,255,.04);}
-  .v1-tab.active{color:#1a1205;background:linear-gradient(135deg,rgba(230,198,90,.8),rgba(212,175,55,.6));font-weight:600;border-color:rgba(230,198,90,.5);box-shadow:0 4px 14px rgba(212,175,55,.25);}
+  .v1-tab:hover{color:#fff;background:rgba(255,255,255,.05);}
+  .v1-acc__item.active .v1-tab{color:var(--lg-gold);background:rgba(212,175,55,.08);}
   .v1-tab i{font-size:.82rem;opacity:.9;}
+  .v1-acc__chev{margin-inline-start:auto;font-size:.72rem;opacity:.6;transition:transform .25s;}
+  .v1-acc__item.active .v1-acc__chev{transform:rotate(180deg);opacity:1;}
 
   .v1-panel{display:none;padding:1.75rem;}
-  .v1-panel.active{display:block;}
+  .v1-panel.active{display:block;animation:v1AccOpen .28s ease;}
+  @keyframes v1AccOpen{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:none;}}
 
   .v1-h3{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:1.45rem;color:#fff;line-height:1.25;letter-spacing:-.01em;margin:0 0 .7rem;text-wrap:balance;}
   .v1-p{font-size:.92rem;line-height:1.7;color:rgba(232,241,242,.76);margin:0 0 1rem;text-wrap:pretty;}
@@ -865,13 +909,19 @@
 <div class="v1-body">
 
   <!-- MAIN -->
-  <main class="v1-main" id="main" tabindex="-1">
+  <main class="v1-main" id="main" tabindex="-1" data-area="home" data-src="index.html">
 
     <!-- MEMBER WELCOME — shown only when user is logged in. Hidden by default; populated + revealed by renderHero(). -->
     <section class="v1-welcome g" id="memberWelcome" hidden aria-label="ברוך הבא">
       <div class="v1-welcome__txt">
         <span class="v1-welcome__hi">ברוך השב <span aria-hidden="true">👋</span></span>
         <span class="v1-welcome__name" id="memberWelcomeName">—</span>
+      </div>
+      <!-- FIX-ENGINE F-011 (2026-07-22): רצועת רצף יומי + התקדמות + מיקום במודול הנוכחי, לבקשת הלל. מאוכלס ע"י renderStats(). -->
+      <div class="v1-welcome__stats" id="welcomeStats" aria-label="סיכום התקדמות">
+        <span class="v1-welcome__stat" id="welcomeStreak"><i class="fa-solid fa-fire" aria-hidden="true"></i> <span>—</span></span>
+        <span class="v1-welcome__stat" id="welcomeModule"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span>—</span></span>
+        <span class="v1-welcome__stat" id="welcomeProgress"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> <span>—</span></span>
       </div>
       <a class="v1-welcome__link" href="pages/progress.html">
         <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
@@ -884,7 +934,7 @@
     <section class="v1-hero" id="hero" aria-label="המשך ללמוד">
       <div class="v1-hero__orb"></div>
       <div class="v1-hero__content">
-        <span class="v1-hero__eyebrow" id="heroEyebrow"><i class="fa-solid fa-arrow-left"></i> <span id="heroEyebrowText">השיעור הבא שלך</span></span>
+        <!-- FIX-ENGINE F-019 (2026-07-22): שורת ה"המשך מהשיעור שעצרת בו" (eyebrow) הוסרה לבקשת הלל. הקוד ב-renderHero מוגן ב-null. -->
         <h1 class="v1-hero__title" id="heroTitle">טוען…</h1>
         <div class="v1-hero__meta" id="heroMeta"></div>
         <div class="v1-hero__actions">
@@ -903,10 +953,7 @@
             <span class="v1-hero__progress-pct" id="heroProgressPct">0%</span>
           </div>
           <div class="v1-hero__progress-bar"><span id="heroProgressFill" style="width:0%"></span></div>
-          <div class="v1-hero__progress-quiz" id="heroQuizLine">
-            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-            <span>ועברת <b id="heroQuizCount">0</b> מתוך <b>8</b> מבחני הבנה</span>
-          </div>
+          <!-- FIX-ENGINE F-021 (2026-07-22): שורת "ועברת X מתוך 8 מבחני הבנה" הוסרה לבקשת הלל. הקוד ב-renderHero מוגן ב-null. -->
         </div>
       </div>
       <button class="v1-hero__preview" id="heroPreview" aria-label="הפעל שיעור">
@@ -918,7 +965,7 @@
     </section>
 
     <!-- VIDEO PLAYER (shown when a lesson is playing) -->
-    <section class="v1-video" id="videoSection">
+    <section class="v1-video" id="videoSection" data-area="player" data-src="index.html (נגן שיעור)">
       <button class="v1-video__close" onclick="closeVideo()" aria-label="סגור"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       <iframe id="videoFrame" src="about:blank" title="נגן וידאו של השיעור" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
     </section>
@@ -926,56 +973,7 @@
     <!-- VARIANTS (e.g. צביקה / תמר) -->
     <div class="v1-variants" id="variantsBar" hidden role="group" aria-label="בחירת מדריך"></div>
 
-    <!-- STATS -->
-    <section class="v1-stats" aria-label="סטטיסטיקות">
-      <div class="v1-stat g" id="statModuleCard">
-        <div class="v1-stat__icon"><i class="fa-solid fa-layer-group"></i></div>
-        <div class="v1-stat__num" id="statModuleNum">0<span>/0</span></div>
-        <div class="v1-stat__label">במודול הנוכחי</div>
-        <div class="v1-stat__ctx" id="statModuleCtx">—</div>
-      </div>
-      <div class="v1-stat g">
-        <div class="v1-stat__icon"><i class="fa-regular fa-clock"></i></div>
-        <div class="v1-stat__num" id="statTimeNum">0<span> שעות</span></div>
-        <div class="v1-stat__label">זמן שנותר בקורס</div>
-        <div class="v1-stat__ctx" id="statTimeCtx">בקצב ממוצע</div>
-      </div>
-      <div class="v1-stat g">
-        <div class="v1-stat__icon"><i class="fa-solid fa-fire"></i></div>
-        <div class="v1-stat__num" id="statStreakNum">0<span> ימים</span></div>
-        <div class="v1-stat__label">רצף לימוד</div>
-        <div class="v1-stat__ctx" id="statStreakCtx">המשיכו את הרצף</div>
-      </div>
-    </section>
-
-    <!-- ANNOUNCE — hidden by default; unhide via JS when announcements array has content. -->
-    <section class="v1-announce g" id="announceSection" style="display:none" aria-labelledby="announceTitle" aria-live="polite" aria-atomic="true">
-      <header class="v1-announce__hd">
-        <h2 id="announceTitle" class="v1-announce__title">
-          <span class="v1-announce__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
-          לוח מודעות
-        </h2>
-      </header>
-    </section>
-
-    <!-- REFERRAL / QUIZ CTA BANNER -->
-    <a class="v1-referral js-quiz-link" href="pages/quiz.html" aria-label="פתחו מבחני הבנה">
-      <span class="v1-referral__icon-wrap">
-        <span class="v1-referral__icon"><i class="fa-solid fa-graduation-cap"></i></span>
-      </span>
-      <div>
-        <h3 class="v1-referral__title">בדקו את עצמכם <span aria-hidden="true">💜</span></h3>
-        <p class="v1-referral__sub">5 שאלות לכל מודול עם הסבר אחרי כל שאלה · כלי הבנה קצר שמחזק את החומר</p>
-      </div>
-      <span class="v1-referral__cta">
-        <i class="fa-solid fa-arrow-left"></i>
-        פתח מבחנים
-      </span>
-    </a>
-
-    <!-- BREADCRUMB — visible only when a lesson is selected -->
-    <nav class="v1-crumb" id="lessonCrumb" aria-label="נתיב ניווט" hidden></nav>
-
+    <!-- FIX-ENGINE F-007 (2026-07-22): ניווט השיעור (הקודם/הבא/סמן כהושלם) הועבר אל מתחת לנגן, מעל החומרים, לבקשת הלל. -->
     <!-- LESSON NAV -->
     <div class="v1-navbar g" id="lessonNav" hidden>
       <button class="btn btn--clear" id="prevBtn">
@@ -993,18 +991,14 @@
       </button>
     </div>
 
-    <!-- TABS -->
-    <div class="v1-tabs g">
-      <div class="v1-tabs__hd" role="tablist">
-        <button class="v1-tab active" data-tab="about" role="tab" aria-selected="true"><i class="fa-solid fa-circle-info"></i> אודות</button>
-        <button class="v1-tab" data-tab="ai" role="tab" aria-selected="false"><i class="fa-solid fa-bolt"></i> פרוטוקול 10X</button>
-        <button class="v1-tab" data-tab="resources" role="tab" aria-selected="false"><i class="fa-solid fa-download"></i> חומרים</button>
-        <button class="v1-tab" data-tab="notes" role="tab" aria-selected="false"><i class="fa-regular fa-pen-to-square"></i> הערות אישיות</button>
-        <button class="v1-tab" data-tab="quiz" role="tab" aria-selected="false"><i class="fa-solid fa-circle-question"></i> מבחני הבנה</button>
-      </div>
+    <!-- FIX-ENGINE F-006 (2026-07-22): הלשוניות (אודות/פרוטוקול/חומרים/הערות/מבחנים) הומרו לאקורדיון נפתח מתחת לנגן, לבקשת הלל. -->
+    <!-- LESSON DETAILS — ACCORDION -->
+    <div class="v1-tabs g v1-acc">
 
       <!-- About -->
-      <div class="v1-panel active" data-panel="about" role="tabpanel">
+      <div class="v1-acc__item active">
+        <button class="v1-tab" type="button" data-tab="about" aria-expanded="true"><i class="fa-solid fa-circle-info"></i> אודות <i class="fa-solid fa-chevron-down v1-acc__chev" aria-hidden="true"></i></button>
+        <div class="v1-panel active" data-panel="about">
         <!-- Active empty state (shown only when no lesson is selected) -->
         <div class="v1-empty" id="aboutEmptyState">
           <div class="v1-empty__icon" aria-hidden="true">
@@ -1024,30 +1018,39 @@
           <p class="v1-p" id="aboutDesc"></p>
           <div class="v1-about__meta" id="aboutMeta"></div>
         </div>
+        </div>
       </div>
 
       <!-- AI / Protocol -->
-      <div class="v1-panel" data-panel="ai" role="tabpanel">
+      <div class="v1-acc__item">
+        <button class="v1-tab" type="button" data-tab="ai" aria-expanded="false"><i class="fa-solid fa-bolt"></i> פרוטוקול 10X <i class="fa-solid fa-chevron-down v1-acc__chev" aria-hidden="true"></i></button>
+        <div class="v1-panel" data-panel="ai">
         <div id="aiContent">
           <div class="v1-ai__placeholder">
             <i class="fa-solid fa-robot"></i>
             <p>בחר שיעור כדי להפעיל את פרוטוקול הלמידה</p>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Resources -->
-      <div class="v1-panel" data-panel="resources" role="tabpanel">
+      <div class="v1-acc__item">
+        <button class="v1-tab" type="button" data-tab="resources" aria-expanded="false"><i class="fa-solid fa-download"></i> חומרים <i class="fa-solid fa-chevron-down v1-acc__chev" aria-hidden="true"></i></button>
+        <div class="v1-panel" data-panel="resources">
         <div id="resourcesContent">
           <div class="v1-ai__placeholder">
             <i class="fa-solid fa-download"></i>
             <p>בחרו שיעור או מודול כדי לראות את החומרים הזמינים</p>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Notes -->
-      <div class="v1-panel" data-panel="notes" role="tabpanel">
+      <div class="v1-acc__item">
+        <button class="v1-tab" type="button" data-tab="notes" aria-expanded="false"><i class="fa-regular fa-pen-to-square"></i> הערות אישיות <i class="fa-solid fa-chevron-down v1-acc__chev" aria-hidden="true"></i></button>
+        <div class="v1-panel" data-panel="notes">
         <div class="v1-notes">
           <label for="notesArea" class="visually-hidden">הערות אישיות לשיעור הנוכחי</label>
           <textarea id="notesArea" placeholder="כתבו כאן את ההערות שלכם לשיעור הנוכחי..." aria-describedby="notesCount notesSaved"></textarea>
@@ -1056,10 +1059,13 @@
             <span class="v1-notes__saved" id="notesSaved" role="status" aria-live="polite"><i class="fa-solid fa-check" aria-hidden="true"></i> נשמר</span>
           </div>
         </div>
+        </div>
       </div>
 
       <!-- Quiz -->
-      <div class="v1-panel" data-panel="quiz" role="tabpanel">
+      <div class="v1-acc__item">
+        <button class="v1-tab" type="button" data-tab="quiz" aria-expanded="false"><i class="fa-solid fa-circle-question"></i> מבחני הבנה <i class="fa-solid fa-chevron-down v1-acc__chev" aria-hidden="true"></i></button>
+        <div class="v1-panel" data-panel="quiz">
         <div class="v1-quiz">
           <div class="v1-quiz__icon"><i class="fa-solid fa-graduation-cap"></i></div>
           <h3 class="v1-h3">בדקו את ההבנה במבחן המודול</h3>
@@ -1071,17 +1077,36 @@
             <div><b id="quizAvg">—</b><span>ציון ממוצע</span></div>
           </div>
         </div>
+        </div>
       </div>
     </div>
+
+    <!-- FIX-ENGINE F-008/F-009/F-010 (2026-07-22): הוסרו שלוש קוביות הסטטיסטיקה; המידע עבר לרצועת הברוכים-הבאים (F-011) לבקשת הלל. -->
+
+    <!-- ANNOUNCE — hidden by default; unhide via JS when announcements array has content. -->
+    <section class="v1-announce g" id="announceSection" style="display:none" aria-labelledby="announceTitle" aria-live="polite" aria-atomic="true">
+      <header class="v1-announce__hd">
+        <h2 id="announceTitle" class="v1-announce__title">
+          <span class="v1-announce__icon" aria-hidden="true"><i class="fa-solid fa-bullhorn"></i></span>
+          לוח מודעות
+        </h2>
+      </header>
+    </section>
+
+    <!-- FIX-ENGINE F-012 (2026-07-22): באנר "בדקו את עצמכם" הוסר לבקשת הלל. המבחנים נגישים מהאקורדיון. -->
+
+    <!-- FIX-ENGINE F-005 (2026-07-22): פירורי הלחם (lessonCrumb) הוסרו לבקשת הלל. updateCrumb()/goHome() מוגנים ב-null — לא נשברים. -->
   </main>
 
   <!-- SIDEBAR -->
-  <aside class="v1-side g" id="sidebar" aria-label="תפריט שיעורים" tabindex="-1">
+  <aside class="v1-side g" id="sidebar" aria-label="תפריט שיעורים" tabindex="-1" data-area="sidebar" data-src="index.html (רשימת שיעורים)">
     <button class="v1-side__close" id="sidebarClose" type="button" aria-label="סגור תפריט"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     <div class="v1-side__head">
       <div class="v1-side__head-top">
         <h2 class="v1-side__h1">התקדמות בקורס</h2>
         <span class="v1-side__count" id="sideCount" aria-live="polite">0/0 שיעורים</span>
+        <!-- FIX-ENGINE F-017+F-020 (2026-07-22): כפתור המיזעור יושב בתוך שורת הכותרת (לא צף) כדי לא לדרוך על טקסט, לבקשת הלל. -->
+        <button class="v1-side__collapse" id="sidebarCollapse" type="button" aria-label="מזער את הסרגל" title="מזער את הסרגל"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
       </div>
       <div class="v1-side__bar"><span id="sideFill" style="width:0%"></span></div>
       <div class="v1-side__pct" id="sidePct">0%</div>
@@ -1090,8 +1115,8 @@
     <div class="v1-side__search" id="lessonSearchWrap" role="search">
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
       <label for="lessonSearch" class="visually-hidden">חיפוש שיעור</label>
-      <input type="text" id="lessonSearch" dir="rtl" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול. קיצור מקלדת Ctrl K" aria-describedby="lessonSearchCount" autocomplete="off">
-      <kbd class="v1-side__search-kbd" aria-hidden="true">Ctrl K</kbd>
+      <!-- FIX-ENGINE F-016 (2026-07-22): תג הקיצור Ctrl K והקיצור עצמו הוסרו לבקשת הלל. -->
+      <input type="text" id="lessonSearch" dir="rtl" placeholder="חפש שיעור..." aria-label="חיפוש שיעור לפי שם או מודול" aria-describedby="lessonSearchCount" autocomplete="off">
       <button type="button" class="v1-side__search-clear" id="lessonSearchClear" aria-label="נקה חיפוש"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
       <div class="v1-side__search-count" id="lessonSearchCount" role="status" aria-live="polite"></div>
     </div>
@@ -1101,12 +1126,7 @@
       קפיצה לשיעור הנוכחי
     </button>
 
-    <div class="v1-side__legend" aria-hidden="true">
-      <span class="v1-side__legend-item"><span class="dot dot--default"></span>לא נצפה</span>
-      <span class="v1-side__legend-item"><span class="dot dot--active"></span>נצפה כעת</span>
-      <span class="v1-side__legend-item"><span class="dot dot--done"></span>הושלם</span>
-    </div>
-
+    <!-- FIX-ENGINE F-002 (2026-07-22): מקרא הנקודות (לא נצפה/נצפה/הושלם) הוסר לבקשת הלל. -->
     <h3 class="v1-side__h2">תוכן הקורס</h3>
 
     <div class="v1-side__list" id="sideList" tabindex="0" aria-label="רשימת שיעורים, ניתן לגלול">
@@ -1117,6 +1137,9 @@
 
 <!-- Mobile drawer overlay -->
 <div class="v1-drawer-overlay" id="drawerOverlay" aria-hidden="true"></div>
+
+<!-- FIX-ENGINE F-017 (2026-07-22): לשונית החזרת הסרגל כשהוא ממוזער (דסקטופ). -->
+<button class="v1-side-expand" id="sidebarExpand" type="button" aria-label="פתח את הסרגל" title="פתח את הסרגל"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
 
 <!-- Toast region for status announcements -->
 <div class="v1-toast" id="toast" role="status" aria-live="polite" aria-atomic="true">
@@ -1191,19 +1214,12 @@ function renderSidebar(filter=''){
   const q = filter.trim().toLowerCase();
   let html = '';
 
-  // Welcome highlight (returns to home view)
-  html += `<button type="button" class="v1-side__hl welcome" onclick="goHome()" aria-label="חזרה לדף הבית של הפורטל"><i class="fa-solid fa-door-open" aria-hidden="true"></i><span>ברוך הבא לפורטל</span></button>`;
+  // Welcome highlight (returns to home view + reopens the onboarding popup)
+  // FIX-ENGINE F-013 (2026-07-22): הכפתור פותח מחדש את פופאפ הפתיחה — נקודת הגישה היחידה אליו אחרי הכניסה הראשונה, לבקשת הלל.
+  html += `<button type="button" class="v1-side__hl welcome" onclick="goHome();window.Onboarding&&window.Onboarding.open()" aria-label="חזרה לדף הבית ופתיחת מסך הפתיחה"><i class="fa-solid fa-door-open" aria-hidden="true"></i><span>ברוך הבא לפורטל</span></button>`;
 
-  // Quiz promo card (replaces partners banner from V1)
-  html += `<a class="v1-side__promo" href="pages/quiz.html">
-    <span class="v1-side__promo-badge">חדש</span>
-    <div class="v1-side__promo-title"><i class="fa-solid fa-graduation-cap"></i> מבחני הבנה</div>
-    <div class="v1-side__promo-desc">5 שאלות לכל מודול עם הסבר. בדקו את עצמכם וחזקו את החומר.</div>
-    <div class="v1-side__promo-cta">פתח מבחנים <i class="fa-solid fa-arrow-left"></i></div>
-  </a>`;
-
-  // Transcripts highlight (was "community" in V1 — adapted)
-  html += `<a class="v1-side__hl" href="https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing" target="_blank" rel="noopener"><i class="fa-solid fa-folder-open"></i><span>תמלולים מלאים</span></a>`;
+  // FIX-ENGINE F-003 (2026-07-22): כרטיס קידום "מבחני הבנה" הוסר מהסיידבר לבקשת הלל (המבחנים נגישים מהאקורדיון ומהתפריט העליון).
+  // FIX-ENGINE F-001 (2026-07-22): לינק "תמלולים מלאים" הוסר מהסיידבר לבקשת הלל ("לא רלוונטי"); נשאר זמין בלשונית חומרים.
 
   // Library link + expand-all toggle
   const allOpen = window.SidebarAccordion
@@ -1497,56 +1513,47 @@ function playByItem(item){
 }
 
 // ===== Stats =====
+// FIX-ENGINE F-008/F-009/F-010/F-011 (2026-07-22): קוביות הסטטיסטיקה הוסרו; renderStats
+// מאכלס עכשיו את רצועת הברוכים-הבאים (רצף יומי · מודול נוכחי · התקדמות) לבקשת הלל.
 function renderStats(){
   const total = flatLessons.length;
   const done  = flatLessons.filter(l => completedLessons.includes(lessonKey(l))).length;
-  const remain = total - done;
-  const hoursLeft = Math.round(remain * 18 / 60); // ~18 min average
+  const pct   = total > 0 ? Math.round((done/total) * 100) : 0;
 
-  // Time-remaining card: warm empty state for users who haven't started yet
-  const timeNum = document.getElementById('statTimeNum');
-  const timeCtx = document.getElementById('statTimeCtx');
-  if (done === 0) {
-    timeNum.innerHTML = `<span class="v1-stat__empty">⏱️ הגיע הזמן להתחיל</span>`;
-    timeCtx.textContent = 'השיעור הראשון מחכה';
-  } else {
-    timeNum.innerHTML = `${hoursLeft}<span> שעות</span>`;
-    timeCtx.textContent = remain ? `${remain} שיעורים נותרו` : 'סיימת את כל השיעורים!';
-  }
+  const elStreak = document.getElementById('welcomeStreak');
+  const elMod    = document.getElementById('welcomeModule');
+  const elProg   = document.getElementById('welcomeProgress');
+  if (!elStreak && !elMod && !elProg) return;
 
-  // Streak
   const streak = parseInt(localStorage.getItem('bwc_streak') || '0');
-  const streakNum = document.getElementById('statStreakNum');
-  const streakCtx = document.getElementById('statStreakCtx');
-  if (streak === 0) {
-    streakNum.innerHTML = `<span class="v1-stat__empty">🔥 התחל את הרצף שלך היום!</span>`;
-    streakCtx.textContent = 'שיעור אחד מספיק להתחלה';
-  } else {
-    streakNum.innerHTML = `${streak}<span> ימים</span>`;
-    streakCtx.textContent = 'המשיכו את הרצף היום';
+  if (elStreak) {
+    elStreak.querySelector('span').textContent = streak > 0
+      ? `רצף ${streak} ימים`
+      : 'התחל רצף היום';
   }
 
-  // Module progress card — hidden until the user is actually in a module/seminar with data
-  const moduleCard = document.getElementById('statModuleCard');
+  if (elProg) {
+    elProg.querySelector('span').textContent = done === 0
+      ? 'עוד לא התחלת — השיעור הראשון מחכה'
+      : `השלמת ${done}/${total} שיעורים (${pct}%)`;
+  }
+
   const next = nextUncompleted() || flatLessons[0];
-  if (next && next.type === 'module') {
-    const mod = MODULES[next.mi];
-    const totalLessons = mod.weeks.reduce((s,w) => s + w.days.filter(d => d.videoId).length, 0);
-    const doneInMod = mod.weeks.reduce((s,w,wi) => s + w.days.filter((d,di) => d.videoId && completedLessons.includes(`m${next.mi}-${wi}-${di}`)).length, 0);
-    if (totalLessons === 0) {
-      moduleCard.style.display = 'none';
+  if (elMod) {
+    if (next && next.type === 'module') {
+      const mod = MODULES[next.mi];
+      const totalLessons = mod.weeks.reduce((s,w) => s + w.days.filter(d => d.videoId).length, 0);
+      const doneInMod = mod.weeks.reduce((s,w,wi) => s + w.days.filter((d,di) => d.videoId && completedLessons.includes(`m${next.mi}-${wi}-${di}`)).length, 0);
+      elMod.style.display = totalLessons === 0 ? 'none' : '';
+      if (totalLessons > 0) {
+        elMod.querySelector('span').textContent = `מודול ${next.mi+1}: ${doneInMod}/${totalLessons} שיעורים`;
+      }
+    } else if (next && next.type === 'seminar') {
+      elMod.style.display = '';
+      elMod.querySelector('span').textContent = `סמינר: ${SEMINARS[next.si].title}`;
     } else {
-      moduleCard.style.display = '';
-      document.getElementById('statModuleNum').innerHTML = `${doneInMod}<span>/${totalLessons}</span>`;
-      document.getElementById('statModuleCtx').textContent = `${mod.title} · ${doneInMod === totalLessons ? 'הושלם' : (doneInMod/totalLessons >= .75 ? 'כמעט סיימת' : 'בתהליך')}`;
+      elMod.style.display = 'none';
     }
-  } else if (next && next.type === 'seminar') {
-    const sem = SEMINARS[next.si];
-    moduleCard.style.display = '';
-    document.getElementById('statModuleNum').innerHTML = `0<span>/${sem.parts.length}</span>`;
-    document.getElementById('statModuleCtx').textContent = `סמינר: ${sem.title}`;
-  } else {
-    moduleCard.style.display = 'none';
   }
 }
 
@@ -1741,10 +1748,11 @@ function updateLessonNav(){
   nextBtn.onclick = () => { if (idx < total - 1) playByItem(flatLessons[idx+1]); };
 
   const markBtn = document.getElementById('markCompleteBtn');
-  markBtn.onclick = markCurrentComplete;
+  markBtn.onclick = () => markCurrentComplete();
   const isDone = completedLessons.includes(currentLessonKey());
   markBtn.classList.toggle('is-done', isDone);
   markBtn.setAttribute('aria-pressed', isDone ? 'true' : 'false');
+  markBtn.title = isDone ? 'לחיצה מסירה את הסימון' : '';
   markBtn.innerHTML = isDone
     ? '<i class="fa-solid fa-circle-check"></i> הושלם'
     : '<i class="fa-solid fa-check"></i> סמן כהושלם';
@@ -1908,18 +1916,26 @@ document.getElementById('notesArea').addEventListener('input', () => {
   notesDebounce = setTimeout(saveNotes, 700);
 });
 
-// ===== Tabs =====
+// ===== Tabs → Accordion =====
+// FIX-ENGINE F-006 (2026-07-22): הלשוניות הומרו לאקורדיון נפתח/נסגר מתחת לנגן, לבקשת הלל.
+// לחיצה פותחת פריט וסוגרת את השאר; לחיצה על פריט פתוח סוגרת אותו.
 document.querySelectorAll('.v1-tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    activeTab = btn.dataset.tab;
-    document.querySelectorAll('.v1-tab').forEach(b => {
-      b.classList.toggle('active', b === btn);
-      b.setAttribute('aria-selected', b === btn);
+    const item = btn.closest('.v1-acc__item');
+    if (!item) return;
+    const opening = !item.classList.contains('active');
+    document.querySelectorAll('.v1-acc__item').forEach(it => {
+      const on = opening && it === item;
+      it.classList.toggle('active', on);
+      const b = it.querySelector('.v1-tab');
+      const p = it.querySelector('.v1-panel');
+      if (b) b.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (p) p.classList.toggle('active', on);
     });
-    document.querySelectorAll('.v1-panel').forEach(p => {
-      p.classList.toggle('active', p.dataset.panel === activeTab);
-    });
-    if (activeTab === 'quiz') renderQuizStats();
+    if (opening) {
+      activeTab = btn.dataset.tab;
+      if (activeTab === 'quiz') renderQuizStats();
+    }
   });
 });
 
@@ -1934,7 +1950,7 @@ function playCurrent(){
   setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'center'}), 80);
   // Auto-mark complete after 45s
   if (window.__completeTimer) clearTimeout(window.__completeTimer);
-  window.__completeTimer = setTimeout(markCurrentComplete, 45000);
+  window.__completeTimer = setTimeout(() => markCurrentComplete('auto'), 45000);
 }
 
 function closeVideo(){
@@ -1959,7 +1975,10 @@ function showToast(msg){
 }
 window.showToast = showToast;
 
-function markCurrentComplete(){
+// FIX-ENGINE F-014 (2026-07-22): הכפתור הפך למתג — לחיצה על שיעור שכבר הושלם מסירה את
+// הסימון (קודם לחיצה כזו רק הציגה טוסט ו"לא קרה כלום"). auto='auto' מהטיימר של 45 שניות
+// רק מסמן, לעולם לא מסיר.
+function markCurrentComplete(auto){
   const key = currentLessonKey();
   if (!key) return;
   const wasNew = !completedLessons.includes(key);
@@ -1983,7 +2002,14 @@ function markCurrentComplete(){
     updateLessonNav();
     showToast('השיעור סומן כהושלם ✓');
   } else {
-    showToast('כבר סימנת את השיעור הזה כהושלם');
+    if (auto === 'auto') return; // הטיימר האוטומטי לא מסיר סימון קיים
+    completedLessons = completedLessons.filter(k => k !== key);
+    try { localStorage.setItem('bwc_completed', JSON.stringify(completedLessons)); } catch(e){}
+    renderHero();
+    renderStats();
+    renderSidebar(document.getElementById('lessonSearch').value);
+    updateLessonNav();
+    showToast('הסימון הוסר — השיעור מסומן כלא נצפה');
   }
 }
 
@@ -2047,19 +2073,14 @@ searchInput.addEventListener('keydown', e => {
   }
 });
 
-// Ctrl+K / Cmd+K focuses the search box
-document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
-    e.preventDefault();
-    searchInput.focus();
-    searchInput.select();
-  }
-});
+// FIX-ENGINE F-016 (2026-07-22): קיצור Ctrl+K הוסר לבקשת הלל.
 
 // ===== FAB AI =====
 document.getElementById('fabAi').addEventListener('click', () => {
-  // Switch to AI tab
-  document.querySelector('.v1-tab[data-tab="ai"]').click();
+  // Open the AI accordion item (click only if closed — click toggles)
+  const aiBtn = document.querySelector('.v1-tab[data-tab="ai"]');
+  const aiItem = aiBtn && aiBtn.closest('.v1-acc__item');
+  if (aiBtn && aiItem && !aiItem.classList.contains('active')) aiBtn.click();
   document.querySelector('.v1-tabs').scrollIntoView({behavior:'smooth', block:'center'});
 });
 
@@ -2101,6 +2122,18 @@ if (sidebarToggle) {
 }
 if (sidebarClose)  sidebarClose.addEventListener('click', closeDrawer);
 if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
+
+// ===== Desktop sidebar collapse =====
+// FIX-ENGINE F-017 (2026-07-22): מיזעור מלא של הסרגל בדסקטופ, נשמר בין ביקורים, לבקשת הלל.
+const sidebarCollapse = document.getElementById('sidebarCollapse');
+const sidebarExpand   = document.getElementById('sidebarExpand');
+function setSideCollapsed(on){
+  document.body.classList.toggle('side-collapsed', on);
+  try { localStorage.setItem('bwc_side_collapsed', on ? '1' : '0'); } catch(e){}
+}
+if (sidebarCollapse) sidebarCollapse.addEventListener('click', () => setSideCollapsed(true));
+if (sidebarExpand)   sidebarExpand.addEventListener('click', () => setSideCollapsed(false));
+try { if (localStorage.getItem('bwc_side_collapsed') === '1') document.body.classList.add('side-collapsed'); } catch(e){}
 
 // ESC closes drawer
 document.addEventListener('keydown', e => {
@@ -2232,6 +2265,15 @@ function restoreCurrentLesson(){
   } catch (_) { /* malformed payload — ignore */ }
 }
 
+// FIX-ENGINE F-018 (2026-07-22): רצועת הברוכים-הבאים עוברת אל תוך ההדר העליון (מרכז הנאב,
+// שהתפנה ב-F-015) — "לא צריך עוד סרגל פה", לבקשת הלל. ריטריי עד שהנאב נבנה (global-nav הוא defer).
+function relocateWelcomeToHeader(attempt){
+  const center  = document.querySelector('.gnav__center');
+  const welcome = document.getElementById('memberWelcome');
+  if (center && welcome) { center.appendChild(welcome); return; }
+  if ((attempt || 0) < 20) setTimeout(() => relocateWelcomeToHeader((attempt || 0) + 1), 100);
+}
+
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
   buildFlat();
@@ -2242,6 +2284,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderQuizStats();
   renderAboutEmptyState();
   wireStatCubes();
+  relocateWelcomeToHeader();
 
   // Auth state — set up listener once auth.js has loaded.
   // auth.js dispatches `bwc:auth-change` on login/logout from any tab.
@@ -2312,14 +2355,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- ONBOARDING MODAL — first-time visitor flow (Endowed Progress Effect) -->
 <div class="onb-overlay" id="onbOverlay" hidden dir="rtl"></div>
-<script src="js/onboarding.js"></script>
+<script src="js/onboarding.js?v=2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="js/supabase-config.js" defer></script>
 <script src="js/auth.js" defer></script>
 <script src="js/auth-modal.js" defer></script>
 <script src="js/sync-localstorage.js" defer></script>
-<script src="js/global-nav.js" defer></script>
+<script src="js/global-nav.js?v=2" defer></script>
 <script src="js/credit-stamp.js" defer></script>
 
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

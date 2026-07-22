@@ -509,7 +509,7 @@
 
     <header class="gnav" data-page="profile"></header>
 
-    <main class="profile-wrap" id="main" tabindex="-1">
+    <main class="profile-wrap" id="main" tabindex="-1" data-area="profile" data-src="pages/profile.html">
 
         <!-- ===== Auth gate (shown while loading / if not logged in) ===== -->
         <div id="authGate">
@@ -1019,5 +1019,7 @@
         checkAuth();
     });
     </script>
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

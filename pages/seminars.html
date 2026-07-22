@@ -34,7 +34,7 @@
     <header class="gnav" data-page="seminars"></header>
 
     <!-- Page Hero -->
-    <section class="page-hero reveal">
+    <section class="page-hero reveal" data-area="seminars" data-src="pages/seminars.html">
         <div class="hero-icon"><i class="fa-solid fa-users"></i></div>
         <h1>סמינרים <span class="gold">חיים</span></h1>
         <p>7 סמינרים מעמיקים שמעשירים את המסע שלכם בתוכנית עם תובנות, כלים ותרגולים חיים שמרחיבים את הפרספקטיבה</p>
@@ -152,5 +152,7 @@
     <script src="../js/sync-localstorage.js" defer></script>
     <script src="../js/global-nav.js" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

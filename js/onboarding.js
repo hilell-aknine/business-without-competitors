@@ -376,7 +376,10 @@
 
         if (!isCompleted()) {
             // Show the modal on first visit, after a tiny delay so the page can paint first.
-            setTimeout(open, 350);
+            // FIX-ENGINE F-013 (2026-07-22): נעילה מיידית ברגע ההצגה הראשונה — הפופאפ קופץ
+            // פעם אחת בכניסה ולא חוזר (גם בלי סגירה מפורשת). פתיחה חוזרת רק דרך כפתור
+            // "ברוך הבא לפורטל" בסיידבר, לבקשת הלל.
+            setTimeout(function () { open(); lsSet(KEY_SEEN, 'true'); }, 350);
         }
     }
 

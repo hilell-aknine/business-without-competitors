@@ -718,7 +718,7 @@
         <span id="breadcrumbCurrent">מבחני הבנה</span>
     </div>
 
-    <main class="quiz-wrap" id="main" tabindex="-1">
+    <main class="quiz-wrap" id="main" tabindex="-1" data-area="quiz" data-src="pages/quiz.html">
         <!-- ===== Module Selection View ===== -->
         <section id="selectView">
             <div class="page-header">
@@ -1185,5 +1185,7 @@
         }
     });
     </script>
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

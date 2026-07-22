@@ -47,7 +47,7 @@
 <header class="gnav" data-page="practice"></header>
 
 <!-- ===== Main ===== -->
-<main class="prac-wrap" id="main" tabindex="-1">
+<main class="prac-wrap" id="main" tabindex="-1" data-area="practice" data-src="pages/practice.html + js/practice.js">
 
   <!-- ================================================================
        VIEW: MENU
@@ -224,5 +224,7 @@
 <script src="../js/global-nav.js" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
 
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

@@ -33,7 +33,7 @@
     <header class="gnav" data-page="modules"></header>
 
     <!-- Page Hero -->
-    <section class="page-hero reveal" id="pageHero">
+    <section class="page-hero reveal" id="pageHero" data-area="module" data-src="pages/module.html + js/course-data.js">
         <!-- Populated by JS -->
     </section>
 
@@ -214,5 +214,7 @@
     });
 
     </script>
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>

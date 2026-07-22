@@ -354,7 +354,7 @@
     <header class="gnav" data-page="hub"></header>
 
     <!-- ========== 1. HERO ========== -->
-    <section class="hero reveal" id="main" tabindex="-1">
+    <section class="hero reveal" id="main" tabindex="-1" data-area="method" data-src="hub.html">
         <div class="hero-badge">
             <i class="fa-solid fa-rocket"></i>
             השיטה האטומית לצמיחה עסקית
@@ -676,5 +676,7 @@
     }, { threshold: 0.1 });
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
     </script>
+<!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
+<script src="js/fix-engine.js?v=3" data-project="business-without-competitors"></script>
 </body>
 </html>
