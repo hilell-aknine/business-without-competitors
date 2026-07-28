@@ -5,6 +5,7 @@
 import { callAI } from './_lib/providers.js';
 import { STAGE1_SYSTEM } from './_lib/prompts.js';
 import { fetchTranscript } from './transcript.js';
+import { passesGuard } from './_lib/guard.js';
 
 const MAX_TRANSCRIPT_CHARS = 30000;
 
@@ -26,6 +27,8 @@ export default async function handler(req, res) {
     res.status(405).json({ ok: false, reason: 'method_not_allowed' });
     return;
   }
+
+  if (!passesGuard(req, res)) return;
 
   const body = await readJsonBody(req);
   const { videoId } = body;

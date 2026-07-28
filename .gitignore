@@ -25,7 +25,13 @@ Thumbs.db
 .DS_Store
 
 # Local project docs (contains credentials and internal notes)
+# These must NOT be tracked: the GitHub Pages mirror serves every tracked
+# file publicly, ignoring .vercelignore. Keep them on disk, out of git.
 CLAUDE.md
+primer.md
+hindsight.md
+audit-*.md
+supabase-test.html
 
 # Course materials (paid content — not for public repo)
 *.pdf
@@ -37,3 +43,9 @@ docs-archive/
 # Workbook builder + generated workbooks (audio, transcripts, drafts, PDFs)
 /tools/
 /workbooks/
+
+# Internal tooling / non-product content (added 2026-07-28)
+.clinerules
+fixes-*.json
+מה-זה.txt
+שיווק-אטומי-לימוד/

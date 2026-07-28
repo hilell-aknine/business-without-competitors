@@ -4,6 +4,7 @@
 
 import { callAI } from './_lib/providers.js';
 import { STAGE2_PROMPTS } from './_lib/prompts.js';
+import { passesGuard } from './_lib/guard.js';
 
 const MAX_TRANSCRIPT_CHARS = 20000;
 const MAX_METHODOLOGY_CHARS = 8000;
@@ -26,6 +27,8 @@ export default async function handler(req, res) {
     res.status(405).json({ ok: false, reason: 'method_not_allowed' });
     return;
   }
+
+  if (!passesGuard(req, res)) return;
 
   const body = await readJsonBody(req);
   let { transcript, methodology, mode } = body;
