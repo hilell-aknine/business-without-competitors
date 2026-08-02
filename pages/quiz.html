@@ -1103,7 +1103,24 @@
         const exp = document.getElementById('explanation');
         const isCorrect = chosen === q.c;
         document.getElementById('explanationTitle').textContent = isCorrect ? '✓ תשובה נכונה' : '✗ תשובה לא נכונה';
-        document.getElementById('explanationText').textContent = q.e;
+        const expText = document.getElementById('explanationText');
+        expText.textContent = q.e;
+        // 2026-08-02 (Project-100): show the real source quote + deep link to
+        // the lesson, so a mistake sends the learner back to the source.
+        if (q.src && q.src.quote) {
+            const srcDiv = document.createElement('div');
+            srcDiv.style.cssText = 'margin-top:.55rem;padding:.5rem .7rem;border-radius:8px;background:rgba(212,175,55,.08);border-inline-start:3px solid var(--gold,#D4AF37);font-size:.85em;font-style:italic;';
+            srcDiv.textContent = 'מהשיעור: ״' + q.src.quote + '״';
+            const lk = /^m(\d+)-(\d+)-(\d+)$/.exec(q.src.lessonKey || '');
+            if (lk) {
+                const a = document.createElement('a');
+                a.href = '../index.html?module=' + lk[1] + '&week=' + lk[2] + '&day=' + lk[3];
+                a.textContent = 'פתח את השיעור ←';
+                a.style.cssText = 'display:block;margin-top:.3rem;font-style:normal;font-weight:600;color:var(--gold,#D4AF37);text-decoration:none;font-size:.9em;';
+                srcDiv.appendChild(a);
+            }
+            expText.appendChild(srcDiv);
+        }
         exp.classList.add('show');
 
         // Enable next

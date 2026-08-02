@@ -25,3 +25,4 @@
 # Workbook builder + generated workbooks (internal tooling, large media + PDFs)
 /tools/
 /workbooks/
+/kb-project-100/

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>עוזר היישום - עסק ללא מתחרים</title>
+    <meta name="description" content="הופכים צפייה ליישום: שיחה מובנית שמפיקה מסמך יישום אישי לעסק שלך, לכל מודול.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <script>
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
+    <link rel="stylesheet" href="../css/auth-modal.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            min-height: 100vh;
+            font-family: 'Heebo', sans-serif;
+            direction: rtl;
+            background: #001e24;
+            color: #e8f1f2;
+            -webkit-text-size-adjust: 100%;
+        }
+        body::before, body::after {
+            content: ''; position: fixed; border-radius: 50%;
+            filter: blur(80px); pointer-events: none; z-index: 0;
+        }
+        body::before { width: 420px; height: 420px; background: rgba(0,96,107,.35); top: -120px; inset-inline-start: -100px; }
+        body::after  { width: 380px; height: 380px; background: rgba(212,175,55,.12); bottom: -120px; inset-inline-end: -80px; }
+
+        main { position: relative; z-index: 1; max-inline-size: 860px; margin-inline: auto; padding: 1.5rem 1.2rem 4rem; }
+        .apply-hero { text-align: center; padding-block: 1.6rem .8rem; }
+        .apply-hero h1 { font-family: 'Frank Ruhl Libre', serif; font-size: clamp(1.6rem, 4vw, 2.3rem); }
+        .apply-hero h1 i { color: #D4AF37; margin-inline-end: .4rem; }
+        .apply-hero p { color: rgba(232,241,242,.72); max-inline-size: 40rem; margin: .6rem auto 0; line-height: 1.65; font-size: .95rem; }
+
+        .g {
+            background: rgba(255,255,255,.045);
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+        }
+
+        /* Auth gate */
+        #authGate { text-align: center; padding: 3rem 1.5rem; margin-top: 1.5rem; }
+        #authGate.hidden { display: none; }
+        .gate-btn {
+            margin-top: 1rem; padding: .7rem 1.6rem; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #D4AF37, #b8952e); color: #06232a;
+            font: inherit; font-weight: 700; cursor: pointer;
+        }
+
+        /* Module picker */
+        #modulePicker { padding: 1.2rem; margin-top: 1rem; }
+        #modulePicker.hidden { display: none; }
+        .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .8rem; margin-top: .9rem; }
+        .mod-card {
+            text-align: start; padding: .95rem 1rem; border-radius: 14px; cursor: pointer;
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.11);
+            color: inherit; font: inherit; transition: border-color .15s;
+            display: flex; flex-direction: column; gap: .3rem;
+        }
+        .mod-card:hover { border-color: rgba(212,175,55,.5); }
+        .mod-card__num { font-size: .72rem; color: #D4AF37; font-weight: 700; }
+        .mod-card__title { font-weight: 600; font-size: .95rem; }
+        .mod-card__badge { font-size: .72rem; color: rgba(120,220,160,.9); }
+
+        /* Chat */
+        #chatWrap { margin-top: 1rem; padding: 1.1rem; }
+        #chatWrap.hidden { display: none; }
+        .chat-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; margin-bottom: .8rem; }
+        .chat-head h2 { font-size: 1.05rem; }
+        .chat-head .chat-actions { display: flex; gap: .5rem; }
+        .chat-btn {
+            padding: .45rem .9rem; border-radius: 10px; font: inherit; font-size: .8rem; cursor: pointer;
+            background: transparent; border: 1px solid rgba(255,255,255,.18); color: rgba(232,241,242,.85);
+        }
+        .chat-btn--gold { background: linear-gradient(135deg, #D4AF37, #b8952e); border: none; color: #06232a; font-weight: 700; }
+        #chatLog { display: flex; flex-direction: column; gap: .6rem; max-height: 55vh; overflow-y: auto; padding-block: .4rem; }
+        .chat-msg { padding: .7rem .95rem; border-radius: 13px; font-size: .9rem; line-height: 1.6; max-inline-size: 90%; }
+        .chat-msg--user { align-self: flex-start; background: rgba(212,175,55,.13); border: 1px solid rgba(212,175,55,.25); }
+        .chat-msg--ai { align-self: flex-end; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+        .chat-msg--ai h4, .chat-msg--ai h5, .chat-msg--ai h6 { margin-block: .5rem .2rem; }
+        .chat-msg--ai ul, .chat-msg--ai ol { padding-inline-start: 1.2rem; margin-block: .3rem; }
+        .chat-msg--ai p { margin-block: .3rem; }
+        .chat-inputrow { display: flex; gap: .55rem; margin-top: .8rem; align-items: flex-end; }
+        .chat-inputrow textarea {
+            flex: 1; resize: vertical; min-height: 2.8rem; max-height: 10rem;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14);
+            border-radius: 12px; color: inherit; font: inherit; font-size: .9rem; padding: .6rem .8rem;
+        }
+        .chat-inputrow textarea:focus { outline: 1px solid #D4AF37; }
+        .chat-loading { color: rgba(232,241,242,.6); font-size: .82rem; padding: .4rem; }
+        .chat-error { color: #ff9c9c; font-size: .84rem; padding: .5rem .2rem; }
+
+        /* Saved doc */
+        #docView { margin-top: 1rem; padding: 1.3rem; }
+        #docView.hidden { display: none; }
+        #docView .doc-body { line-height: 1.7; font-size: .92rem; }
+        #docView .doc-body h1, #docView .doc-body h2, #docView .doc-body h3,
+        #docView .doc-body h4 { margin-block: .8rem .3rem; font-family: 'Frank Ruhl Libre', serif; }
+        #docView .doc-body ul, #docView .doc-body ol { padding-inline-start: 1.3rem; }
+        .doc-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; color: rgba(232,241,242,.6); font-size: .78rem; }
+
+        @media (max-width: 560px) {
+            .chat-msg { max-inline-size: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header class="gnav" data-page="apply"></header>
+
+    <main>
+        <div class="apply-hero">
+            <h1><i class="fa-solid fa-seedling" aria-hidden="true"></i>עוזר היישום</h1>
+            <p>צפייה לא משנה עסק — יישום כן. אחרי שסיימת מודול, העוזר מראיין אותך בחמש אבני הבניין
+               ובונה איתך מסמך יישום אישי לעסק שלך. הידע יוצא ממך — העוזר רק עוזר לו לצאת מסודר.</p>
+        </div>
+
+        <!-- Auth gate -->
+        <div id="authGate" class="g">
+            <div style="font-size:2rem;color:#D4AF37;"><i class="fa-solid fa-lock" aria-hidden="true"></i></div>
+            <h2 style="margin-top:.6rem;">נדרשת התחברות</h2>
+            <p style="color:rgba(232,241,242,.7);margin-top:.4rem;">עוזר היישום שומר את המסמכים שלך בענן, ולכן דורש חשבון (חינמי).</p>
+            <button class="gate-btn" onclick="window.openLoginModal && window.openLoginModal()">התחברות / הרשמה</button>
+        </div>
+
+        <!-- Module picker -->
+        <section id="modulePicker" class="g hidden">
+            <h2 style="font-size:1.05rem;">באיזה מודול נעבוד היום?</h2>
+            <p style="color:rgba(232,241,242,.65);font-size:.85rem;margin-top:.3rem;">מומלץ לבחור מודול שסיימת לצפות בו. מסמך שכבר הפקת מסומן ✓.</p>
+            <div class="mod-grid" id="modGrid"></div>
+        </section>
+
+        <!-- Chat -->
+        <section id="chatWrap" class="g hidden">
+            <div class="chat-head">
+                <h2 id="chatTitle"></h2>
+                <div class="chat-actions">
+                    <button class="chat-btn" data-action="back">החלף מודול</button>
+                    <button class="chat-btn" data-action="restart">התחל מחדש</button>
+                    <button class="chat-btn chat-btn--gold" data-action="finalize">הפק מסמך יישום</button>
+                </div>
+            </div>
+            <div id="chatLog"></div>
+            <div class="chat-inputrow">
+                <textarea id="chatInput" rows="2" maxlength="2500" placeholder="כתוב את התשובה שלך..."></textarea>
+                <button class="chat-btn chat-btn--gold" data-action="send" style="white-space:nowrap;">שלח</button>
+            </div>
+        </section>
+
+        <!-- Saved document -->
+        <section id="docView" class="g hidden">
+            <div class="doc-meta">
+                <span><i class="fa-solid fa-file-lines" aria-hidden="true"></i> מסמך היישום שלך</span>
+                <span id="docDate"></span>
+                <button class="chat-btn" data-action="doc-back" style="margin-inline-start:auto;">חזרה</button>
+                <button class="chat-btn" data-action="doc-copy">העתק</button>
+            </div>
+            <div class="doc-body" id="docBody"></div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/sync-localstorage.js" defer></script>
+    <script src="../js/course-data.js" defer></script>
+    <script src="../js/global-nav.js" defer></script>
+    <script src="../js/apply-coach.js" defer></script>
+    <script src="../js/credit-stamp.js" defer></script>
+</body>
+</html>

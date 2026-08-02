@@ -224,13 +224,13 @@ function formatTime(sec) {
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    const defaults = { xp: 0, streak: 0, lastDate: null, completed: {} };
+    const defaults = { xp: 0, streak: 0, lastDate: null, completed: {}, dailyPlay: null };
     if (!raw) return defaults;
     const parsed = JSON.parse(raw);
     // Merge with defaults in case schema evolved
     return Object.assign({}, defaults, parsed);
   } catch (_) {
-    return { xp: 0, streak: 0, lastDate: null, completed: {} };
+    return { xp: 0, streak: 0, lastDate: null, completed: {}, dailyPlay: null };
   }
 }
 
@@ -506,9 +506,56 @@ function getLastSessionScore(data) {
    START SESSION
    ================================================================ */
 
+/* ---- Daily practice cap (Project-100 principle, 2026-08-02) ----
+   15 minutes a day, on purpose: consistency beats bingeing. The cap is
+   enforced when STARTING a session (a running session is never cut off
+   mid-challenge). Tracked per Jerusalem day in data.dailyPlay. */
+const DAILY_CAP_SECONDS = 15 * 60;
+
+function dailyPlaySeconds(data) {
+  const today = todayJerusalem();
+  if (!data.dailyPlay || data.dailyPlay.date !== today) return 0;
+  return data.dailyPlay.seconds || 0;
+}
+
+function addDailyPlay(data, seconds) {
+  const today = todayJerusalem();
+  if (!data.dailyPlay || data.dailyPlay.date !== today) {
+    data.dailyPlay = { date: today, seconds: 0 };
+  }
+  data.dailyPlay.seconds += Math.max(0, Math.round(seconds));
+}
+
+function showDailyCapNotice() {
+  const cardWrap = document.getElementById('challenge-card');
+  showView('play');
+  hideActionBar();
+  const fill = document.getElementById('play-progress-fill');
+  const label = document.getElementById('play-progress-label');
+  if (fill) fill.style.width = '100%';
+  if (label) label.textContent = 'האימון היומי הושלם';
+  if (cardWrap) {
+    cardWrap.innerHTML = `
+      <div class="prac-card g" style="text-align:center;padding:2rem 1.5rem;">
+        <div style="font-size:2.2rem;margin-bottom:.6rem;">🌱</div>
+        <h3 style="margin:.2rem 0 .6rem;">15 הדקות היומיות שלך הושלמו</h3>
+        <p style="color:var(--text-muted);max-inline-size:34rem;margin-inline:auto;line-height:1.6;">
+          זו לא תקלה — זו השיטה. אימון קצר וקבוע כל יום בונה את השריר הרבה יותר
+          מסשן ארוך פעם בשבוע. הרצף שלך נשמר, ומחר מחכה לך סט חדש.
+        </p>
+        <button class="btn-check btn-check--ready" style="margin-top:1.2rem;" onclick="window.backToMenu && window.backToMenu()">חזרה לתפריט</button>
+      </div>`;
+  }
+}
+
 function startSession(moduleIdx) {
   const all = (window.PRACTICE_CHALLENGES || []).filter(c => c.moduleIdx === moduleIdx);
   if (all.length === 0) return;
+
+  if (dailyPlaySeconds(loadData()) >= DAILY_CAP_SECONDS) {
+    showDailyCapNotice();
+    return;
+  }
 
   state.challenges = shuffle(clone(all));
   state.currentIdx = 0;
@@ -553,10 +600,56 @@ function renderChallenge() {
     case 'match': renderMatch(challenge, cardWrap); break;
     case 'order': renderOrder(challenge, cardWrap); break;
     case 'cloze': renderCloze(challenge, cardWrap); break;
+    case 'goodbad': renderGoodBad(challenge, cardWrap); break;
     default:
       cardWrap.innerHTML = `<p style="color:var(--text-muted)">סוג אתגר לא מוכר: ${challenge.type}</p>`;
   }
 }
+
+/* ----------------------------------------------------------------
+   GOOD/BAD challenge renderer (2026-08-02, Project-100 fifth
+   building block: a good example vs a bad example — judgment, not
+   recall). Self-checking: clicking an example answers immediately.
+   Data shape: { prompt, examples: [good, bad], correctIndex: 0 }
+   (examples are shuffled at render time).
+   ---------------------------------------------------------------- */
+function renderGoodBad(challenge, container) {
+  const order = shuffle([0, 1]); // display order of examples
+  state.active = { type: 'goodbad', answered: false };
+  setCheckButton(false, false); // self-checking — no check button
+
+  container.innerHTML = `
+    <div class="prac-card g">
+      <h3 class="prac-card__title">${escHtml(challenge.title || 'טוב או רע?')}</h3>
+      <p class="prac-card__desc">${escHtml(challenge.prompt || 'איזו מהדוגמאות נאמנה למה שנלמד בשיעור?')}</p>
+      <div class="goodbad-options">
+        ${order.map((exIdx, displayIdx) => `
+          <button class="goodbad-option" data-ex="${exIdx}" type="button">
+            <span class="goodbad-option__label">דוגמה ${displayIdx === 0 ? 'א' : 'ב'}</span>
+            <span class="goodbad-option__text">${escHtml(challenge.examples[exIdx].text)}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+
+  container.querySelectorAll('.goodbad-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.active.answered) return;
+      state.active.answered = true;
+      const picked = Number(btn.dataset.ex);
+      const isCorrect = picked === (challenge.correctIndex || 0);
+      container.querySelectorAll('.goodbad-option').forEach(b => {
+        const idx = Number(b.dataset.ex);
+        b.disabled = true;
+        if (idx === (challenge.correctIndex || 0)) b.classList.add('goodbad-option--good');
+        else if (idx === picked) b.classList.add('goodbad-option--bad');
+      });
+      recordChallengeResult(challenge, isCorrect ? 100 : 0);
+      hideActionBar();
+      showFeedbackPanel(isCorrect, isCorrect ? 'שיפוט מדויק!' : 'לא הפעם — שווה לקרוא למה', challenge.explanation || null, () => advanceChallenge(), challenge);
+    });
+  });
+}
+
 
 /* ----------------------------------------------------------------
    MATCH challenge renderer
@@ -979,8 +1072,13 @@ window.checkAnswer = function() {
  * @param {string|null} overrideMsg  — if null, show "מצוין!" or default wrong
  * @param {string|null} explanation  — additional explanation text
  * @param {function} onContinue      — callback when user presses "המשך"
+ * @param {object} [challenge]       — when given and it has sourceQuote,
+ *                                     the real quote from the lesson is shown
+ *                                     with a deep link to that lesson
+ *                                     (Project-100: after a mistake, the
+ *                                     learner sees the source).
  */
-function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue) {
+function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue, challenge) {
   const panel  = document.getElementById('feedback-panel');
   const icon   = document.getElementById('feedback-icon');
   const verdict= document.getElementById('feedback-verdict');
@@ -998,7 +1096,16 @@ function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue) {
 
   const isLastChallenge = state.currentIdx >= state.challenges.length - 1;
   expEl.textContent  = explanation || '';
-  expEl.style.display = explanation ? '' : 'none';
+  if (challenge && challenge.sourceQuote) {
+    const lk = /^m(\d+)-(\d+)-(\d+)$/.exec(challenge.sourceLessonKey || '');
+    const href = lk ? `../index.html?module=${lk[1]}&week=${lk[2]}&day=${lk[3]}` : null;
+    expEl.insertAdjacentHTML('beforeend', `
+      <div class="prac-source">
+        <span class="prac-source__quote">מהשיעור: ״${escHtml(challenge.sourceQuote)}״</span>
+        ${href ? `<a class="prac-source__link" href="${href}">פתח את השיעור ←</a>` : ''}
+      </div>`);
+  }
+  expEl.style.display = (explanation || (challenge && challenge.sourceQuote)) ? '' : 'none';
   btnEl.textContent  = isLastChallenge ? 'לסיכום' : 'המשך';
 
   // Replace old listener
@@ -1079,6 +1186,7 @@ function renderDoneScreen() {
   const data = loadData();
   data.xp    = (data.xp || 0) + state.sessionXP;
   const streakResult = updateStreak(data);
+  addDailyPlay(data, elapsed); // daily 15-min cap accounting
   saveData(data);
 
   // XP number

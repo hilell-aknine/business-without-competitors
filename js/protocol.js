@@ -75,14 +75,35 @@
     return out.join('\n');
   }
 
+  // All AI endpoints require a Supabase login since 2026-08-02 (abuse
+  // protection + cost control). The JWT rides along on every call.
+  async function authToken() {
+    try {
+      const { data } = await window.bwcSupabase.auth.getSession();
+      return data?.session?.access_token || null;
+    } catch { return null; }
+  }
+
   async function postJson(url, body) {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = await authToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
     return { status: res.status, data };
+  }
+
+  function loginRequiredBlock() {
+    return `
+      <div class="proto__error" style="border-color:rgba(230,198,90,.4);">
+        <strong>הפיצ'רים החכמים זמינים למשתמשים מחוברים.</strong><br>
+        ההתחברות חינמית ולוקחת חצי דקה — והיא גם שומרת את ההתקדמות שלך בענן.
+        <br><button data-action="open-login" style="margin-top:.6rem;">התחברות / הרשמה</button>
+      </div>`;
   }
 
   function el(html) {
@@ -97,6 +118,44 @@
     { id: 'sim',         emoji: '🎬', title: 'סימולציה',        desc: 'תסריט לתרגול + תשובה של מומחה לבדיקה עצמית' },
     { id: 'investigate', emoji: '🔍', title: 'חקירה אישית',     desc: '5 שאלות שמתרגמות את המודל לתחום אמיתי בחיים שלך' },
   ];
+
+  // ---- Lesson coach (עוזר הלמידה) ----
+  const COACH_PREFIX = 'bwc_coach_v1_';
+
+  function loadCoach(lessonKey) {
+    try {
+      const raw = localStorage.getItem(COACH_PREFIX + lessonKey);
+      return raw ? JSON.parse(raw) : { messages: [] };
+    } catch { return { messages: [] }; }
+  }
+  function saveCoach(lessonKey, state) {
+    try {
+      // keep the chat bounded so localStorage never bloats
+      state.messages = state.messages.slice(-20);
+      localStorage.setItem(COACH_PREFIX + lessonKey, JSON.stringify(state));
+    } catch {}
+  }
+
+  function coachBlock(coach) {
+    const msgs = coach.messages.map(m => `
+      <div class="proto__chat-msg proto__chat-msg--${m.role === 'user' ? 'user' : 'ai'}">
+        ${m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content)}
+      </div>`).join('');
+    return `
+      <div class="proto__card proto__coach" data-role="coach">
+        <div class="proto__section-title" style="margin-top:0;">
+          <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+          שאל את השיעור
+        </div>
+        <p class="proto__section-sub">עוזר הלמידה מכיר את התמלול המלא של השיעור הזה ועונה רק ממנו — בלי המצאות.</p>
+        <div class="proto__chat-log" data-role="coach-log">${msgs || ''}</div>
+        <div class="proto__chat-inputrow">
+          <textarea data-role="coach-input" rows="2" maxlength="600"
+            placeholder="לדוגמה: מה הרעיון המרכזי כאן? איזו דוגמה רם נתן?"></textarea>
+          <button class="proto__cta" data-action="coach-ask" style="white-space:nowrap;">שאל</button>
+        </div>
+      </div>`;
+  }
 
   function intro(externalGptUrl) {
     return `
@@ -187,6 +246,7 @@
     }
 
     let cache = loadCache(lessonKey);
+    let coach = loadCoach(lessonKey);
 
     const wrap = document.createElement('div');
     wrap.className = 'proto';
@@ -196,26 +256,88 @@
     function paint() {
       const has = cache.methodology;
       const hasActiveMode = cache.lastMode || (cache.active && Object.keys(cache.active)[0]);
-      let html = '';
+      let html = coachBlock(coach);
       if (!has) {
-        html = intro(externalGptUrl);
+        html += intro(externalGptUrl);
       } else {
-        html = methodologyBlock(cache.methodology, cache.providerUsed, hasActiveMode);
+        html += methodologyBlock(cache.methodology, cache.providerUsed, hasActiveMode);
         if (hasActiveMode && cache.active && cache.active[hasActiveMode]) {
           const a = cache.active[hasActiveMode];
           html += activeBlock(a.content, a.providerUsed, hasActiveMode);
         }
       }
       wrap.innerHTML = html;
+      const log = wrap.querySelector('[data-role="coach-log"]');
+      if (log) log.scrollTop = log.scrollHeight;
+    }
+
+    async function askCoach() {
+      const input = wrap.querySelector('[data-role="coach-input"]');
+      const question = (input?.value || '').trim();
+      if (!question) { input?.focus(); return; }
+
+      const token = await authToken();
+      if (!token) {
+        const log = wrap.querySelector('[data-role="coach-log"]');
+        if (log) log.insertAdjacentHTML('beforeend', loginRequiredBlock());
+        return;
+      }
+
+      const history = coach.messages.slice(-6);
+      coach.messages.push({ role: 'user', content: question });
+      saveCoach(lessonKey, coach);
+      input.value = '';
+      paint();
+      const log = wrap.querySelector('[data-role="coach-log"]');
+      if (log) log.insertAdjacentHTML('beforeend', loadingBlock('קורא את השיעור...'));
+
+      try {
+        const { status, data } = await postJson('/api/lesson-coach', { lessonKey, question, history });
+        if (status === 401) {
+          coach.messages.pop();
+          saveCoach(lessonKey, coach);
+          paint();
+          const l = wrap.querySelector('[data-role="coach-log"]');
+          if (l) l.insertAdjacentHTML('beforeend', loginRequiredBlock());
+          return;
+        }
+        if (status === 404) {
+          coach.messages.push({ role: 'assistant', content: 'לשיעור הזה אין עדיין תמלול במערכת, אז אין לי על מה להתבסס. נסה שיעור אחר.' });
+        } else if (!data?.ok) {
+          coach.messages.pop();
+          saveCoach(lessonKey, coach);
+          paint();
+          const l = wrap.querySelector('[data-role="coach-log"]');
+          if (l) l.insertAdjacentHTML('beforeend', errorBlock('לא הצלחתי לענות כרגע. נסה שוב בעוד רגע.'));
+          return;
+        } else {
+          coach.messages.push({ role: 'assistant', content: data.answer });
+        }
+        saveCoach(lessonKey, coach);
+        paint();
+      } catch (err) {
+        console.error('[Coach] ask failed', err);
+        coach.messages.pop();
+        saveCoach(lessonKey, coach);
+        paint();
+        const l = wrap.querySelector('[data-role="coach-log"]');
+        if (l) l.insertAdjacentHTML('beforeend', errorBlock('שגיאה ברשת. בדוק את החיבור ונסה שוב.'));
+      }
     }
 
     async function runStage1(transcriptOverride) {
       wrap.innerHTML = loadingBlock(transcriptOverride
         ? 'מעבד את התמלול וזיקוק המתודולוגיה...'
         : 'שולף תמלול מ-YouTube וזיקוק המתודולוגיה...');
-      const body = transcriptOverride ? { transcript: transcriptOverride, videoId } : { videoId };
+      const body = transcriptOverride
+        ? { transcript: transcriptOverride, videoId, lessonKey }
+        : { videoId, lessonKey };
       try {
         const { status, data } = await postJson('/api/protocol-extract', body);
+        if (status === 401) {
+          wrap.innerHTML = coachBlock(coach) + loginRequiredBlock();
+          return;
+        }
         if (status === 424) {
           // transcript not available
           wrap.innerHTML = pasteBlock();
@@ -264,7 +386,11 @@
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
       const action = btn.dataset.action;
-      if (action === 'run') runStage1();
+      if (action === 'coach-ask') askCoach();
+      else if (action === 'open-login') {
+        if (typeof window.openLoginModal === 'function') window.openLoginModal();
+      }
+      else if (action === 'run') runStage1();
       else if (action === 'run-paste') {
         const ta = wrap.querySelector('[data-role="paste"]');
         const text = (ta?.value || '').trim();

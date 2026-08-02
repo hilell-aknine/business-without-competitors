@@ -35,6 +35,7 @@
       href: 'https://drive.google.com/drive/folders/1eqCQSbe9sonexa6JTx2Qst8Nmfr-yZD7?usp=sharing',
       external: true
     },
+    { id: 'apply',    label: 'עוזר היישום',  icon: 'fa-seedling',   path: 'pages/apply.html' },
     { id: 'progress', label: 'ההתקדמות שלי', icon: 'fa-chart-line', path: 'pages/progress.html' },
     { id: 'profile',  label: 'הפרופיל שלי',  icon: 'fa-user-gear',  path: 'pages/profile.html'  }
   ];

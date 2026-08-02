@@ -1,11 +1,23 @@
 // Stage 1: methodology extraction.
-// Input: POST { videoId, transcript? }
+// Input: POST { lessonKey?, videoId?, transcript? }
 // Output: { ok, methodology, providerUsed, transcript }
+//
+// 2026-08-02: transcripts now come from the local server-side KB
+// (api/_kb/<lessonKey>.json) instead of scraping YouTube — YouTube blocked
+// server-side caption scraping months ago, which left this feature dead.
+// The YouTube path remains as a last-resort fallback. Auth is now required.
 
 import { callAI } from './_lib/providers.js';
 import { STAGE1_SYSTEM } from './_lib/prompts.js';
 import { fetchTranscript } from './transcript.js';
-import { passesGuard } from './_lib/guard.js';
+import { passesGuard, requireAuth } from './_lib/guard.js';
+import { loadKb } from './_lib/kb.js';
+
+function localTranscript(lessonKey) {
+  if (!lessonKey || !/^(m[0-7]-\d{1,2}-\d{1,2}|s[0-6]-\d{1,2})$/.test(lessonKey)) return null;
+  const lesson = loadKb(lessonKey);
+  return lesson ? lesson.text || null : null;
+}
 
 const MAX_TRANSCRIPT_CHARS = 30000;
 
@@ -29,11 +41,16 @@ export default async function handler(req, res) {
   }
 
   if (!passesGuard(req, res)) return;
+  if (!(await requireAuth(req, res))) return;
 
   const body = await readJsonBody(req);
-  const { videoId } = body;
+  const { videoId, lessonKey } = body;
   let transcript = body.transcript;
 
+  // Preferred source: the local per-lesson KB file.
+  if (!transcript) transcript = localTranscript(lessonKey);
+
+  // Last resort: the old YouTube scrape (usually blocked by YouTube today).
   if (!transcript) {
     if (!videoId || !/^[A-Za-z0-9_-]{6,15}$/.test(videoId)) {
       res.status(400).json({ ok: false, reason: 'missing_videoId_or_transcript' });

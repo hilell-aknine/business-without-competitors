@@ -4,7 +4,7 @@
 
 import { callAI } from './_lib/providers.js';
 import { STAGE2_PROMPTS } from './_lib/prompts.js';
-import { passesGuard } from './_lib/guard.js';
+import { passesGuard, requireAuth } from './_lib/guard.js';
 
 const MAX_TRANSCRIPT_CHARS = 20000;
 const MAX_METHODOLOGY_CHARS = 8000;
@@ -29,6 +29,7 @@ export default async function handler(req, res) {
   }
 
   if (!passesGuard(req, res)) return;
+  if (!(await requireAuth(req, res))) return; // 2026-08-02: JWT required
 
   const body = await readJsonBody(req);
   let { transcript, methodology, mode } = body;

@@ -28,6 +28,7 @@ Thumbs.db
 # These must NOT be tracked: the GitHub Pages mirror serves every tracked
 # file publicly, ignoring .vercelignore. Keep them on disk, out of git.
 CLAUDE.md
+SKILL.md
 primer.md
 hindsight.md
 audit-*.md
@@ -41,8 +42,19 @@ supabase-test.html
 docs-archive/
 
 # Workbook builder + generated workbooks (audio, transcripts, drafts, PDFs)
-/tools/
+# 2026-08-02: narrowed from /tools/ so the small one-time pipeline scripts
+# (split-kb.mjs, assemble-game-data.mjs) ARE tracked; heavy media stays out.
+/tools/workbook-builder/
 /workbooks/
+
+# Project-100 methodology KB (transcripts belong to Zvika/Bar — never publish)
+kb-project-100/
+
+# Course transcript KB: the repo is PUBLIC, so only the encrypted form
+# (*.json.enc, AES-256-GCM, key in Vercel env KB_SECRET) is committed.
+# Plaintext stays local for dev. _index.json is harmless metadata (titles).
+api/_kb/*.json
+!api/_kb/_index.json
 
 # Internal tooling / non-product content (added 2026-07-28)
 .clinerules

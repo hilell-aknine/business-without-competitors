@@ -145,3 +145,32 @@
 }
 .proto__external:hover{background:rgba(255,255,255,.06);color:#fff;}
 .proto__external i{color:var(--lg-gold,#D4AF37);}
+
+/* ---- Lesson coach chat (2026-08-02, Project-100 build) ---- */
+.proto__coach{margin-bottom:1rem;}
+.proto__chat-log{
+  max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:.55rem;
+  margin-block:.6rem;
+}
+.proto__chat-log:empty{display:none;}
+.proto__chat-msg{
+  padding:.6rem .85rem;border-radius:12px;font-size:.86rem;line-height:1.55;
+  max-inline-size:92%;
+}
+.proto__chat-msg--user{
+  align-self:flex-start;background:rgba(230,198,90,.12);
+  border:1px solid rgba(230,198,90,.25);
+}
+.proto__chat-msg--ai{
+  align-self:flex-end;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.09);
+}
+.proto__chat-msg--ai p{margin:.3rem 0;}
+.proto__chat-inputrow{display:flex;gap:.5rem;align-items:flex-end;}
+.proto__chat-inputrow textarea{
+  flex:1;resize:vertical;min-height:2.6rem;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);
+  border-radius:10px;color:inherit;font:inherit;font-size:.85rem;
+  padding:.55rem .75rem;
+}
+.proto__chat-inputrow textarea:focus{outline:1px solid var(--lg-gold,#D4AF37);}

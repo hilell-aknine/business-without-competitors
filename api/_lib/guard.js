@@ -74,3 +74,63 @@ export function passesGuard(req, res) {
   }
   return true;
 }
+
+// ---------------------------------------------------------------------------
+// Layer 3 (2026-08-02): real authentication.
+// The Origin allowlist is spoofable server-to-server; the rate limit resets
+// per Vercel instance. requireAuth() closes that hole: the caller must present
+// a valid Supabase user JWT (Authorization: Bearer <access_token>), which we
+// verify against Supabase's auth server. Verification results are cached
+// in-process for a few minutes so repeated calls don't add latency.
+//
+// Env (set in Vercel project settings; safe fallbacks are the public values
+// already shipped in js/supabase-config.js — the anon key is public by design):
+//   SUPABASE_URL, SUPABASE_ANON_KEY
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://hiosnmkszdktirpfzjqi.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhpb3NubWtzemRrdGlycGZ6anFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MjkyNzksImV4cCI6MjA5NDAwNTI3OX0.05RyNeLVWLXDMUVBV-C7kq2e0hamg5oQttMiKp8UaMQ';
+
+const AUTH_CACHE_TTL_MS = 5 * 60 * 1000;
+const authCache = new Map(); // token -> { userId, expires }
+
+function bearerToken(req) {
+  const h = req.headers.authorization || '';
+  const m = /^Bearer\s+(.+)$/i.exec(h);
+  return m ? m[1].trim() : null;
+}
+
+async function verifySupabaseToken(token) {
+  const cached = authCache.get(token);
+  if (cached && cached.expires > Date.now()) return cached.userId;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    if (!user || !user.id) return null;
+    // Bound the cache so a scripted flood of unique junk tokens can't grow it.
+    if (authCache.size > 500) authCache.clear();
+    authCache.set(token, { userId: user.id, expires: Date.now() + AUTH_CACHE_TTL_MS });
+    return user.id;
+  } catch {
+    return null;
+  }
+}
+
+// Returns the authenticated Supabase user id (string) or null. On null it has
+// already written the 401 response — the handler should just return.
+export async function requireAuth(req, res) {
+  const token = bearerToken(req);
+  if (!token) {
+    res.status(401).json({ ok: false, reason: 'auth_required' });
+    return null;
+  }
+  const userId = await verifySupabaseToken(token);
+  if (!userId) {
+    res.status(401).json({ ok: false, reason: 'invalid_token' });
+    return null;
+  }
+  return userId;
+}
