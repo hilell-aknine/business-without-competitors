@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>פתיחת חשבון - עסק ללא מתחרים</title>
+    <meta name="description" content="פתיחת חשבון לפורטל הלמידה: ההתקדמות, המבחנים והתרגול שלך נשמרים בענן ועוברים איתך בין מכשירים.">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <script>
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
+    <link rel="stylesheet" href="../css/auth-modal.css">
+    <style>
+        /* Mobile-first. Base rules target a 390px phone; the only widening
+           happens in the >=640px block at the bottom. */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            min-height: 100vh;
+            font-family: 'Heebo', sans-serif;
+            direction: rtl;
+            background: #001e24;
+            color: #e8f1f2;
+            -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+        body::before, body::after {
+            content: ''; position: fixed; border-radius: 50%;
+            filter: blur(80px); pointer-events: none; z-index: 0;
+        }
+        body::before { inline-size: 300px; block-size: 300px; background: rgba(0,96,107,.35); top: -100px; inset-inline-start: -90px; }
+        body::after  { inline-size: 260px; block-size: 260px; background: rgba(212,175,55,.12); bottom: -100px; inset-inline-end: -70px; }
+
+        main {
+            position: relative; z-index: 1;
+            max-inline-size: 34rem;
+            margin-inline: auto;
+            padding: 1rem 1rem 3.5rem;
+        }
+
+        .su-hero { text-align: center; padding-block: 1.1rem .3rem; }
+        .su-hero h1 { font-family: 'Frank Ruhl Libre', serif; font-size: clamp(1.45rem, 6vw, 2.1rem); line-height: 1.25; }
+        .su-hero h1 i { color: #D4AF37; margin-inline-end: .4rem; }
+        .su-hero p { color: rgba(232,241,242,.72); margin: .6rem auto 0; line-height: 1.6; font-size: .92rem; }
+
+        .g {
+            background: rgba(255,255,255,.045);
+            border: 1px solid rgba(255,255,255,.09);
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+        }
+
+        .su-card { padding: 1.2rem 1rem 1.3rem; margin-top: 1rem; }
+        .su-card.hidden { display: none; }
+
+        .su-field { display: flex; flex-direction: column; gap: .3rem; margin-bottom: .9rem; }
+        .su-label { font-size: .88rem; font-weight: 600; color: rgba(232,241,242,.92); }
+        .su-label .req { color: #D4AF37; margin-inline-start: .15rem; }
+        .su-input {
+            inline-size: 100%;
+            min-block-size: 48px;              /* comfortable tap target */
+            padding: .7rem .9rem;
+            border-radius: 12px;
+            background: rgba(0,0,0,.28);
+            border: 1px solid rgba(255,255,255,.16);
+            color: #e8f1f2;
+            font-family: inherit;
+            font-size: 1rem;                    /* 16px — stops iOS zoom-on-focus */
+            transition: border-color .15s, box-shadow .15s;
+        }
+        .su-input::placeholder { color: rgba(232,241,242,.34); }
+        .su-input:focus {
+            outline: none;
+            border-color: rgba(212,175,55,.65);
+            box-shadow: 0 0 0 3px rgba(212,175,55,.15);
+        }
+        .su-field.is-invalid .su-input { border-color: rgba(255,120,120,.7); }
+        .su-help { font-size: .78rem; color: rgba(232,241,242,.5); line-height: 1.5; }
+        .su-err { font-size: .8rem; color: #ff9c9c; line-height: 1.45; }
+        .su-err:empty { display: none; }
+
+        /* Show/hide password toggle sits inside the field */
+        .su-pw-wrap { position: relative; display: flex; }
+        .su-pw-wrap .su-input { padding-inline-end: 3rem; }
+        .su-pw-toggle {
+            position: absolute; inset-block: 0; inset-inline-end: 0;
+            inline-size: 3rem;
+            display: grid; place-items: center;
+            background: none; border: 0; cursor: pointer;
+            color: rgba(232,241,242,.55); font-size: .95rem;
+        }
+        .su-pw-toggle:hover { color: #D4AF37; }
+        .su-pw-toggle:focus-visible { outline: 2px solid #D4AF37; outline-offset: -2px; border-radius: 10px; }
+
+        .su-submit {
+            inline-size: 100%;
+            min-block-size: 50px;
+            margin-top: .5rem;
+            padding: .8rem 1.2rem;
+            border-radius: 13px;
+            border: none;
+            background: linear-gradient(135deg, #D4AF37, #b8952e);
+            color: #06232a;
+            font-family: inherit;
+            font-size: 1.02rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .15s, filter .15s;
+        }
+        .su-submit:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+        .su-submit:disabled { opacity: .6; cursor: default; transform: none; }
+        .su-submit:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+        .su-status { margin-top: .8rem; font-size: .9rem; line-height: 1.55; color: #ff9c9c; text-align: center; }
+        .su-status.is-success { color: #8fe3b0; }
+        .su-status:empty { display: none; }
+
+        .su-alt {
+            margin-top: 1rem; padding-top: .9rem;
+            border-top: 1px solid rgba(255,255,255,.08);
+            text-align: center; font-size: .9rem; color: rgba(232,241,242,.62);
+        }
+        .su-alt button {
+            min-block-size: 44px; padding-inline: .3rem;
+            background: none; border: 0; color: #D4AF37;
+            font-family: inherit; font-size: .9rem; font-weight: 700;
+            cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+        }
+        .su-alt button:focus-visible { outline: 2px solid #D4AF37; outline-offset: 2px; border-radius: 6px; }
+
+        .su-why { margin-top: 1rem; padding: 1rem; }
+        .su-why.hidden { display: none; }
+        .su-why h2 { font-size: .95rem; margin-bottom: .6rem; }
+        .su-why h2 i { color: #D4AF37; margin-inline-end: .4rem; }
+        .su-why ul { list-style: none; display: grid; gap: .5rem; }
+        .su-why li {
+            font-size: .87rem; color: rgba(232,241,242,.74); line-height: 1.55;
+            padding-inline-start: 1.4rem; position: relative;
+        }
+        .su-why li::before {
+            content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; inset-inline-start: 0; color: #D4AF37; font-size: .72rem; top: .3rem;
+        }
+
+        .su-privacy {
+            margin-top: .9rem; font-size: .78rem; line-height: 1.55;
+            color: rgba(232,241,242,.45); text-align: center;
+        }
+
+        /* Success / already-signed-in panels */
+        .su-panel { text-align: center; padding: 2.2rem 1.1rem; margin-top: 1rem; }
+        .su-panel.hidden { display: none; }
+        .su-panel__icon { font-size: 2.3rem; color: #D4AF37; }
+        .su-panel h2 { margin-top: .7rem; font-family: 'Frank Ruhl Libre', serif; font-size: 1.3rem; line-height: 1.35; }
+        .su-panel p { margin-top: .6rem; color: rgba(232,241,242,.75); line-height: 1.65; font-size: .92rem; overflow-wrap: anywhere; }
+        .su-panel .gate-btn {
+            display: inline-block; margin-top: 1.2rem;
+            min-block-size: 48px; padding: .8rem 1.7rem;
+            border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #D4AF37, #b8952e); color: #06232a;
+            font-family: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+        }
+
+        @media (min-width: 640px) {
+            main { padding: 1.5rem 1.2rem 4rem; }
+            .su-hero { padding-block: 1.6rem .6rem; }
+            .su-hero p { font-size: .95rem; max-inline-size: 32rem; }
+            .su-card { padding: 1.5rem 1.4rem; }
+            .su-why { padding: 1.1rem 1.3rem; }
+            .su-panel { padding: 2.6rem 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="gnav" data-page="signup"></header>
+
+    <main>
+        <div class="su-hero">
+            <h1><i class="fa-solid fa-user-plus" aria-hidden="true"></i>פתיחת חשבון</h1>
+            <p>חשבון חינמי. הוא מה שמחזיק את ההתקדמות, המבחנים והתרגול שלך בענן, כדי שתוכל לעבור בין המחשב לנייד
+               ולהמשיך בדיוק מאיפה שעצרת.</p>
+        </div>
+
+        <!-- Signup form -->
+        <section id="suForm" class="g su-card">
+            <form id="signupForm" novalidate>
+                <div class="su-field" data-field="name">
+                    <label class="su-label" for="suName">שם מלא<span class="req">*</span></label>
+                    <input class="su-input" id="suName" name="name" type="text" autocomplete="name"
+                           required maxlength="120" placeholder="ישראל ישראלי">
+                    <div class="su-err" id="errName" aria-live="polite"></div>
+                </div>
+
+                <div class="su-field" data-field="email">
+                    <label class="su-label" for="suEmail">מייל<span class="req">*</span></label>
+                    <input class="su-input" id="suEmail" name="email" type="email" autocomplete="email"
+                           dir="ltr" required inputmode="email" placeholder="name@example.com">
+                    <div class="su-help">לכאן יגיע אישור החשבון, ודרכו מאפסים סיסמה.</div>
+                    <div class="su-err" id="errEmail" aria-live="polite"></div>
+                </div>
+
+                <div class="su-field" data-field="pw">
+                    <label class="su-label" for="suPw">סיסמה<span class="req">*</span></label>
+                    <div class="su-pw-wrap">
+                        <input class="su-input" id="suPw" name="password" type="password" autocomplete="new-password"
+                               required minlength="6" placeholder="לפחות 6 תווים">
+                        <button type="button" class="su-pw-toggle" data-toggle-pw="suPw" aria-label="הצג סיסמה">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="su-err" id="errPw" aria-live="polite"></div>
+                </div>
+
+                <div class="su-field" data-field="pw2">
+                    <label class="su-label" for="suPw2">אישור סיסמה<span class="req">*</span></label>
+                    <div class="su-pw-wrap">
+                        <input class="su-input" id="suPw2" name="password2" type="password" autocomplete="new-password"
+                               required minlength="6" placeholder="הזן שוב את אותה סיסמה">
+                        <button type="button" class="su-pw-toggle" data-toggle-pw="suPw2" aria-label="הצג סיסמה">
+                            <i class="fa-solid fa-eye" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                    <div class="su-err" id="errPw2" aria-live="polite"></div>
+                </div>
+
+                <button type="submit" class="su-submit" id="suSubmit">פתח חשבון</button>
+                <div class="su-status" id="suStatus" role="status" aria-live="polite"></div>
+            </form>
+
+            <div class="su-alt">
+                כבר יש לך חשבון?
+                <button type="button" id="suLoginLink">התחבר כאן</button>
+            </div>
+
+            <p class="su-privacy">אנחנו שומרים שם ומייל בלבד. אין מספר טלפון ואין דיוור פרסומי.</p>
+        </section>
+
+        <section class="g su-why" id="suWhy">
+            <h2><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>מה החשבון נותן לך</h2>
+            <ul>
+                <li>ההתקדמות בשיעורים נשמרת בענן ולא רק בדפדפן הזה.</li>
+                <li>ציוני המבחנים והתרגול עוברים איתך בין מכשירים.</li>
+                <li>גישה לעוזר היישום: מסמך יישום אישי לעסק שלך לכל מודול.</li>
+                <li>שאלון קצר בכניסה מתאים לך את נקודת ההתחלה לפי מצב העסק שלך.</li>
+            </ul>
+        </section>
+
+        <!-- Success -->
+        <section id="suDone" class="g su-panel hidden">
+            <div class="su-panel__icon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></div>
+            <h2 id="suDoneTitle">החשבון נפתח</h2>
+            <p id="suDoneMsg"></p>
+            <a class="gate-btn" id="suDoneCta" href="../index.html">המשך לפורטל</a>
+        </section>
+
+        <!-- Already signed in -->
+        <section id="suSignedIn" class="g su-panel hidden">
+            <div class="su-panel__icon"><i class="fa-solid fa-user-check" aria-hidden="true"></i></div>
+            <h2>אתה כבר מחובר</h2>
+            <p id="suSignedInEmail"></p>
+            <a class="gate-btn" href="../index.html">חזרה לפורטל</a>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/global-nav.js" defer></script>
+    <script src="../js/signup.js" defer></script>
+    <script src="../js/credit-stamp.js" defer></script>
+</body>
+</html>

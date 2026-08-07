@@ -4,7 +4,12 @@
    Exposes a single global: window.bwcAuth
      bwcAuth.ready()            -> Promise<void>      (resolves after first init)
      bwcAuth.getUser()          -> { id, email } | null
-     bwcAuth.signUp(email, pw)  -> Promise<{ user?, error? }>
+     bwcAuth.signUp(email, pw, meta) -> Promise<{ user?, error? }>
+                                  meta = { full_name } -> stored in
+                                  auth.users.raw_user_meta_data and copied into
+                                  public.profiles by handle_new_user()
+                                  (migration 006). Email is the only contact
+                                  field we collect — no phone, by decision.
      bwcAuth.signIn(email, pw)  -> Promise<{ user?, error? }>
      bwcAuth.signOut()          -> Promise<void>
      bwcAuth.onChange(cb)       -> () => void  (unsubscribe)
@@ -56,6 +61,53 @@
     currentUser = next;
     if (prevId !== nextId || (!prevId && !nextId && initialized === false)) {
       emit();
+      if (nextId) { backfillPendingProfile(); }
+    }
+  }
+
+  /* ---- Pending profile backfill -------------------------------------------
+     pages/signup.html caches { full_name } under bwc_pending_profile before
+     calling signUp. The handle_new_user() trigger (migration 006) is the
+     primary writer, but with "Confirm email" turned on there is no client
+     session at signup time, and pre-006 accounts have no name at all.
+     So the first time a session appears on ANY page, we push whatever is
+     pending into the learner's own profiles row (allowed by the existing
+     profiles_self_update policy) and drop the cache.
+     Runs automatically from setUser — no page needs to call it. */
+  var PENDING_PROFILE_KEY = 'bwc_pending_profile';
+  var backfillRan = false;
+
+  async function backfillPendingProfile() {
+    if (backfillRan) return;
+    var user = currentUser;
+    if (!user) return;
+
+    var pending = null;
+    try {
+      var raw = localStorage.getItem(PENDING_PROFILE_KEY);
+      if (raw) pending = JSON.parse(raw);
+    } catch (e) { pending = null; }
+    if (!pending || !pending.full_name) return;
+
+    backfillRan = true;
+    try {
+      // ensure_profile() (migration 003) self-heals a missing profiles row so
+      // the UPDATE below has something to hit.
+      try { await sb.rpc('ensure_profile'); } catch (_) {}
+
+      var res = await sb.from('profiles')
+        .update({ full_name: pending.full_name })
+        .eq('id', user.id);
+      if (res && res.error) {
+        backfillRan = false;
+        console.warn('[auth] profile backfill failed',
+          { code: res.error.code, message: res.error.message });
+        return;
+      }
+      try { localStorage.removeItem(PENDING_PROFILE_KEY); } catch (_) {}
+    } catch (e) {
+      backfillRan = false;
+      console.warn('[auth] profile backfill threw', e);
     }
   }
 
@@ -126,11 +178,25 @@
     return null;
   }
 
-  async function signUp(email, password) {
+  function cleanMeta(meta) {
+    if (!meta || typeof meta !== 'object') return null;
+    var out = {};
+    var name = String(meta.full_name || '').trim().replace(/\s+/g, ' ');
+    if (name) out.full_name = name.slice(0, 120);
+    return Object.keys(out).length ? out : null;
+  }
+
+  async function signUp(email, password, meta) {
     var v = validateEmailAndPw(email, password);
     if (v) return { error: v };
     try {
-      var res = await sb.auth.signUp({ email: email.trim(), password: password });
+      var payload = { email: email.trim(), password: password };
+      var data = cleanMeta(meta);
+      // options.data lands in auth.users.raw_user_meta_data. The handle_new_user
+      // trigger (migration 006) is what actually writes it into public.profiles,
+      // because with "Confirm email" on there is no client session at this point.
+      if (data) payload.options = { data: data };
+      var res = await sb.auth.signUp(payload);
       if (res.error) return { error: translateError(res.error) };
       return { user: pickUser(res.data && res.data.user) };
     } catch (e) {
@@ -160,6 +226,8 @@
     onChange: onChange,
     signUp: signUp,
     signIn: signIn,
-    signOut: signOut
+    signOut: signOut,
+    backfillPendingProfile: backfillPendingProfile,
+    PENDING_PROFILE_KEY: PENDING_PROFILE_KEY
   });
 })();

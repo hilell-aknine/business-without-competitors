@@ -1,6 +1,7 @@
 /* ============================================================
-   ONBOARDING MODAL — First-time visitor flow
-   Endowed Progress Effect: 3 steps, +1.5% each (4.5% total)
+   ONBOARDING MODAL — "מי אני" questionnaire
+   Endowed Progress Effect: 6 questions, +0.75% each (4.5% total,
+   same ceiling as the old 3-step flow it replaced).
    Style: Liquid Glass — frosted, gold accents, RTL Hebrew
    Loaded by index.html only.
    ============================================================ */
@@ -158,44 +159,51 @@
     text-shadow: 0 0 12px rgba(229, 181, 71, 0.35);
 }
 
-/* ---------- Steps grid ---------- */
-.onb-steps {
-    display: grid;
-    gap: .65rem;
-    margin-bottom: 1.1rem;
-}
-
-.onb-step {
-    position: relative;
+/* ---------- Progress: dots + counter ---------- */
+.onb-progress {
     display: flex;
     align-items: center;
-    gap: .85rem;
-    padding: .85rem .95rem;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    text-align: start;
-    color: inherit;
-    font-family: inherit;
-    cursor: pointer;
-    transition:
-        background .25s var(--ease-smooth, ease),
-        border-color .25s var(--ease-smooth, ease),
-        transform .2s var(--ease-smooth, ease);
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .9rem;
 }
-.onb-step:hover:not(.is-done) {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(229, 181, 71, 0.35);
-    transform: translateY(-1px);
+.onb-dots {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
 }
-.onb-step:focus-visible {
-    outline: 3px solid var(--lg-gold);
-    outline-offset: 2px;
+.onb-dot {
+    inline-size: 22px;
+    block-size: 5px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    transition: background .25s var(--ease-smooth, ease), inline-size .25s var(--ease-smooth, ease);
+}
+.onb-dot.is-done { background: var(--lg-gold, #D4AF37); }
+.onb-dot.is-current {
+    inline-size: 34px;
+    background: rgba(229, 181, 71, 0.55);
+    box-shadow: 0 0 10px rgba(229, 181, 71, 0.35);
+}
+.onb-progress__count {
+    font-size: .74rem;
+    color: rgba(232, 241, 242, 0.55);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-.onb-step__icon {
-    width: 38px;
-    height: 38px;
+/* ---------- Question ---------- */
+.onb-body { margin-bottom: 1rem; }
+
+.onb-q__head {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    margin-bottom: .85rem;
+}
+.onb-q__icon {
+    inline-size: 38px;
+    block-size: 38px;
     border-radius: 12px;
     display: grid;
     place-items: center;
@@ -204,96 +212,192 @@
         rgba(229, 181, 71, 0.22),
         rgba(229, 181, 71, 0.06));
     border: 1px solid rgba(229, 181, 71, 0.32);
-    color: var(--lg-gold);
+    color: var(--lg-gold, #D4AF37);
     font-size: .95rem;
-    transition: all .3s var(--ease-smooth, ease);
 }
-.onb-step.is-done .onb-step__icon {
-    background: linear-gradient(135deg,
-        var(--lg-gold) 0%,
-        var(--lg-gold-deep) 100%);
-    color: #1A2E2E;
-    border-color: rgba(229, 181, 71, 0.7);
-    box-shadow: 0 6px 18px rgba(229, 181, 71, 0.35);
-}
-
-.onb-step__body { flex: 1; min-width: 0; }
-.onb-step__title {
-    display: block;
-    font-size: .95rem;
+.onb-q__title {
+    font-size: 1.02rem;
     font-weight: 700;
     color: #fff;
-    margin-bottom: .15rem;
+    line-height: 1.35;
+    margin-bottom: .18rem;
 }
-.onb-step__sub {
-    display: block;
-    font-size: .78rem;
-    line-height: 1.45;
-    color: rgba(232, 241, 242, 0.65);
-}
-
-.onb-step__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: .35rem;
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--lg-gold);
-    flex-shrink: 0;
-}
-.onb-step.is-done .onb-step__cta {
-    color: rgba(232, 241, 242, 0.55);
-}
-.onb-step.is-done .onb-step__cta-text::after {
-    content: 'הושלם';
-}
-.onb-step:not(.is-done) .onb-step__cta-text::after {
-    content: attr(data-cta);
+.onb-q__sub {
+    font-size: .8rem;
+    line-height: 1.5;
+    color: rgba(232, 241, 242, 0.62);
 }
 
-/* Goal step uses inline select instead of CTA */
-.onb-step--goal {
-    flex-wrap: wrap;
+/* ---------- Options ---------- */
+.onb-opts {
+    display: grid;
+    gap: .5rem;
 }
-.onb-step__goal-row {
-    width: 100%;
-    margin-top: .55rem;
+
+.onb-opt {
     display: flex;
-    align-items: center;
-    gap: .55rem;
-    flex-wrap: wrap;
-}
-.onb-step__goal-row label {
-    font-size: .78rem;
-    color: rgba(232, 241, 242, 0.78);
-}
-.onb-goal-select {
-    flex: 1;
-    min-width: 110px;
-    padding: .45rem .7rem;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.30);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: #fff;
+    align-items: flex-start;
+    gap: .7rem;
+    inline-size: 100%;
+    min-block-size: 48px;              /* tap target on phones */
+    padding: .7rem .85rem;
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    text-align: start;
+    color: inherit;
     font-family: inherit;
-    font-size: .85rem;
     cursor: pointer;
+    transition:
+        background .2s var(--ease-smooth, ease),
+        border-color .2s var(--ease-smooth, ease),
+        transform .15s var(--ease-smooth, ease);
 }
-.onb-goal-select:focus-visible {
-    outline: 3px solid var(--lg-gold);
+.onb-opt:hover:not(.is-selected) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(229, 181, 71, 0.35);
+}
+.onb-opt:active { transform: scale(.995); }
+.onb-opt:focus-visible {
+    outline: 3px solid var(--lg-gold, #D4AF37);
     outline-offset: 2px;
 }
-.onb-goal-select option { background: #0F2D2D; color: #fff; }
+.onb-opt.is-selected {
+    background: linear-gradient(135deg,
+        rgba(229, 181, 71, 0.16),
+        rgba(229, 181, 71, 0.05));
+    border-color: rgba(229, 181, 71, 0.6);
+}
 
-.onb-goal-confirm {
-    padding: .45rem .9rem;
+.onb-opt__mark {
+    inline-size: 20px;
+    block-size: 20px;
+    margin-block-start: .12rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.28);
+    display: grid;
+    place-items: center;
+    transition: border-color .2s, background .2s;
+}
+.onb-opt.is-selected .onb-opt__mark {
+    border-color: var(--lg-gold, #D4AF37);
+    background: var(--lg-gold, #D4AF37);
+}
+.onb-opt.is-selected .onb-opt__mark::after {
+    content: '';
+    inline-size: 7px;
+    block-size: 7px;
+    border-radius: 50%;
+    background: #1A2E2E;
+}
+
+.onb-opt__body { flex: 1; min-inline-size: 0; }
+.onb-opt__label {
+    display: block;
+    font-size: .92rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
+}
+.onb-opt__hint {
+    display: block;
+    margin-block-start: .2rem;
+    font-size: .74rem;
+    color: var(--lg-gold, #D4AF37);
+    opacity: .85;
+}
+
+/* ---------- Summary (after the last answer) ---------- */
+.onb-sum { text-align: center; }
+.onb-sum__icon {
+    font-size: 2rem;
+    color: var(--lg-gold, #D4AF37);
+    margin-bottom: .4rem;
+}
+.onb-sum__title {
+    font-family: 'Frank Ruhl Libre', 'Heebo', serif;
+    font-size: 1.15rem;
+    color: #fff;
+    margin-bottom: .5rem;
+}
+.onb-sum__rec {
+    font-size: .87rem;
+    line-height: 1.55;
+    color: rgba(232, 241, 242, 0.82);
+    background: rgba(229, 181, 71, 0.09);
+    border: 1px solid rgba(229, 181, 71, 0.25);
+    border-radius: 12px;
+    padding: .65rem .8rem;
+    margin-bottom: .8rem;
+}
+.onb-sum__rec b { color: var(--lg-gold, #D4AF37); }
+.onb-sum__rec i { color: var(--lg-gold, #D4AF37); margin-inline-end: .25rem; }
+
+.onb-sum__list {
+    list-style: none;
+    display: grid;
+    gap: .4rem;
+    text-align: start;
+}
+.onb-sum__list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: .7rem;
+    padding: .45rem .1rem;
+    border-block-end: 1px solid rgba(255, 255, 255, 0.07);
+}
+.onb-sum__list li:last-child { border-block-end: 0; }
+.onb-sum__q {
+    font-size: .76rem;
+    color: rgba(232, 241, 242, 0.52);
+    flex: 1;
+    min-inline-size: 0;
+}
+.onb-sum__a {
+    font-size: .82rem;
+    font-weight: 600;
+    color: #fff;
+    text-align: end;
+    flex-shrink: 0;
+    max-inline-size: 55%;
+}
+.onb-sum__note {
+    margin-block-start: .8rem;
+    font-size: .76rem;
+    color: rgba(232, 241, 242, 0.5);
+}
+.onb-sum__note:empty { display: none; }
+
+/* ---------- Back button ---------- */
+.onb-foot__nav { display: flex; gap: .5rem; }
+.onb-nav-btn {
+    min-block-size: 40px;
+    padding: .45rem .85rem;
     border-radius: 10px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(232, 241, 242, 0.8);
+    font-family: inherit;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+}
+.onb-nav-btn:hover { border-color: rgba(229, 181, 71, 0.5); color: #fff; }
+.onb-nav-btn:focus-visible { outline: 3px solid var(--lg-gold, #D4AF37); outline-offset: 2px; }
+
+/* Primary action button (also used by the summary's finish CTA) */
+.onb-goal-confirm {
+    min-block-size: 46px;
+    padding: .6rem 1.3rem;
+    border-radius: 12px;
     border: 1px solid rgba(229, 181, 71, 0.55);
-    background: linear-gradient(135deg, var(--lg-gold) 0%, var(--lg-gold-deep) 100%);
+    background: linear-gradient(135deg, var(--lg-gold, #D4AF37) 0%, var(--lg-gold-deep, #b8952e) 100%);
     color: #1A2E2E;
     font-family: inherit;
-    font-size: .8rem;
-    font-weight: 700;
+    font-size: .92rem;
+    font-weight: 800;
     cursor: pointer;
     transition: transform .2s, filter .2s;
 }

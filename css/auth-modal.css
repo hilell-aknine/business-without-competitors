@@ -120,6 +120,33 @@
   outline-offset: 2px;
 }
 
+/* The "הרשמה" tab is an <a> to pages/signup.html — signup is a full page now,
+   not a mode of this modal. Styled to sit flush with the real tab button. */
+.bwc-auth-tab--link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+}
+.bwc-auth-tab--link:hover {
+  color: var(--text-primary, #fff);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bwc-auth-hint-link {
+  color: var(--accent-gold, #D4AF37);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+.bwc-auth-hint-link:hover { filter: brightness(1.15); }
+.bwc-auth-hint-link:focus-visible {
+  outline: 2px solid var(--accent-gold, #D4AF37);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ===== Form ===== */
 .bwc-auth-form {
   display: flex;

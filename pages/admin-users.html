@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#003B46">
+    <title>לומדים - עסק ללא מתחרים</title>
+    <meta name="description" content="דשבורד מנהל: מי הלומדים, מתי נרשמו, כמה שיעורים סגרו ומה ענו בשאלון הכניסה.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <script>
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../css/global-nav.css">
+    <link rel="stylesheet" href="../css/auth-modal.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            min-height: 100vh; font-family: 'Heebo', sans-serif; direction: rtl;
+            background: #001e24; color: #e8f1f2; -webkit-text-size-adjust: 100%;
+            overflow-x: hidden;
+        }
+        main { position: relative; z-index: 1; max-inline-size: 1100px; margin-inline: auto; padding: 1.2rem 1rem 4rem; }
+        h1 { font-family: 'Frank Ruhl Libre', serif; font-size: clamp(1.4rem, 5vw, 2.1rem); text-align: center; padding-block: 1.1rem .3rem; }
+        h1 i { color: #D4AF37; margin-inline-end: .4rem; }
+        .sub { text-align: center; color: rgba(232,241,242,.65); font-size: .87rem; max-inline-size: 46rem; margin: 0 auto 1.2rem; line-height: 1.6; }
+        .g { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 18px; }
+
+        #gate { text-align: center; padding: 3rem 1.2rem; }
+        #gate.hidden { display: none; }
+        .gate-btn { margin-top: 1rem; min-block-size: 46px; padding: .7rem 1.6rem; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #D4AF37, #b8952e); color: #06232a; font: inherit; font-weight: 700; cursor: pointer; }
+
+        #dash.hidden { display: none; }
+
+        .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .7rem; margin-bottom: 1rem; }
+        .stat { padding: .9rem; text-align: center; }
+        .stat__num { font-size: 1.6rem; font-weight: 900; color: #D4AF37; }
+        .stat__label { font-size: .76rem; color: rgba(232,241,242,.65); margin-top: .2rem; line-height: 1.4; }
+
+        section.g { padding: 1.1rem 1rem; margin-bottom: 1rem; }
+        section.g h2 { font-size: 1rem; margin-bottom: .7rem; }
+        section.g h2 i { color: #D4AF37; margin-inline-end: .4rem; }
+
+        .toolbar { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: .9rem; }
+        .toolbar input, .toolbar select {
+            min-block-size: 42px; padding: .5rem .8rem; border-radius: 11px;
+            background: rgba(0,0,0,.28); border: 1px solid rgba(255,255,255,.16);
+            color: #e8f1f2; font-family: inherit; font-size: .9rem;
+        }
+        .toolbar input { flex: 1; min-inline-size: 10rem; }
+        .toolbar input:focus, .toolbar select:focus { outline: none; border-color: rgba(212,175,55,.6); }
+        .toolbar select option { background: #0F2D2D; }
+        .toolbar .count { font-size: .8rem; color: rgba(232,241,242,.55); white-space: nowrap; }
+
+        table { inline-size: 100%; border-collapse: collapse; font-size: .86rem; }
+        thead th { text-align: start; padding: .5rem .6rem; border-block-end: 1px solid rgba(255,255,255,.12);
+            color: rgba(232,241,242,.6); font-weight: 500; font-size: .76rem; white-space: nowrap; }
+        tbody td { text-align: start; padding: .6rem; border-block-end: 1px solid rgba(255,255,255,.07); vertical-align: middle; }
+        tbody tr { cursor: pointer; transition: background .12s; }
+        tbody tr:hover { background: rgba(255,255,255,.04); }
+        .u-name { font-weight: 600; }
+        .u-name .u-nameless { color: rgba(232,241,242,.4); font-weight: 400; font-style: italic; }
+        .u-email { color: rgba(232,241,242,.7); direction: ltr; text-align: start; unicode-bidi: plaintext; font-size: .82rem; }
+        .num { font-variant-numeric: tabular-nums; }
+        .muted { color: rgba(232,241,242,.45); }
+        .pill { display: inline-block; padding: .12rem .5rem; border-radius: 999px; font-size: .72rem;
+            background: rgba(212,175,55,.14); border: 1px solid rgba(212,175,55,.3); color: #D4AF37; white-space: nowrap; }
+        .pill--none { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); color: rgba(232,241,242,.5); }
+        .bar { position: relative; background: rgba(255,255,255,.07); border-radius: 6px; block-size: 8px; min-inline-size: 60px; overflow: hidden; }
+        .bar__fill { position: absolute; inset-block: 0; inset-inline-start: 0; background: linear-gradient(90deg, #D4AF37, #b8952e); border-radius: 6px; }
+
+        .note { margin-top: .7rem; font-size: .76rem; color: rgba(232,241,242,.5); line-height: 1.55; }
+        .note strong { color: rgba(232,241,242,.72); }
+        .caveat { border: 1px solid rgba(212,175,55,.28); background: rgba(212,175,55,.07);
+            border-radius: 13px; padding: .8rem .9rem; font-size: .8rem; line-height: 1.6; color: rgba(232,241,242,.78); }
+        .caveat b { color: #D4AF37; }
+        .caveat + .caveat { margin-top: .6rem; }
+
+        #loading { text-align: center; padding: 2rem; color: rgba(232,241,242,.6); }
+        #loading.hidden { display: none; }
+        #empty { padding: 1.6rem; text-align: center; color: rgba(232,241,242,.55); font-size: .88rem; }
+        #empty.hidden { display: none; }
+
+        /* ---- Detail drawer ---- */
+        .drawer { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center;
+            padding: 1rem; background: rgba(4,22,27,.75); backdrop-filter: blur(10px); }
+        .drawer[hidden] { display: none !important; }
+        .drawer__card {
+            inline-size: min(560px, 100%); max-block-size: calc(100vh - 2rem); overflow-y: auto;
+            border-radius: 20px; padding: 1.3rem 1.1rem;
+            background: linear-gradient(160deg, rgba(15,45,45,.94), rgba(10,34,38,.94));
+            border: 1px solid rgba(255,255,255,.14);
+        }
+        .drawer__close { position: absolute; top: 1.4rem; inset-inline-end: 1.4rem; inline-size: 34px; block-size: 34px;
+            border-radius: 50%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+            color: rgba(255,255,255,.8); cursor: pointer; display: grid; place-items: center; }
+        .drawer__head h3 { font-family: 'Frank Ruhl Libre', serif; font-size: 1.25rem; }
+        .drawer__head p { color: rgba(232,241,242,.6); font-size: .84rem; margin-top: .2rem;
+            direction: ltr; unicode-bidi: plaintext; text-align: start; }
+        .drawer__stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); gap: .5rem; margin: 1rem 0; }
+        .drawer__stat { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09);
+            border-radius: 12px; padding: .6rem; text-align: center; }
+        .drawer__stat b { display: block; font-size: 1.2rem; color: #D4AF37; font-variant-numeric: tabular-nums; }
+        .drawer__stat span { font-size: .72rem; color: rgba(232,241,242,.6); }
+        .drawer h4 { font-size: .9rem; margin: 1rem 0 .5rem; }
+        .drawer h4 i { color: #D4AF37; margin-inline-end: .35rem; }
+        .qa { list-style: none; display: grid; gap: .5rem; }
+        .qa li { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+            border-radius: 12px; padding: .6rem .75rem; }
+        .qa__q { display: block; font-size: .75rem; color: rgba(232,241,242,.55); margin-bottom: .15rem; }
+        .qa__a { display: block; font-size: .9rem; font-weight: 600; }
+        .qa--empty { color: rgba(232,241,242,.5); font-size: .86rem; line-height: 1.6; }
+
+        /* ---- Mobile: table rows become cards ---- */
+        @media (max-width: 720px) {
+            main { padding-inline: .7rem; }
+            thead { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+            tbody tr { display: block; border: 1px solid rgba(255,255,255,.09); border-radius: 14px;
+                padding: .7rem .8rem; margin-bottom: .6rem; background: rgba(255,255,255,.03); }
+            tbody td { display: flex; justify-content: space-between; align-items: center; gap: .8rem;
+                padding: .28rem 0; border: 0; }
+            tbody td::before { content: attr(data-label); font-size: .74rem; color: rgba(232,241,242,.5); flex-shrink: 0; }
+            tbody td[data-label="שם"] { border-block-end: 1px solid rgba(255,255,255,.08); padding-block-end: .5rem; margin-block-end: .35rem; }
+            tbody td[data-label="שם"]::before { display: none; }
+            tbody td[data-label="שם"] { justify-content: flex-start; font-size: .98rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="gnav" data-page="admin-users"></header>
+    <main>
+        <h1><i class="fa-solid fa-users" aria-hidden="true"></i>לומדים</h1>
+        <p class="sub">מי נרשם, מתי, כמה הוא סגר, ומה הוא ענה בשאלון הכניסה. לחיצה על שורה פותחת את התשובות המלאות.
+           הדף הזה מציג נתונים אישיים — בשונה מדשבורד הסטטיסטיקות שהוא אנונימי לגמרי.</p>
+        <p style="text-align:center;margin-bottom:1.3rem;">
+            <a href="admin-stats.html" style="display:inline-block;min-block-size:44px;padding:.6rem 1.2rem;border-radius:12px;
+               background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.32);color:#D4AF37;
+               text-decoration:none;font-size:.86rem;font-weight:600;">
+                <i class="fa-solid fa-chart-column" aria-hidden="true"></i>
+                סטטיסטיקות למידה (אנונימי)
+            </a>
+        </p>
+
+        <div id="gate" class="g">
+            <div style="font-size:2rem;color:#D4AF37;"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+            <h2 style="margin-top:.6rem;">גישה למנהלים בלבד</h2>
+            <p style="color:rgba(232,241,242,.7);margin-top:.4rem;" id="gateMsg">התחבר עם חשבון מנהל כדי לצפות בדשבורד.</p>
+            <button class="gate-btn" id="gateLoginBtn">התחברות</button>
+        </div>
+
+        <div id="dash" class="hidden">
+            <div class="stat-row">
+                <div class="stat g"><div class="stat__num" id="stat-users">–</div><div class="stat__label">לומדים רשומים</div></div>
+                <div class="stat g"><div class="stat__num" id="stat-named">–</div><div class="stat__label">עם שם מלא</div></div>
+                <div class="stat g"><div class="stat__num" id="stat-onboarded">–</div><div class="stat__label">מילאו את השאלון</div></div>
+                <div class="stat g"><div class="stat__num" id="stat-active">–</div><div class="stat__label">סגרו לפחות שיעור אחד</div></div>
+                <div class="stat g"><div class="stat__num" id="stat-week">–</div><div class="stat__label">נרשמו ב-7 הימים האחרונים</div></div>
+            </div>
+
+            <section class="g">
+                <h2><i class="fa-solid fa-table-list"></i>רשימת הלומדים</h2>
+                <div class="toolbar">
+                    <input type="search" id="q" placeholder="חיפוש לפי שם או מייל" aria-label="חיפוש לומד">
+                    <select id="sort" aria-label="מיון">
+                        <option value="created_desc">נרשמו — מהחדש לישן</option>
+                        <option value="created_asc">נרשמו — מהישן לחדש</option>
+                        <option value="lessons_desc">הכי הרבה שיעורים</option>
+                        <option value="lessons_asc">הכי מעט שיעורים</option>
+                        <option value="quiz_desc">ציון מבחן הגבוה ביותר</option>
+                        <option value="seen_desc">כניסה אחרונה</option>
+                        <option value="name_asc">שם (א-ת)</option>
+                    </select>
+                    <span class="count" id="rowCount"></span>
+                </div>
+                <table id="tbl-users">
+                    <thead>
+                        <tr>
+                            <th>שם</th>
+                            <th>מייל</th>
+                            <th>נרשם</th>
+                            <th>כניסה אחרונה</th>
+                            <th>שיעורים שסומנו</th>
+                            <th>ציון מבחן ממוצע</th>
+                            <th>שאלון</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody"></tbody>
+                </table>
+                <div id="empty" class="hidden">אין לומדים שתואמים לחיפוש.</div>
+
+                <p class="note">
+                    <strong>איך לקרוא את "שיעורים שסומנו":</strong> זו ספירה של שיעורים שהלומד
+                    <strong>סימן כהושלם</strong> בכפתור — לא זמן צפייה ולא אחוז מהסרטון. אין לנו מדידת צפייה בפועל.
+                    לומד יכול לצפות בכל השיעור ולא לסמן, או לסמן בלי לצפות.
+                </p>
+            </section>
+
+            <div class="caveat">
+                <b>המספרים הם רצפה, לא תקרה.</b> הסנכרון לענן הוא כרגע <b>חד-פעמי למכשיר</b> (באג מתועד,
+                טרם תוקן): התקדמות שנרשמה <b>אחרי</b> ההתחברות הראשונה נשארת רק בדפדפן של הלומד ולא מגיעה לכאן.
+                כלומר בפועל לומדים סגרו <b>לפחות</b> את מה שמוצג — קרוב לוודאי יותר.
+            </div>
+            <div class="caveat">
+                <b>שם ריק =</b> חשבון שנפתח לפני שדף ההרשמה החדש עלה לאוויר. אלה נרשמו במודאל הישן שביקש מייל וסיסמה בלבד.
+                אנחנו שומרים שם ומייל בלבד — אין מספרי טלפון במערכת.
+            </div>
+        </div>
+
+        <div id="loading" class="hidden">טוען נתונים...</div>
+    </main>
+
+    <!-- Learner detail drawer -->
+    <div class="drawer" id="drawer" hidden>
+        <div class="drawer__card g" role="dialog" aria-modal="true" aria-labelledby="drawerName">
+            <button type="button" class="drawer__close" id="drawerClose" aria-label="סגור">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+            <div class="drawer__head">
+                <h3 id="drawerName"></h3>
+                <p id="drawerEmail"></p>
+            </div>
+            <div class="drawer__stats" id="drawerStats"></div>
+            <h4><i class="fa-solid fa-clipboard-question"></i>שאלון הכניסה</h4>
+            <div id="drawerAnswers"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/course-data.js" defer></script>
+    <script src="../js/global-nav.js" defer></script>
+    <script src="../js/admin-users.js" defer></script>
+    <script src="../js/credit-stamp.js" defer></script>
+</body>
+</html>
