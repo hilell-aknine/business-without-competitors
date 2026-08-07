@@ -1,6 +1,19 @@
 /* ==============================================================
-   practice.js — Active-recall practice game engine
-   עסק ללא מתחרים · Vanilla JS, no libraries
+   practice.js — Duolingo-style practice game engine
+   עסק ללא מתחרים · Vanilla JS, no libraries, no build step
+
+   Layers, top to bottom:
+     1. Supabase sync (unchanged contract — practice_stats)
+     2. Storage + derived progress helpers
+     3. PATH MODEL   — units (modules) → nodes (lessons + unit boss)
+     4. PATH VIEW    — the winding map with locks
+     5. SESSION      — short rounds, hearts, combo, mistake replay
+     6. RENDERERS    — match / order / cloze / goodbad (content untouched)
+     7. FX           — sound (WebAudio), haptics, XP pops, flashes
+     8. SUMMARY / FAIL screens
+
+   Challenge ids (m0-match-1 …) and the localStorage shape are preserved,
+   so existing learner progress keeps working and keeps syncing.
    ============================================================== */
 
 'use strict';
@@ -8,10 +21,17 @@
 /* ================================================================
    CONSTANTS
    ================================================================ */
-const STORAGE_KEY = 'bwc_practice_v1';
+const STORAGE_KEY  = 'bwc_practice_v1';
+const SOUND_KEY    = 'bwc_practice_sound';
+
+const MAX_HEARTS   = 5;      // hearts per round
+const LESSON_SIZE  = 6;      // max challenges in a lesson node
+const BOSS_SIZE    = 7;      // challenges in the unit-review (boss) node
+const MASTERY      = 80;     // accuracy % that counts a challenge as solved
+const MAX_ATTEMPTS = 2;      // how many times a missed challenge comes back
 
 /* ================================================================
-   SUPABASE SYNC LAYER
+   1. SUPABASE SYNC LAYER
    Authenticated users: Supabase is source-of-truth.
    Guests: localStorage only (no change to existing behavior).
    All Supabase operations are fire-and-forget — never block the UI.
@@ -36,9 +56,7 @@ function localToSupabase(userId, data) {
   };
 }
 
-/**
- * Convert a Supabase practice_stats row to the localStorage shape.
- */
+/** Convert a Supabase practice_stats row to the localStorage shape. */
 function supabaseToLocal(row) {
   return {
     xp:       row.total_xp || 0,
@@ -50,10 +68,7 @@ function supabaseToLocal(row) {
 
 /**
  * Merge localStorage data and Supabase row data, taking the best of each:
- * - XP: max
- * - streak: max
- * - lastDate: the more recent date (or whichever is non-null)
- * - completed: union (keep highest accuracy per challenge)
+ * XP max · streak max · most recent lastDate · union of completed (best accuracy).
  */
 function mergeData(local, remote) {
   const merged = {
@@ -63,14 +78,12 @@ function mergeData(local, remote) {
     completed: {}
   };
 
-  // Pick more recent lastDate
   if (local.lastDate && remote.lastDate) {
     merged.lastDate = local.lastDate >= remote.lastDate ? local.lastDate : remote.lastDate;
   } else {
     merged.lastDate = local.lastDate || remote.lastDate || null;
   }
 
-  // Union of completed challenges — keep best accuracy for each
   const allKeys = new Set([
     ...Object.keys(local.completed || {}),
     ...Object.keys(remote.completed || {})
@@ -87,10 +100,8 @@ function mergeData(local, remote) {
 }
 
 /**
- * Fetch the user's row from Supabase, merge with localStorage, and save merged
- * result back to localStorage. Also upserts merged data back to Supabase so
- * any local-only progress is pushed up.
- * Non-blocking: errors are logged silently.
+ * Fetch the user's row from Supabase, merge with localStorage, save merged
+ * back to localStorage, and push the merge up. Non-blocking; errors logged.
  */
 async function syncFromSupabase() {
   try {
@@ -117,15 +128,16 @@ async function syncFromSupabase() {
     if (rows) {
       const remote = supabaseToLocal(rows);
       merged = mergeData(local, remote);
+      // Keep local-only fields that practice_stats does not carry.
+      // (dailyPlay = the 15-min cap; weekly = the league bucket, which has
+      //  its own table and must not be clobbered by a stats merge.)
+      merged.dailyPlay = local.dailyPlay || null;
+      merged.weekly    = local.weekly || null;
     } else {
-      // No remote row yet — local data is the source of truth
       merged = local;
     }
 
-    // Save merged to localStorage so the UI updates immediately
     saveDataLocal(merged);
-
-    // Push merged data back to Supabase (upsert)
     upsertToSupabase(user.id, merged);
   } catch (err) {
     console.warn('[practice] syncFromSupabase error:', err);
@@ -141,7 +153,6 @@ async function upsertToSupabase(userId, data) {
     const supabase = window.bwcSupabase;
     if (!supabase) return;
 
-    // Fetch current longest_streak before overwriting so we never regress it
     let longestStreak = data.streak || 0;
     const { data: existing } = await supabase
       .from('practice_stats')
@@ -160,25 +171,10 @@ async function upsertToSupabase(userId, data) {
       .from('practice_stats')
       .upsert(row, { onConflict: 'user_id' });
 
-    if (error) {
-      console.warn('[practice] Supabase upsert error:', error.message);
-    }
+    if (error) console.warn('[practice] Supabase upsert error:', error.message);
   } catch (err) {
     console.warn('[practice] upsertToSupabase error:', err);
   }
-}
-
-/* ================================================================
-   STORAGE (localStorage — original + Supabase-aware wrapper)
-   ================================================================ */
-
-/**
- * A module is "unlocked" iff at least one challenge exists for it
- * in window.PRACTICE_CHALLENGES. No more hardcoded MVP gate — modules
- * appear/disappear from the practice menu purely as data is added.
- */
-function isModuleUnlocked(idx) {
-  return (window.PRACTICE_CHALLENGES || []).some(c => c.moduleIdx === idx);
 }
 
 /* ================================================================
@@ -216,49 +212,57 @@ function formatTime(sec) {
   return `${m}:${s}`;
 }
 
+/** Escape HTML to prevent injection in dynamic content. */
+function escHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** True when the visitor asked for reduced motion. */
+function reducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 /* ================================================================
-   STORAGE
+   2. STORAGE
    ================================================================ */
 
 /** Load persistent practice data from localStorage. */
 function loadData() {
+  const defaults = { xp: 0, streak: 0, lastDate: null, completed: {}, dailyPlay: null, weekly: null };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    const defaults = { xp: 0, streak: 0, lastDate: null, completed: {}, dailyPlay: null };
     if (!raw) return defaults;
     const parsed = JSON.parse(raw);
-    // Merge with defaults in case schema evolved
     return Object.assign({}, defaults, parsed);
   } catch (_) {
-    return { xp: 0, streak: 0, lastDate: null, completed: {}, dailyPlay: null };
+    return defaults;
   }
 }
 
-/** Save persistent practice data to localStorage only (internal helper). */
+/** Save to localStorage only (internal helper). */
 function saveDataLocal(data) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
 }
 
 /**
- * Save persistent practice data.
- * Always writes to localStorage immediately (non-blocking, synchronous).
- * If the user is authenticated, also fire-and-forgets an upsert to Supabase.
+ * Save practice data. Always writes localStorage synchronously; when the user
+ * is authenticated it also fire-and-forgets an upsert to Supabase.
  */
 function saveData(data) {
   saveDataLocal(data);
-  // Fire-and-forget Supabase sync for authenticated users
   const user = window.bwcAuth && window.bwcAuth.getUser();
-  if (user) {
-    upsertToSupabase(user.id, data);
-  }
+  if (user) upsertToSupabase(user.id, data);
 }
 
 /**
  * Update streak on session end.
- * - lastDate === today  → no change
- * - lastDate === yesterday → streak + 1
- * - anything else (null, or older) → reset to 1
- * Returns { streak, changed, isNew } so the Done screen can display appropriate messaging.
+ * lastDate === today → no change · === yesterday → +1 · otherwise → reset to 1.
  */
 function updateStreak(data) {
   const today = todayJerusalem();
@@ -273,7 +277,6 @@ function updateStreak(data) {
     data.lastDate = today;
     changed = true;
   } else {
-    // Streak broken, or first ever
     isNew = !data.lastDate;
     data.streak = 1;
     data.lastDate = today;
@@ -282,21 +285,185 @@ function updateStreak(data) {
   return { streak: data.streak, changed, isNew };
 }
 
+/* ---- Daily practice cap (Project-100 principle) ----
+   15 minutes a day, on purpose: consistency beats bingeing. Enforced when
+   STARTING a round; a running round is never cut off mid-challenge. */
+const DAILY_CAP_SECONDS = 15 * 60;
+
+function dailyPlaySeconds(data) {
+  const today = todayJerusalem();
+  if (!data.dailyPlay || data.dailyPlay.date !== today) return 0;
+  return data.dailyPlay.seconds || 0;
+}
+
+function addDailyPlay(data, seconds) {
+  const today = todayJerusalem();
+  if (!data.dailyPlay || data.dailyPlay.date !== today) {
+    data.dailyPlay = { date: today, seconds: 0 };
+  }
+  data.dailyPlay.seconds += Math.max(0, Math.round(seconds));
+}
+
 /* ================================================================
-   SESSION STATE
+   3. PATH MODEL
+   Units = the 8 course modules. Each unit is split into short lesson
+   nodes plus one "unit challenge" (boss) node.
+
+   Node completion is DERIVED from data.completed (per-challenge best
+   accuracy) — no new persisted state, so it survives Supabase sync and
+   existing learner progress unlocks the path automatically.
+   ================================================================ */
+
+/** Type rotation used to interleave challenge types inside a node. */
+const TYPE_ORDER = ['match', 'cloze', 'order', 'goodbad'];
+
+/**
+ * Deterministic, interleaved ordering of a module's challenges.
+ * Round-robins across types so every node holds a varied mix.
+ */
+function moduleChallenges(moduleIdx) {
+  const all = (window.PRACTICE_CHALLENGES || []).filter(c => c.moduleIdx === moduleIdx);
+  const buckets = {};
+  TYPE_ORDER.forEach(t => { buckets[t] = []; });
+  all.forEach(c => {
+    if (!buckets[c.type]) buckets[c.type] = [];
+    buckets[c.type].push(c);
+  });
+  Object.keys(buckets).forEach(t => buckets[t].sort((a, b) => a.id.localeCompare(b.id)));
+
+  const ordered = [];
+  const keys = TYPE_ORDER.concat(Object.keys(buckets).filter(k => TYPE_ORDER.indexOf(k) === -1));
+  let added = true;
+  let round = 0;
+  while (added) {
+    added = false;
+    keys.forEach(t => {
+      const item = (buckets[t] || [])[round];
+      if (item) { ordered.push(item); added = true; }
+    });
+    round++;
+  }
+  return ordered;
+}
+
+/** Split an array into balanced chunks of at most `size`. */
+function chunkBalanced(arr, size) {
+  if (arr.length === 0) return [];
+  const count = Math.max(1, Math.ceil(arr.length / size));
+  const per   = Math.ceil(arr.length / count);
+  const out = [];
+  for (let i = 0; i < arr.length; i += per) out.push(arr.slice(i, i + per));
+  return out;
+}
+
+/**
+ * Build the whole path: [{ moduleIdx, module, nodes: [...] }, …]
+ * Node: { id, unitIdx, nodeIdx, flatIdx, kind:'lesson'|'boss', title, challenges }
+ */
+function buildPath() {
+  const units = [];
+  let flat = 0;
+
+  (window.MODULES || []).forEach((mod, mi) => {
+    const list = moduleChallenges(mi);
+    if (list.length === 0) return; // module has no content yet — skip entirely
+
+    const chunks = chunkBalanced(list, LESSON_SIZE);
+    const nodes = chunks.map((chunk, ni) => ({
+      id:         `m${mi}-n${ni}`,
+      unitIdx:    mi,
+      nodeIdx:    ni,
+      flatIdx:    flat++,
+      kind:       'lesson',
+      title:      `שיעור ${ni + 1}`,
+      challenges: chunk
+    }));
+
+    // Unit boss — only worth showing when the unit has enough material
+    if (list.length >= 4) {
+      nodes.push({
+        id:         `m${mi}-boss`,
+        unitIdx:    mi,
+        nodeIdx:    nodes.length,
+        flatIdx:    flat++,
+        kind:       'boss',
+        title:      'אתגר היחידה',
+        challenges: list.slice() // drawn from at session start
+      });
+    }
+
+    units.push({ moduleIdx: mi, module: mod, nodes });
+  });
+
+  return units;
+}
+
+/** All nodes, in walking order. */
+function flatNodes(units) {
+  return units.reduce((acc, u) => acc.concat(u.nodes), []);
+}
+
+/** A challenge counts as solved once its best accuracy reaches MASTERY. */
+function isSolved(data, id) {
+  return (data.completed[id] || 0) >= MASTERY;
+}
+
+/** Lesson node is done when every challenge in it is solved. */
+function isNodeDone(node, data) {
+  if (node.kind === 'boss') {
+    // Boss is crowned only when the entire unit is solved
+    return node.challenges.every(c => isSolved(data, c.id));
+  }
+  return node.challenges.every(c => isSolved(data, c.id));
+}
+
+/** How many of a node's challenges are already solved. */
+function nodeSolvedCount(node, data) {
+  return node.challenges.filter(c => isSolved(data, c.id)).length;
+}
+
+/**
+ * Unlock rule (Duolingo-style, with a grace clause so nobody gets re-locked):
+ *   • the first node is always open
+ *   • a node opens once the previous node is done
+ *   • LEGACY GRACE: a unit the learner already touched stays open, so
+ *     progress recorded before the path existed is never taken away.
+ */
+function isNodeUnlocked(node, all, data) {
+  if (node.flatIdx === 0) return true;
+  const prev = all[node.flatIdx - 1];
+  if (prev && isNodeDone(prev, data)) return true;
+  if (unitTouched(node.unitIdx, data)) return true;
+  return false;
+}
+
+/** True when the learner has any recorded attempt inside this unit. */
+function unitTouched(moduleIdx, data) {
+  return (window.PRACTICE_CHALLENGES || [])
+    .some(c => c.moduleIdx === moduleIdx && data.completed[c.id] !== undefined);
+}
+
+/* ================================================================
+   4. SESSION STATE
    ================================================================ */
 
 const state = {
-  view: 'menu',           // 'menu' | 'play' | 'done'
-  challenges: [],         // shuffled challenge objects for current session
-  currentIdx: 0,          // index into challenges[]
+  view: 'menu',          // 'menu' | 'play' | 'done' | 'fail'
+  units: [],
+  allNodes: [],
+  node: null,            // node currently being played
+  queue: [],             // [{ ch, review, attempts }]
+  qi: 0,
+  hearts: MAX_HEARTS,
+  combo: 0,
+  maxCombo: 0,
   sessionXP: 0,
-  sessionCorrect: 0,
-  sessionStartTime: null, // Date object
-  // Per-challenge tracking (index → { accuracy, wrongAttempts })
-  challengeResults: {},
-  // Active challenge interaction state (type-specific)
-  active: null
+  uniqueTotal: 0,        // challenges required to finish the round
+  solved: null,          // Set of ids solved this round
+  firstTry: 0,           // solved on the first attempt (that's the real accuracy)
+  mistakes: [],          // challenge objects missed at least once
+  startTime: null,
+  active: null           // per-challenge interaction state
 };
 
 /* ================================================================
@@ -304,23 +471,15 @@ const state = {
    ================================================================ */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Render the menu IMMEDIATELY from localStorage so the page is interactive
-  // within milliseconds. Supabase sync (if logged in) runs in the background
-  // and silently refreshes stats once data arrives.
   init();
 
-  // Bind exit-confirm buttons via addEventListener (DOM is ready here).
-  // Inline onclick attributes were brittle if any code re-rendered the parent.
-  document.getElementById('exitBtn')
-    ?.addEventListener('click', () => window.requestExit());
-  document.getElementById('confirmExitBtn')
-    ?.addEventListener('click', () => window.confirmExit());
-  document.getElementById('cancelExitBtn')
-    ?.addEventListener('click', () => window.cancelExit());
+  document.getElementById('exitBtn')?.addEventListener('click', () => window.requestExit());
+  document.getElementById('confirmExitBtn')?.addEventListener('click', () => window.confirmExit());
+  document.getElementById('cancelExitBtn')?.addEventListener('click', () => window.cancelExit());
+  document.getElementById('sound-toggle')?.addEventListener('click', toggleSound);
+  syncSoundButton();
 
-  // Background: wait for auth, then if logged-in pull Supabase data and
-  // silently refresh visible stats. Never blocks first paint, never interrupts
-  // a challenge in progress.
+  // Background: wait for auth, then pull Supabase data and silently refresh.
   const authReady = (window.bwcAuth && typeof window.bwcAuth.ready === 'function')
     ? window.bwcAuth.ready()
     : Promise.resolve();
@@ -329,67 +488,36 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(async () => {
       if (window.bwcAuth && window.bwcAuth.getUser()) {
         await syncFromSupabase();
-        // Stats may have changed — refresh visible numbers if on menu.
-        // Do NOT re-init the engine; if the user is mid-challenge, leave them alone.
-        if (state.view === 'menu') {
-          refreshStats();
-          renderMenu();
-        }
+        if (state.view === 'menu') renderMenu();
       }
 
-      // Subscribe to future auth state changes
       if (window.bwcAuth && typeof window.bwcAuth.onChange === 'function') {
-        let previousUserId = window.bwcAuth.getUser()
-          ? window.bwcAuth.getUser().id
-          : null;
-
+        let previousUserId = window.bwcAuth.getUser() ? window.bwcAuth.getUser().id : null;
         window.bwcAuth.onChange(async (user) => {
           if (user && user.id !== previousUserId) {
-            // User just logged IN — merge remote data and re-render menu
             previousUserId = user.id;
             await syncFromSupabase();
-            // Re-render menu stats if currently on menu view
-            if (state.view === 'menu') {
-              renderMenu();
-            }
+            if (state.view === 'menu') renderMenu();
           } else if (!user) {
-            // User logged OUT — keep using localStorage as-is
             previousUserId = null;
           }
         });
       }
     })
     .catch(err => {
-      // Auth check failed — guest mode is already running from the sync init() above
       console.warn('[practice] Auth ready error, staying in guest mode:', err);
     });
 });
 
-/**
- * Lightweight, idempotent refresh of the visible stats numbers from localStorage.
- * Used after a background Supabase sync resolves — updates XP / streak / last
- * score without re-rendering the whole module grid or interrupting a challenge.
- */
-function refreshStats() {
-  const data = loadData();
-  const xpEl     = document.getElementById('stat-xp');
-  const streakEl = document.getElementById('stat-streak');
-  const lastEl   = document.getElementById('stat-last');
-  if (xpEl)     xpEl.textContent     = data.xp || 0;
-  if (streakEl) streakEl.textContent = data.streak || 0;
-  if (lastEl) {
-    const lastScore = getLastSessionScore(data);
-    lastEl.textContent = lastScore !== null ? lastScore + '%' : '—';
-  }
-}
-
 function init() {
-  // Guard: if practice-data.js didn't load or has no content
-  if (!window.PRACTICE_CHALLENGES || !Array.isArray(window.PRACTICE_CHALLENGES) || window.PRACTICE_CHALLENGES.length === 0) {
+  const challenges = window.PRACTICE_CHALLENGES;
+  if (!challenges || !Array.isArray(challenges) || challenges.length === 0) {
     showView('menu');
     renderMenuEmpty();
     return;
   }
+  state.units    = buildPath();
+  state.allNodes = flatNodes(state.units);
   renderMenu();
   showView('menu');
 }
@@ -400,16 +528,33 @@ function init() {
 
 function showView(name) {
   state.view = name;
-  ['menu', 'play', 'done'].forEach(v => {
+  ['menu', 'play', 'done', 'fail'].forEach(v => {
     const el = document.getElementById('view-' + v);
     if (el) el.classList.toggle('prac-view--active', v === name);
   });
+  document.getElementById('combo-badge')?.classList.remove('prac-combo--show');
   window.scrollTo({ top: 0, behavior: 'instant' });
 }
 
 /* ================================================================
-   MENU VIEW
+   5. PATH VIEW  (menu)
    ================================================================ */
+
+/* Per-unit jewel tones — keeps the Duolingo "each unit has a colour"
+   read while staying inside the petrol/gold/aqua brand family. */
+const UNIT_COLORS = [
+  ['#2f8592', '#0e3b43', 'rgba(0,0,0,.4)'],
+  ['#c9922f', '#7c5817', 'rgba(0,0,0,.4)'],
+  ['#3d9070', '#12442f', 'rgba(0,0,0,.4)'],
+  ['#7f6ac4', '#332a5e', 'rgba(0,0,0,.4)'],
+  ['#c07044', '#63301a', 'rgba(0,0,0,.4)'],
+  ['#3179a8', '#123a55', 'rgba(0,0,0,.4)'],
+  ['#ab5273', '#4f2033', 'rgba(0,0,0,.4)'],
+  ['#6d963a', '#324715', 'rgba(0,0,0,.4)']
+];
+
+/* Zig-zag offsets, continuing across unit boundaries. */
+const PATH_OFFSETS = [0, 44, 66, 44, 0, -44, -66, -44];
 
 function renderMenuEmpty() {
   const wrap = document.getElementById('view-menu');
@@ -428,199 +573,247 @@ function renderMenu() {
   const data = loadData();
 
   // Stats bar
-  document.getElementById('stat-xp').textContent = data.xp;
-  document.getElementById('stat-streak').textContent = data.streak || 0;
-  const lastScore = getLastSessionScore(data);
-  document.getElementById('stat-last').textContent = lastScore !== null ? lastScore + '%' : '—';
+  const xpEl     = document.getElementById('stat-xp');
+  const streakEl = document.getElementById('stat-streak');
+  const lastEl   = document.getElementById('stat-last');
+  if (xpEl)     xpEl.textContent     = data.xp || 0;
+  if (streakEl) streakEl.textContent = data.streak || 0;
+  if (lastEl) {
+    const solvedTotal = (window.PRACTICE_CHALLENGES || []).filter(c => isSolved(data, c.id)).length;
+    const total = (window.PRACTICE_CHALLENGES || []).length || 1;
+    lastEl.textContent = Math.round((solvedTotal / total) * 100) + '%';
+  }
 
-  // Module grid
-  const grid = document.getElementById('module-grid');
-  if (!grid) return;
+  renderPath(data);
 
-  grid.innerHTML = MODULES.map((mod, idx) => {
-    const isUnlocked = isModuleUnlocked(idx);
-    const challenges = (window.PRACTICE_CHALLENGES || []).filter(c => c.moduleIdx === idx);
-    const count = challenges.length;
-
-    // Badge for unlocked module
-    let badge = '';
-    if (!isUnlocked) {
-      badge = `<span class="prac-badge prac-badge--lock"><i class="fa-solid fa-lock"></i> בקרוב</span>`;
-    } else {
-      // Check if any challenge for this module was completed
-      const bestScores = challenges.map(c => data.completed[c.id]);
-      const attempted = bestScores.filter(s => s !== undefined);
-      if (attempted.length === 0) {
-        badge = `<span class="prac-badge prac-badge--new"><i class="fa-solid fa-circle"></i> חדש</span>`;
-      } else if (attempted.length === challenges.length && attempted.every(s => s >= 80)) {
-        badge = `<span class="prac-badge prac-badge--done"><i class="fa-solid fa-check"></i> הושלם</span>`;
-      } else {
-        const avg = Math.round(attempted.reduce((a, b) => a + b, 0) / attempted.length);
-        badge = `<span class="prac-badge prac-badge--tried"><i class="fa-solid fa-rotate-right"></i> ${attempted.length}/${challenges.length} · ${avg}%</span>`;
-      }
-    }
-
-    const clickAttr = isUnlocked
-      ? `onclick="startSession(${idx})" tabindex="0" role="button"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startSession(${idx})}"`
-      : `tabindex="0" title="אתגרים לבקרוב"
-         onkeydown="void 0"`;
-
-    return `
-      <article class="prac-module-card g ${isUnlocked ? '' : 'prac-module-card--locked'}"
-               ${clickAttr}
-               aria-label="מודול ${idx + 1}: ${mod.title}${isUnlocked ? '' : ' (נעול)'}">
-        <div class="prac-module-card__head">
-          <div class="prac-module-card__icon">
-            ${isUnlocked
-              ? `<i class="fa-solid ${mod.icon || 'fa-dumbbell'}"></i>`
-              : `<i class="fa-solid fa-lock"></i>`}
-          </div>
-          <div>
-            <div class="prac-module-card__num">מודול ${idx + 1}</div>
-            <h3 class="prac-module-card__title">${mod.title}</h3>
-          </div>
-        </div>
-        <p class="prac-module-card__desc">${mod.shortDescription || ''}</p>
-        <div class="prac-module-card__footer">
-          <span class="prac-module-card__meta">
-            <i class="fa-solid fa-bolt"></i>
-            ${count > 0 ? count + ' אתגרים' : 'בקרוב'}
-          </span>
-          ${badge}
-        </div>
-      </article>
-    `;
-  }).join('');
+  // Motivation layer (three axes + weekly league). Async, never blocks paint,
+  // and silently falls back to local goals when Supabase or migration 007
+  // is not available.
+  if (window.bwcLeague) window.bwcLeague.render();
 }
 
-function getLastSessionScore(data) {
-  const completed = data.completed;
-  const keys = Object.keys(completed);
-  if (keys.length === 0) return null;
-  const sum = keys.reduce((a, k) => a + completed[k], 0);
-  return Math.round(sum / keys.length);
+function renderPath(data) {
+  const root = document.getElementById('path-root');
+  if (!root) return;
+
+  // Which node is "current"? First unlocked-and-unfinished node.
+  const current = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, data) && !isNodeDone(n, data));
+  const currentId = current ? current.id : null;
+
+  root.innerHTML = state.units.map(unit => {
+    const colors = UNIT_COLORS[unit.moduleIdx % UNIT_COLORS.length];
+    const doneCount = unit.nodes.filter(n => isNodeDone(n, data)).length;
+    const unitLocked = unit.nodes.every(n => !isNodeUnlocked(n, state.allNodes, data));
+
+    const nodesHtml = unit.nodes.map(node => {
+      const done     = isNodeDone(node, data);
+      const unlocked = isNodeUnlocked(node, state.allNodes, data);
+      const isCurr   = node.id === currentId;
+      const off      = PATH_OFFSETS[node.flatIdx % PATH_OFFSETS.length];
+      const solved   = nodeSolvedCount(node, data);
+      const totalCh  = node.kind === 'boss' ? BOSS_SIZE : node.challenges.length;
+
+      let cls = 'node';
+      if (node.kind === 'boss') cls += ' node--boss';
+      if (!unlocked)      cls += ' node--locked';
+      else if (done)      cls += ' node--done';
+      else                cls += ' node--open';
+      if (isCurr)         cls += ' node--current';
+
+      let icon;
+      if (!unlocked)                 icon = 'fa-lock';
+      else if (node.kind === 'boss') icon = done ? 'fa-crown' : 'fa-trophy';
+      else                           icon = done ? 'fa-check' : 'fa-star';
+
+      const label = node.kind === 'boss'
+        ? (done ? 'היחידה הושלמה' : `${node.title} · ${totalCh} אתגרים`)
+        : (done ? `${node.title} · הושלם` : `${node.title} · ${solved}/${node.challenges.length}`);
+
+      const aria = `${unit.module.title} — ${node.title}` +
+                   (unlocked ? (done ? ' (הושלם)' : '') : ' (נעול)');
+
+      return `
+        <div class="node-row ${done ? 'node-row--done' : ''} ${isCurr ? 'node-row--current' : ''}"
+             style="--off:${off}px">
+          ${isCurr ? `<span class="node-bubble">${done ? 'תרגל שוב' : 'התחל'}</span>` : ''}
+          <button type="button" class="${cls}"
+                  data-node="${node.id}"
+                  ${unlocked ? '' : 'aria-disabled="true"'}
+                  aria-label="${escHtml(aria)}">
+            <i class="fa-solid ${icon}" aria-hidden="true"></i>
+          </button>
+          <div class="node-row__label">${escHtml(label)}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <section class="unit ${unitLocked ? 'unit--locked' : ''}"
+               style="--unit-c1:${colors[0]};--unit-c2:${colors[1]};--unit-shadow:${colors[2]}"
+               aria-label="יחידה ${unit.moduleIdx + 1}: ${escHtml(unit.module.title)}">
+        <div class="unit__banner">
+          <div class="unit__banner-icon"><i class="fa-solid ${unit.module.icon || 'fa-dumbbell'}" aria-hidden="true"></i></div>
+          <div class="unit__banner-text">
+            <div class="unit__banner-eyebrow">יחידה ${unit.moduleIdx + 1}</div>
+            <h2 class="unit__banner-title">${escHtml(unit.module.title)}</h2>
+          </div>
+          <div class="unit__banner-count">${doneCount}/${unit.nodes.length}</div>
+        </div>
+        <div class="unit__nodes">${nodesHtml}</div>
+      </section>`;
+  }).join('');
+
+  // Wire node clicks
+  root.querySelectorAll('.node').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const node = state.allNodes.find(n => n.id === btn.dataset.node);
+      if (!node) return;
+      const fresh = loadData();
+      if (!isNodeUnlocked(node, state.allNodes, fresh)) {
+        btn.classList.remove('node--nudge');
+        void btn.offsetWidth; // restart the animation
+        btn.classList.add('node--nudge');
+        playSound('locked');
+        haptic([15, 40, 15]);
+        showToast('סיימו קודם את השיעור שלפניו');
+        return;
+      }
+      startNode(node);
+    });
+  });
+
+  // Bring the current node into view if it sits far down the path
+  if (current && current.flatIdx > 2 && !reducedMotion()) {
+    const el = root.querySelector(`[data-node="${current.id}"]`);
+    if (el) setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 260);
+  }
 }
 
 /* ================================================================
-   START SESSION
+   6. SESSION — start / queue / advance
    ================================================================ */
 
-/* ---- Daily practice cap (Project-100 principle, 2026-08-02) ----
-   15 minutes a day, on purpose: consistency beats bingeing. The cap is
-   enforced when STARTING a session (a running session is never cut off
-   mid-challenge). Tracked per Jerusalem day in data.dailyPlay. */
-const DAILY_CAP_SECONDS = 15 * 60;
-
-function dailyPlaySeconds(data) {
-  const today = todayJerusalem();
-  if (!data.dailyPlay || data.dailyPlay.date !== today) return 0;
-  return data.dailyPlay.seconds || 0;
-}
-
-function addDailyPlay(data, seconds) {
-  const today = todayJerusalem();
-  if (!data.dailyPlay || data.dailyPlay.date !== today) {
-    data.dailyPlay = { date: today, seconds: 0 };
-  }
-  data.dailyPlay.seconds += Math.max(0, Math.round(seconds));
-}
-
 function showDailyCapNotice() {
-  const cardWrap = document.getElementById('challenge-card');
   showView('play');
   hideActionBar();
-  const fill = document.getElementById('play-progress-fill');
-  const label = document.getElementById('play-progress-label');
-  if (fill) fill.style.width = '100%';
-  if (label) label.textContent = 'האימון היומי הושלם';
+  setHudProgress(1);
+  const cardWrap = document.getElementById('challenge-card');
   if (cardWrap) {
     cardWrap.innerHTML = `
       <div class="prac-card g" style="text-align:center;padding:2rem 1.5rem;">
-        <div style="font-size:2.2rem;margin-bottom:.6rem;">🌱</div>
+        <div style="font-size:2.2rem;margin-block-end:.6rem;">🌱</div>
         <h3 style="margin:.2rem 0 .6rem;">15 הדקות היומיות שלך הושלמו</h3>
         <p style="color:var(--text-muted);max-inline-size:34rem;margin-inline:auto;line-height:1.6;">
           זו לא תקלה — זו השיטה. אימון קצר וקבוע כל יום בונה את השריר הרבה יותר
           מסשן ארוך פעם בשבוע. הרצף שלך נשמר, ומחר מחכה לך סט חדש.
         </p>
-        <button class="btn-check btn-check--ready" style="margin-top:1.2rem;" onclick="window.backToMenu && window.backToMenu()">חזרה לתפריט</button>
+        <button class="btn-check btn-check--ready" style="margin-block-start:1.2rem;"
+                onclick="window.backToMenu && window.backToMenu()">חזרה למסלול</button>
       </div>`;
   }
 }
 
-function startSession(moduleIdx) {
-  const all = (window.PRACTICE_CHALLENGES || []).filter(c => c.moduleIdx === moduleIdx);
-  if (all.length === 0) return;
+/** Pick the challenges a node will serve this round. */
+function drawChallenges(node, data) {
+  if (node.kind !== 'boss') return shuffle(clone(node.challenges));
 
-  if (dailyPlaySeconds(loadData()) >= DAILY_CAP_SECONDS) {
+  // Boss: a mixed exam, weighted toward what the learner has NOT mastered.
+  const weak   = node.challenges.filter(c => !isSolved(data, c.id));
+  const strong = node.challenges.filter(c =>  isSolved(data, c.id));
+  const picked = shuffle(weak.slice()).concat(shuffle(strong.slice())).slice(0, BOSS_SIZE);
+  return shuffle(clone(picked));
+}
+
+function startNode(node) {
+  const data = loadData();
+
+  if (dailyPlaySeconds(data) >= DAILY_CAP_SECONDS) {
+    state.node = node;
     showDailyCapNotice();
     return;
   }
 
-  state.challenges = shuffle(clone(all));
-  state.currentIdx = 0;
-  state.sessionXP = 0;
-  state.sessionCorrect = 0;
-  state.sessionStartTime = new Date();
-  state.challengeResults = {};
+  const drawn = drawChallenges(node, data);
+  if (drawn.length === 0) return;
 
+  state.node        = node;
+  state.queue       = drawn.map(ch => ({ ch, review: false, attempts: 0 }));
+  state.qi          = 0;
+  state.hearts      = MAX_HEARTS;
+  state.combo       = 0;
+  state.maxCombo    = 0;
+  state.sessionXP   = 0;
+  state.uniqueTotal = drawn.length;
+  state.solved      = new Set();
+  state.firstTry    = 0;
+  state.mistakes    = [];
+  state.startTime   = new Date();
+  state.active      = null;
+
+  unlockAudio();
   showView('play');
+  renderHearts();
+  setHudProgress(0);
+  hideCombo();
+  renderChallenge();
+}
+
+function currentItem() { return state.queue[state.qi]; }
+
+function advanceChallenge() {
+  state.qi++;
+  if (state.hearts <= 0) { endFail(); return; }
+  if (state.qi >= state.queue.length) { endSession(); return; }
   renderChallenge();
 }
 
 /* ================================================================
-   PLAY VIEW — CHALLENGE RENDERING
+   PLAY VIEW — challenge rendering
    ================================================================ */
 
 function renderChallenge() {
-  const challenge = state.challenges[state.currentIdx];
-  const total = state.challenges.length;
-  const done = state.currentIdx;
+  const item = currentItem();
+  if (!item) { endSession(); return; }
+  const challenge = item.ch;
 
-  // Progress bar
-  const fill = document.getElementById('play-progress-fill');
-  const label = document.getElementById('play-progress-label');
-  if (fill)  fill.style.width = `${Math.round((done / total) * 100)}%`;
-  if (label) label.textContent = `אתגר ${done + 1} מתוך ${total}`;
-
-  // Render appropriate challenge type
   const cardWrap = document.getElementById('challenge-card');
   if (!cardWrap) return;
 
   state.active = null;
 
-  // Reset chrome BEFORE rendering — so per-type renderers can override
-  // the check button (e.g. Order enables it from start since shuffled
-  // input is itself a valid candidate answer).
   hideFeedback();
   showActionBar();
   setCheckButton(false, false);
+  setHudProgress(state.solved.size / state.uniqueTotal);
+
+  // Review-round ribbon
+  const tag = document.getElementById('review-tag');
+  if (tag) {
+    tag.style.display = item.review ? '' : 'none';
+    tag.innerHTML = item.review
+      ? '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> חזרה על טעות'
+      : '';
+  }
 
   switch (challenge.type) {
-    case 'match': renderMatch(challenge, cardWrap); break;
-    case 'order': renderOrder(challenge, cardWrap); break;
-    case 'cloze': renderCloze(challenge, cardWrap); break;
+    case 'match':   renderMatch(challenge, cardWrap); break;
+    case 'order':   renderOrder(challenge, cardWrap); break;
+    case 'cloze':   renderCloze(challenge, cardWrap); break;
     case 'goodbad': renderGoodBad(challenge, cardWrap); break;
     default:
-      cardWrap.innerHTML = `<p style="color:var(--text-muted)">סוג אתגר לא מוכר: ${challenge.type}</p>`;
+      cardWrap.innerHTML = `<p style="color:var(--text-muted)">סוג אתגר לא מוכר: ${escHtml(challenge.type)}</p>`;
   }
 }
 
-/* ----------------------------------------------------------------
-   GOOD/BAD challenge renderer (2026-08-02, Project-100 fifth
-   building block: a good example vs a bad example — judgment, not
-   recall). Self-checking: clicking an example answers immediately.
-   Data shape: { prompt, examples: [good, bad], correctIndex: 0 }
-   (examples are shuffled at render time).
-   ---------------------------------------------------------------- */
+/* ---- GOOD/BAD ---- */
 function renderGoodBad(challenge, container) {
-  const order = shuffle([0, 1]); // display order of examples
+  const order = shuffle([0, 1]);
   state.active = { type: 'goodbad', answered: false };
-  setCheckButton(false, false); // self-checking — no check button
+  setCheckButton(false, false); // self-checking
 
   container.innerHTML = `
     <div class="prac-card g">
-      <h3 class="prac-card__title">${escHtml(challenge.title || 'טוב או רע?')}</h3>
+      <div class="prac-card__eyebrow"><i class="fa-solid fa-scale-balanced"></i> שיפוט</div>
+      <div class="prac-card__title">${escHtml(challenge.title || 'טוב או רע?')}</div>
       <p class="prac-card__desc">${escHtml(challenge.prompt || 'איזו מהדוגמאות נאמנה למה שנלמד בשיעור?')}</p>
       <div class="goodbad-options">
         ${order.map((exIdx, displayIdx) => `
@@ -643,30 +836,19 @@ function renderGoodBad(challenge, container) {
         if (idx === (challenge.correctIndex || 0)) b.classList.add('goodbad-option--good');
         else if (idx === picked) b.classList.add('goodbad-option--bad');
       });
-      recordChallengeResult(challenge, isCorrect ? 100 : 0);
-      hideActionBar();
-      showFeedbackPanel(isCorrect, isCorrect ? 'שיפוט מדויק!' : 'לא הפעם — שווה לקרוא למה', challenge.explanation || null, () => advanceChallenge(), challenge);
+      submitAnswer(challenge, isCorrect ? 100 : 0,
+        isCorrect ? 'שיפוט מדויק!' : 'לא הפעם — שווה לקרוא למה', btn);
     });
   });
 }
 
-
-/* ----------------------------------------------------------------
-   MATCH challenge renderer
-   ---------------------------------------------------------------- */
+/* ---- MATCH ---- */
 function renderMatch(challenge, container) {
-  const pairs = shuffle(clone(challenge.pairs)); // shuffle pair order
-  const rightItems = pairs.map(p => p.left);     // concepts (right column in RTL)
-  const leftItems  = shuffle(pairs.map(p => p.right)); // definitions (left column, shuffled)
+  const pairs = shuffle(clone(challenge.pairs));
+  const rightItems = pairs.map(p => p.left);
+  const leftItems  = shuffle(pairs.map(p => p.right));
 
-  // Track state
-  const matchState = {
-    // Map from right-item index → left-item index (matched pairs)
-    rightSel: null,   // currently selected right item index
-    leftSel: null,    // currently selected left item index
-    matched: new Set(), // set of right-item indexes that are locked
-    wrongAttempts: 0
-  };
+  const matchState = { rightSel: null, leftSel: null, matched: new Set(), wrongAttempts: 0 };
 
   container.innerHTML = `
     <div class="prac-card g">
@@ -693,11 +875,9 @@ function renderMatch(challenge, container) {
     </div>
   `;
 
-  // Store canonical mapping: rightIdx → the correct definition text
   const correctMap = {};
   pairs.forEach((p, rightIdx) => { correctMap[rightIdx] = p.right; });
 
-  // Attach click handlers
   container.querySelectorAll('.match-item').forEach(el => {
     el.addEventListener('click', () => handleMatchClick(el, matchState, leftItems, correctMap, challenge, container));
   });
@@ -709,32 +889,22 @@ function handleMatchClick(el, matchState, leftItems, correctMap, challenge, cont
   const side = el.dataset.side;
   const idx  = parseInt(el.dataset.idx, 10);
 
-  // Ignore locked items
   if (el.classList.contains('match-item--correct') || el.classList.contains('match-item--locked')) return;
 
   if (side === 'right') {
-    // Deselect previous right selection
     container.querySelectorAll('[data-side="right"]').forEach(e => {
       if (!e.classList.contains('match-item--correct')) e.classList.remove('match-item--selected');
     });
     matchState.rightSel = idx;
     el.classList.add('match-item--selected');
-    // If a left was already selected, attempt match immediately
-    if (matchState.leftSel !== null) {
-      attemptMatch(matchState, leftItems, correctMap, challenge, container);
-    }
-
+    if (matchState.leftSel !== null) attemptMatch(matchState, leftItems, correctMap, challenge, container);
   } else if (side === 'left') {
-    // Deselect previous left selection
     container.querySelectorAll('[data-side="left"]').forEach(e => {
       if (!e.classList.contains('match-item--correct')) e.classList.remove('match-item--selected');
     });
     matchState.leftSel = idx;
     el.classList.add('match-item--selected');
-    // If a right was already selected, attempt match
-    if (matchState.rightSel !== null) {
-      attemptMatch(matchState, leftItems, correctMap, challenge, container);
-    }
+    if (matchState.rightSel !== null) attemptMatch(matchState, leftItems, correctMap, challenge, container);
   }
 }
 
@@ -750,7 +920,6 @@ function attemptMatch(matchState, leftItems, correctMap, challenge, container) {
   const correctDef  = correctMap[ri];
 
   if (selectedDef === correctDef) {
-    // Correct!
     [rightEl, leftEl].forEach(e => {
       e.classList.remove('match-item--selected');
       e.classList.add('match-item--correct', 'match-item--locked');
@@ -758,26 +927,25 @@ function attemptMatch(matchState, leftItems, correctMap, challenge, container) {
     matchState.matched.add(ri);
     matchState.rightSel = null;
     matchState.leftSel  = null;
+    playSound('tick');
+    haptic(8);
 
-    // Check if all matched
     if (matchState.matched.size === challenge.pairs.length) {
-      // Session: compute accuracy (100% minus 10% per wrong attempt, floor 50%)
+      // 100% clean, −10% per wrong tap, floor 50%
       const accuracy = Math.max(50, 100 - matchState.wrongAttempts * 10);
-      recordChallengeResult(challenge, accuracy);
-      // Small delay then show feedback / advance
-      setTimeout(() => {
-        showFeedbackPanel(true, null, challenge.explanation || null, () => advanceChallenge());
-        setCheckButton(false, false); // hide check btn while feedback is up
-        hideActionBar();
-      }, 350);
+      const msg = matchState.wrongAttempts === 0
+        ? 'התאמה מושלמת!'
+        : `כל הזוגות הותאמו (${matchState.wrongAttempts} נסיונות שגויים)`;
+      setTimeout(() => submitAnswer(challenge, accuracy, msg, rightEl), 320);
     }
   } else {
-    // Wrong — flash red briefly
     matchState.wrongAttempts++;
     [rightEl, leftEl].forEach(e => {
       e.classList.remove('match-item--selected');
       e.classList.add('match-item--error');
     });
+    playSound('tap-wrong');
+    haptic(20);
     setTimeout(() => {
       [rightEl, leftEl].forEach(e => e.classList.remove('match-item--error'));
     }, 600);
@@ -786,24 +954,16 @@ function attemptMatch(matchState, leftItems, correctMap, challenge, container) {
   }
 }
 
-/* ----------------------------------------------------------------
-   ORDER challenge renderer
-   ---------------------------------------------------------------- */
+/* ---- ORDER ---- */
 function renderOrder(challenge, container) {
   const shuffled = shuffle(clone(challenge.items));
-  const orderState = {
-    currentOrder: shuffled.slice(), // mutable working order
-    checked: false,
-    dragSrcIdx: null
-  };
+  const orderState = { currentOrder: shuffled.slice(), checked: false, dragSrcIdx: null };
 
   container.innerHTML = `
     <div class="prac-card g">
       <div class="prac-card__eyebrow"><i class="fa-solid fa-arrow-up-1-9"></i> סידור</div>
       <div class="prac-card__title">${escHtml(challenge.title)}</div>
-      ${challenge.description
-        ? `<div class="prac-card__desc">${escHtml(challenge.description)}</div>`
-        : ''}
+      ${challenge.description ? `<div class="prac-card__desc">${escHtml(challenge.description)}</div>` : ''}
       <div class="order-list" id="order-list"></div>
     </div>
   `;
@@ -811,20 +971,15 @@ function renderOrder(challenge, container) {
   function renderOrderList() {
     const list = container.querySelector('#order-list');
     list.innerHTML = orderState.currentOrder.map((text, i) => `
-      <div class="order-item"
-           draggable="true"
-           data-idx="${i}"
+      <div class="order-item" draggable="true" data-idx="${i}"
            aria-label="${escHtml(text)}, מיקום ${i + 1}">
         <div class="order-item__num">${i + 1}</div>
         <div class="order-item__text">${escHtml(text)}</div>
         <div class="order-item__arrows" aria-hidden="true">
-          <button type="button" title="הזז למעלה"
-                  onclick="orderMoveItem(${i}, -1)"
-                  ${i === 0 ? 'disabled' : ''}>
+          <button type="button" title="הזז למעלה" onclick="orderMoveItem(${i}, -1)" ${i === 0 ? 'disabled' : ''}>
             <i class="fa-solid fa-chevron-up"></i>
           </button>
-          <button type="button" title="הזז למטה"
-                  onclick="orderMoveItem(${i}, 1)"
+          <button type="button" title="הזז למטה" onclick="orderMoveItem(${i}, 1)"
                   ${i === orderState.currentOrder.length - 1 ? 'disabled' : ''}>
             <i class="fa-solid fa-chevron-down"></i>
           </button>
@@ -832,16 +987,14 @@ function renderOrder(challenge, container) {
       </div>
     `).join('');
 
-    attachOrderDragListeners(list, orderState, renderOrderList, challenge, container);
+    attachOrderDragListeners(list, orderState, renderOrderList);
     if (!orderState.checked) setCheckButton(true, true);
   }
 
   renderOrderList();
-  window._orderState = orderState; // expose for arrow button handlers
   state.active = { type: 'order', orderState, challenge, renderOrderList };
 }
 
-// Exposed globally for onclick handlers in template
 window.orderMoveItem = function(fromIdx, dir) {
   if (!state.active || state.active.type !== 'order') return;
   const { orderState, renderOrderList } = state.active;
@@ -851,9 +1004,11 @@ window.orderMoveItem = function(fromIdx, dir) {
   const arr = orderState.currentOrder;
   [arr[fromIdx], arr[toIdx]] = [arr[toIdx], arr[fromIdx]];
   renderOrderList();
+  playSound('tick');
+  haptic(6);
 };
 
-function attachOrderDragListeners(list, orderState, renderOrderList, challenge, container) {
+function attachOrderDragListeners(list, orderState, renderOrderList) {
   const items = list.querySelectorAll('.order-item');
   items.forEach(item => {
     item.addEventListener('dragstart', e => {
@@ -886,7 +1041,7 @@ function attachOrderDragListeners(list, orderState, renderOrderList, challenge, 
       renderOrderList();
     });
 
-    // Touch drag (mobile fallback — arrow buttons take precedence on mobile)
+    // Touch fallback (arrow buttons remain the primary mobile affordance)
     let touchStartY = 0;
     let touchStartIdx = null;
     item.addEventListener('touchstart', e => {
@@ -897,7 +1052,7 @@ function attachOrderDragListeners(list, orderState, renderOrderList, challenge, 
     item.addEventListener('touchend', e => {
       if (orderState.checked || touchStartIdx === null) return;
       const dy = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(dy) < 30) { touchStartIdx = null; return; } // tap, not drag
+      if (Math.abs(dy) < 30) { touchStartIdx = null; return; }
       const dir = dy > 0 ? 1 : -1;
       const toIdx = touchStartIdx + dir;
       if (toIdx >= 0 && toIdx < orderState.currentOrder.length) {
@@ -912,27 +1067,21 @@ function attachOrderDragListeners(list, orderState, renderOrderList, challenge, 
 
 function checkOrderAnswer() {
   if (!state.active || state.active.type !== 'order') return;
-  const { orderState, challenge, renderOrderList } = state.active;
+  const { orderState, challenge } = state.active;
   orderState.checked = true;
 
   const canonical = challenge.items;
   const current   = orderState.currentOrder;
   let correctCount = 0;
-  current.forEach((item, i) => {
-    if (item === canonical[i]) correctCount++;
-  });
+  current.forEach((item, i) => { if (item === canonical[i]) correctCount++; });
   const accuracy = Math.round((correctCount / canonical.length) * 100);
-  recordChallengeResult(challenge, accuracy);
 
-  // Re-render with correct/error classes
   const list = document.querySelector('#order-list');
   if (list) {
-    const items = list.querySelectorAll('.order-item');
-    items.forEach((el, i) => {
-      const isCorrect = current[i] === canonical[i];
-      el.classList.add(isCorrect ? 'order-item--correct' : 'order-item--error');
-      // Show correct position label for wrong items
-      if (!isCorrect) {
+    list.querySelectorAll('.order-item').forEach((el, i) => {
+      const ok = current[i] === canonical[i];
+      el.classList.add(ok ? 'order-item--correct' : 'order-item--error');
+      if (!ok) {
         const correctPos = canonical.indexOf(current[i]) + 1;
         const lbl = document.createElement('div');
         lbl.className = 'order-result-label order-result-label--error';
@@ -942,27 +1091,19 @@ function checkOrderAnswer() {
     });
   }
 
-  hideActionBar();
-  const isCorrect = accuracy >= 80;
-  const correct_text = `${correctCount}/${canonical.length} פריטים במיקום הנכון`;
-  const wrong_text   = `הסדר הנכון: ${canonical.join(' ← ')}`;
-  showFeedbackPanel(isCorrect, isCorrect ? correct_text : wrong_text, challenge.explanation || null, () => advanceChallenge());
+  const msg = accuracy >= MASTERY
+    ? `${correctCount}/${canonical.length} פריטים במיקום הנכון`
+    : `הסדר הנכון: ${canonical.join(' ← ')}`;
+  submitAnswer(challenge, accuracy, msg, list);
 }
 
-/* ----------------------------------------------------------------
-   CLOZE challenge renderer
-   ---------------------------------------------------------------- */
+/* ---- CLOZE ---- */
 function renderCloze(challenge, container) {
   const options = shuffle(clone(challenge.options));
-  const clozeState = {
-    selected: null,
-    checked: false
-  };
+  const clozeState = { selected: null, checked: false };
 
-  const sentenceHtml = escHtml(challenge.sentence).replace(
-    '___',
-    `<span class="cloze-blank" id="cloze-blank">___</span>`
-  );
+  const sentenceHtml = escHtml(challenge.sentence)
+    .replace('___', `<span class="cloze-blank" id="cloze-blank">___</span>`);
 
   container.innerHTML = `
     <div class="prac-card g">
@@ -980,16 +1121,14 @@ function renderCloze(challenge, container) {
   container.querySelectorAll('.cloze-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       if (clozeState.checked) return;
-      // Deselect all
       container.querySelectorAll('.cloze-chip').forEach(c => c.classList.remove('cloze-chip--selected'));
-      // Select clicked
       chip.classList.add('cloze-chip--selected');
       clozeState.selected = chip.dataset.value;
-      // Update blank
       const blank = document.getElementById('cloze-blank');
       if (blank) blank.textContent = clozeState.selected;
-      // Enable check button
       setCheckButton(true, true);
+      playSound('tick');
+      haptic(6);
     });
   });
 
@@ -1003,30 +1142,143 @@ function checkClozeAnswer() {
 
   clozeState.checked = true;
   const isCorrect = clozeState.selected === challenge.correct;
-  const accuracy  = isCorrect ? 100 : 0;
-  recordChallengeResult(challenge, accuracy);
 
-  // Update blank style
   const blank = document.getElementById('cloze-blank');
   if (blank) {
     blank.textContent = clozeState.selected;
     blank.classList.add(isCorrect ? 'cloze-blank--correct' : 'cloze-blank--error');
   }
 
-  // Style chips
+  let anchor = null;
   document.querySelectorAll('.cloze-chip').forEach(chip => {
     chip.disabled = true;
     if (chip.dataset.value === challenge.correct) {
       chip.classList.add('cloze-chip--correct');
+      anchor = chip;
     } else if (chip.dataset.value === clozeState.selected && !isCorrect) {
       chip.classList.remove('cloze-chip--selected');
       chip.classList.add('cloze-chip--error');
     }
   });
 
+  submitAnswer(challenge, isCorrect ? 100 : 0,
+    isCorrect ? null : `התשובה הנכונה: ${challenge.correct}`, anchor);
+}
+
+/* ================================================================
+   THE ONE ANSWER PIPELINE
+   Every challenge type funnels here: score → hearts → combo → XP →
+   persistence → feedback panel.
+   ================================================================ */
+
+function submitAnswer(challenge, accuracy, message, anchorEl) {
+  const item = currentItem();
+  const isCorrect = accuracy >= MASTERY;
+
+  // ---- Persist best-ever accuracy for this challenge (ids preserved) ----
+  const data = loadData();
+  const prev = data.completed[challenge.id];
+  if (prev === undefined || accuracy > prev) data.completed[challenge.id] = accuracy;
+  saveData(data);
+
+  if (isCorrect) {
+    state.solved.add(challenge.id);
+    if (!item.review) state.firstTry++;
+    state.combo++;
+    state.maxCombo = Math.max(state.maxCombo, state.combo);
+
+    const xp = xpFor(item, accuracy, state.combo);
+    state.sessionXP += xp;
+
+    playSound(state.combo >= 3 ? 'great' : 'good');
+    haptic(12);
+    flashScreen('good');
+    popXP(anchorEl, xp);
+    if (state.combo >= 3) showCombo(state.combo);
+    else hideCombo();
+  } else {
+    state.combo = 0;
+    hideCombo();
+    loseHeart();
+    if (state.mistakes.indexOf(challenge) === -1) state.mistakes.push(challenge);
+
+    item.attempts++;
+    if (item.attempts < MAX_ATTEMPTS && state.hearts > 0) {
+      // Duolingo behaviour: a missed challenge comes back at the end of the round
+      state.queue.push({ ch: challenge, review: true, attempts: item.attempts });
+    }
+
+    playSound('bad');
+    haptic([25, 45, 25]);
+    flashScreen('bad');
+  }
+
+  setHudProgress(state.solved.size / state.uniqueTotal);
   hideActionBar();
-  const wrongMsg = `התשובה הנכונה: ${challenge.correct}`;
-  showFeedbackPanel(isCorrect, isCorrect ? null : wrongMsg, challenge.explanation || null, () => advanceChallenge());
+  showFeedbackPanel(isCorrect, message, challenge.explanation || null, () => advanceChallenge(), challenge);
+}
+
+/**
+ * XP model. Base scales with accuracy; a streak of 3+ correct answers in a
+ * row starts paying a combo bonus. Replayed mistakes pay a small flat rate.
+ */
+function xpFor(item, accuracy, combo) {
+  if (item && item.review) return 4;
+  const base = 6 + Math.round((accuracy / 100) * 6);           // 6 … 12
+  const bonus = combo >= 3 ? Math.min(6, (combo - 2) * 2) : 0; // +2 … +6
+  return base + bonus;
+}
+
+/* ================================================================
+   HEARTS · COMBO · PROGRESS HUD
+   ================================================================ */
+
+function renderHearts() {
+  const wrap = document.getElementById('hearts');
+  if (!wrap) return;
+  let html = '';
+  for (let i = 0; i < MAX_HEARTS; i++) {
+    const spent = i >= state.hearts;
+    html += `<i class="fa-solid fa-heart prac-heart ${spent ? 'prac-heart--spent' : ''}" aria-hidden="true"></i>`;
+  }
+  wrap.innerHTML = html;
+  wrap.setAttribute('aria-label', `נותרו ${state.hearts} לבבות`);
+}
+
+function loseHeart() {
+  state.hearts = Math.max(0, state.hearts - 1);
+  renderHearts();
+  const wrap = document.getElementById('hearts');
+  if (wrap) {
+    wrap.classList.remove('prac-hearts--hit');
+    void wrap.offsetWidth;
+    wrap.classList.add('prac-hearts--hit');
+  }
+}
+
+function setHudProgress(ratio) {
+  const fill = document.getElementById('hud-fill');
+  const pct  = Math.min(100, Math.max(0, Math.round(ratio * 100)));
+  if (fill) fill.style.inlineSize = pct + '%';
+  const bar = document.getElementById('hud-bar');
+  if (bar) {
+    bar.setAttribute('aria-valuenow', String(pct));
+    bar.setAttribute('aria-valuetext', `${state.solved ? state.solved.size : 0} מתוך ${state.uniqueTotal}`);
+  }
+}
+
+function showCombo(n) {
+  const el = document.getElementById('combo-badge');
+  if (!el) return;
+  el.innerHTML = `<i class="fa-solid fa-fire" aria-hidden="true"></i> ${n} ברצף · XP×`;
+  el.classList.add('prac-combo--show');
+  el.classList.remove('prac-combo--pop');
+  void el.offsetWidth;
+  el.classList.add('prac-combo--pop');
+}
+
+function hideCombo() {
+  document.getElementById('combo-badge')?.classList.remove('prac-combo--show');
 }
 
 /* ================================================================
@@ -1043,13 +1295,11 @@ function setCheckButton(visible, enabled) {
 }
 
 function showActionBar() {
-  const bar = document.getElementById('action-bar');
-  if (bar) bar.classList.remove('prac-actions--hidden');
+  document.getElementById('action-bar')?.classList.remove('prac-actions--hidden');
 }
 
 function hideActionBar() {
-  const bar = document.getElementById('action-bar');
-  if (bar) bar.classList.add('prac-actions--hidden');
+  document.getElementById('action-bar')?.classList.add('prac-actions--hidden');
 }
 
 /** Called when the user clicks "בדוק תשובה" */
@@ -1058,7 +1308,7 @@ window.checkAnswer = function() {
   switch (state.active.type) {
     case 'order': checkOrderAnswer(); break;
     case 'cloze': checkClozeAnswer(); break;
-    // Match is self-checking on each click — no explicit check needed
+    // match + goodbad are self-checking
   }
 };
 
@@ -1067,35 +1317,26 @@ window.checkAnswer = function() {
    ================================================================ */
 
 /**
- * Show the slide-up feedback panel.
- * @param {boolean} isCorrect
- * @param {string|null} overrideMsg  — if null, show "מצוין!" or default wrong
- * @param {string|null} explanation  — additional explanation text
- * @param {function} onContinue      — callback when user presses "המשך"
- * @param {object} [challenge]       — when given and it has sourceQuote,
- *                                     the real quote from the lesson is shown
- *                                     with a deep link to that lesson
- *                                     (Project-100: after a mistake, the
- *                                     learner sees the source).
+ * Slide-up feedback. Shows the verdict, an explanation when the data has one,
+ * and (Project-100) the verbatim source quote with a deep link to the lesson.
  */
 function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue, challenge) {
-  const panel  = document.getElementById('feedback-panel');
-  const icon   = document.getElementById('feedback-icon');
-  const verdict= document.getElementById('feedback-verdict');
-  const expEl  = document.getElementById('feedback-explanation');
-  const btnEl  = document.getElementById('feedback-btn');
-
+  const panel   = document.getElementById('feedback-panel');
+  const icon    = document.getElementById('feedback-icon');
+  const verdict = document.getElementById('feedback-verdict');
+  const expEl   = document.getElementById('feedback-explanation');
+  const btnEl   = document.getElementById('feedback-btn');
   if (!panel) return;
 
-  panel.className = 'prac-feedback prac-feedback--show ' + (isCorrect ? 'prac-feedback--correct' : 'prac-feedback--error');
+  panel.className = 'prac-feedback prac-feedback--show ' +
+                    (isCorrect ? 'prac-feedback--correct' : 'prac-feedback--error');
 
-  icon.textContent    = isCorrect ? '✓' : '✗';
+  icon.textContent = isCorrect ? '✓' : '✗';
   verdict.textContent = isCorrect
-    ? (overrideMsg || 'מצוין!')
-    : (overrideMsg || 'כמעט — ממשיכים');
+    ? (overrideMsg || pickPraise())
+    : (overrideMsg || 'כמעט — ננסה שוב בהמשך הסבב');
 
-  const isLastChallenge = state.currentIdx >= state.challenges.length - 1;
-  expEl.textContent  = explanation || '';
+  expEl.textContent = explanation || '';
   if (challenge && challenge.sourceQuote) {
     const lk = /^m(\d+)-(\d+)-(\d+)$/.exec(challenge.sourceLessonKey || '');
     const href = lk ? `../index.html?module=${lk[1]}&week=${lk[2]}&day=${lk[3]}` : null;
@@ -1106,22 +1347,22 @@ function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue, chal
       </div>`);
   }
   expEl.style.display = (explanation || (challenge && challenge.sourceQuote)) ? '' : 'none';
-  btnEl.textContent  = isLastChallenge ? 'לסיכום' : 'המשך';
 
-  // Replace old listener
+  const isLast = state.qi >= state.queue.length - 1;
+  btnEl.textContent = (state.hearts <= 0) ? 'לסיכום' : (isLast ? 'לסיכום' : 'המשך');
+
+  // Replace the old listener
   const newBtn = btnEl.cloneNode(true);
   btnEl.parentNode.replaceChild(newBtn, btnEl);
-  newBtn.addEventListener('click', () => {
-    hideFeedback();
-    onContinue();
-  });
+  newBtn.addEventListener('click', () => { hideFeedback(); onContinue(); });
 }
+
+const PRAISE = ['מצוין!', 'בול בפוני!', 'יפה מאוד!', 'כל הכבוד!', 'מדויק!', 'ממשיכים חזק!'];
+function pickPraise() { return PRAISE[Math.floor(Math.random() * PRAISE.length)]; }
 
 function hideFeedback() {
   const panel = document.getElementById('feedback-panel');
   if (panel) panel.className = 'prac-feedback';
-  // Clear inner content so previous challenge's explanation doesn't leak
-  // into the next challenge's panel before submit.
   const expEl = document.getElementById('feedback-explanation');
   if (expEl) { expEl.textContent = ''; expEl.style.display = 'none'; }
   const verdictEl = document.getElementById('feedback-verdict');
@@ -1131,78 +1372,233 @@ function hideFeedback() {
 }
 
 /* ================================================================
-   XP & RECORDING
+   7. FX — sound, haptics, XP pops, flashes, toast
    ================================================================ */
 
-function recordChallengeResult(challenge, accuracy) {
-  // XP: 5 flat + up to 10 for accuracy
-  const xpEarned = 5 + Math.round((accuracy / 100) * 10);
-  state.sessionXP += xpEarned;
-  if (accuracy >= 80) state.sessionCorrect++;
+let audioCtx = null;
 
-  // Persist best score per challenge
-  const data = loadData();
-  const prev = data.completed[challenge.id];
-  if (prev === undefined || accuracy > prev) {
-    data.completed[challenge.id] = accuracy;
+function soundOn() {
+  return localStorage.getItem(SOUND_KEY) !== 'off';
+}
+
+function toggleSound() {
+  const next = soundOn() ? 'off' : 'on';
+  try { localStorage.setItem(SOUND_KEY, next); } catch (_) {}
+  syncSoundButton();
+  if (next === 'on') { unlockAudio(); playSound('good'); }
+  showToast(next === 'on' ? 'צלילים פועלים' : 'צלילים כבויים');
+}
+
+function syncSoundButton() {
+  const btn = document.getElementById('sound-toggle');
+  if (!btn) return;
+  const on = soundOn();
+  btn.classList.toggle('prac-sound--off', !on);
+  btn.setAttribute('aria-label', on ? 'כבה צלילים' : 'הפעל צלילים');
+  btn.setAttribute('aria-pressed', String(on));
+  btn.innerHTML = `<i class="fa-solid ${on ? 'fa-volume-high' : 'fa-volume-xmark'}" aria-hidden="true"></i>` +
+                  `<span>${on ? 'צלילים פועלים' : 'צלילים כבויים'}</span>`;
+}
+
+/** Browsers require a user gesture before audio can start. */
+function unlockAudio() {
+  if (!soundOn()) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!audioCtx) audioCtx = new Ctx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (_) { audioCtx = null; }
+}
+
+/** Tiny synthesised cues — no audio files, no network, no CDN. */
+const SOUND_SPECS = {
+  good:      [[660, 0, .09], [880, .07, .13]],
+  great:     [[660, 0, .07], [880, .06, .07], [1175, .12, .16]],
+  bad:       [[196, 0, .16], [147, .09, .2]],
+  tick:      [[880, 0, .045]],
+  'tap-wrong': [[180, 0, .09]],
+  locked:    [[220, 0, .07], [165, .07, .1]],
+  complete:  [[523, 0, .1], [659, .09, .1], [784, .18, .1], [1047, .27, .3]],
+  fail:      [[392, 0, .14], [311, .12, .14], [233, .24, .3]]
+};
+
+function playSound(name) {
+  if (!soundOn() || !audioCtx) return;
+  const spec = SOUND_SPECS[name];
+  if (!spec) return;
+  try {
+    const now = audioCtx.currentTime;
+    spec.forEach(([freq, delay, dur]) => {
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = (name === 'bad' || name === 'fail' || name === 'tap-wrong') ? 'sawtooth' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now + delay);
+      gain.gain.setValueAtTime(0.0001, now + delay);
+      gain.gain.exponentialRampToValueAtTime(0.16, now + delay + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + delay + dur);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now + delay);
+      osc.stop(now + delay + dur + 0.02);
+    });
+  } catch (_) { /* audio is a nice-to-have, never a blocker */ }
+}
+
+/** Physical feedback where the device supports it (Android / some browsers). */
+function haptic(pattern) {
+  if (reducedMotion()) return;
+  try { navigator.vibrate && navigator.vibrate(pattern); } catch (_) {}
+}
+
+function flashScreen(kind) {
+  if (reducedMotion()) return;
+  const el = document.getElementById('prac-flash');
+  if (!el) return;
+  el.className = 'prac-flash';
+  void el.offsetWidth;
+  el.classList.add(kind === 'good' ? 'prac-flash--good' : 'prac-flash--bad');
+}
+
+function popXP(anchorEl, xp) {
+  if (reducedMotion() || !xp) return;
+  const pop = document.createElement('div');
+  pop.className = 'xp-pop';
+  pop.textContent = '+' + xp;
+  let x = window.innerWidth / 2;
+  let y = window.innerHeight / 2;
+  if (anchorEl && anchorEl.getBoundingClientRect) {
+    const r = anchorEl.getBoundingClientRect();
+    if (r.width || r.height) { x = r.left + r.width / 2; y = r.top + r.height / 2; }
   }
-  saveData(data);
+  pop.style.insetInlineStart = 'auto';
+  pop.style.left = Math.round(x) + 'px';
+  pop.style.top  = Math.round(y) + 'px';
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 1100);
+}
 
-  state.challengeResults[state.currentIdx] = { accuracy, xp: xpEarned };
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('prac-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('prac-toast--show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('prac-toast--show'), 2200);
 }
 
 /* ================================================================
-   ADVANCE / SESSION END
+   8. END OF ROUND — summary / fail
    ================================================================ */
 
-function advanceChallenge() {
-  const isLast = state.currentIdx >= state.challenges.length - 1;
-  if (isLast) {
-    endSession();
-  } else {
-    state.currentIdx++;
-    renderChallenge();
-  }
+function commitSessionStats(elapsed) {
+  const data = loadData();
+  data.xp = (data.xp || 0) + state.sessionXP;
+  const streakResult = updateStreak(data);
+  addDailyPlay(data, elapsed);
+  // Weekly bucket for the league (local mirror + fire-and-forget push).
+  // Mutates `data.weekly` before we persist, so one save covers both.
+  if (window.bwcLeague) window.bwcLeague.recordRound(data, state.sessionXP);
+  saveData(data);
+  return { data, streakResult };
 }
 
 function endSession() {
+  const elapsed = Math.round((new Date() - state.startTime) / 1000);
+  const total   = state.uniqueTotal;
+  const correct = state.firstTry;                // accuracy = first-attempt hits
+  const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+  const perfect = state.mistakes.length === 0;
+
+  // End-of-round bonuses
+  if (perfect) state.sessionXP += 15;
+  if (state.node && state.node.kind === 'boss') state.sessionXP += 10;
+  state.sessionXP += state.hearts * 2;
+
+  const { data, streakResult } = commitSessionStats(elapsed);
+
   showView('done');
-  renderDoneScreen();
   hideFeedback();
   hideActionBar();
-}
 
-/* ================================================================
-   DONE VIEW
-   ================================================================ */
+  // Grade pill
+  const grade = document.getElementById('done-grade');
+  if (grade) {
+    if (perfect) {
+      grade.className = 'prac-done__grade prac-done__grade--perfect';
+      grade.innerHTML = '<i class="fa-solid fa-star" aria-hidden="true"></i> סבב מושלם';
+    } else if (pct >= 70) {
+      grade.className = 'prac-done__grade prac-done__grade--great';
+      grade.innerHTML = '<i class="fa-solid fa-thumbs-up" aria-hidden="true"></i> סבב חזק';
+    } else {
+      grade.className = 'prac-done__grade prac-done__grade--ok';
+      grade.innerHTML = '<i class="fa-solid fa-seedling" aria-hidden="true"></i> ממשיכים לבנות';
+    }
+  }
 
-function renderDoneScreen() {
-  const elapsed = Math.round((new Date() - state.sessionStartTime) / 1000);
-  const total   = state.challenges.length;
-  const correct = state.sessionCorrect;
-  const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-  // Update XP & streak in storage
-  const data = loadData();
-  data.xp    = (data.xp || 0) + state.sessionXP;
-  const streakResult = updateStreak(data);
-  addDailyPlay(data, elapsed); // daily 15-min cap accounting
-  saveData(data);
-
-  // XP number
-  document.getElementById('done-xp').textContent = '+' + state.sessionXP;
+  document.getElementById('done-xp').textContent     = '+' + state.sessionXP;
   document.getElementById('done-xp-sub').textContent = `${state.sessionXP} נקודות XP הרווחתם`;
-
-  // Stats
   document.getElementById('done-correct').textContent = `${correct}/${total}`;
   document.getElementById('done-pct').textContent     = pct + '%';
   document.getElementById('done-time').textContent    = formatTime(elapsed);
+  const comboEl = document.getElementById('done-combo');
+  if (comboEl) comboEl.textContent = state.maxCombo > 0 ? String(state.maxCombo) : '0';
+  const heartsEl = document.getElementById('done-hearts');
+  if (heartsEl) heartsEl.textContent = `${state.hearts}/${MAX_HEARTS}`;
 
-  // Streak
   renderStreakBlock(streakResult, data.streak);
 
-  // Gold particle burst
+  // Unit crowned?
+  const crown = document.getElementById('done-crown');
+  if (crown) {
+    const unit = state.units.find(u => state.node && u.moduleIdx === state.node.unitIdx);
+    const crowned = unit && unit.nodes.every(n => isNodeDone(n, data));
+    crown.style.display = crowned ? '' : 'none';
+    if (crowned) {
+      crown.innerHTML = `
+        <i class="fa-solid fa-crown" aria-hidden="true"></i>
+        <div>
+          <strong>היחידה הושלמה</strong>
+          <span>${escHtml(unit.module.title)} — כל האתגרים ביחידה נפתרו.</span>
+        </div>`;
+    }
+  }
+
+  // Next-node button label
+  const nextBtn = document.getElementById('done-next');
+  if (nextBtn) {
+    const fresh = loadData();
+    const next = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, fresh) && !isNodeDone(n, fresh));
+    nextBtn.innerHTML = next
+      ? '<i class="fa-solid fa-forward" aria-hidden="true"></i> לשיעור הבא'
+      : '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> תרגל שוב';
+  }
+
+  playSound('complete');
+  haptic([12, 60, 12, 60, 22]);
   triggerParticleBurst();
+}
+
+function endFail() {
+  const elapsed = Math.round((new Date() - state.startTime) / 1000);
+  commitSessionStats(elapsed);
+
+  showView('fail');
+  hideFeedback();
+  hideActionBar();
+
+  const xpEl = document.getElementById('fail-xp');
+  if (xpEl) xpEl.textContent = `+${state.sessionXP} XP נשמרו — שום דבר לא הלך לאיבוד.`;
+
+  const list = document.getElementById('fail-mistakes');
+  if (list) {
+    list.innerHTML = state.mistakes.slice(0, 4).map(c =>
+      `<div class="prac-fail__mistake"><strong>${escHtml(c.title || '')}</strong></div>`
+    ).join('');
+  }
+
+  playSound('fail');
+  haptic([40, 60, 40]);
 }
 
 function renderStreakBlock(streakResult, currentStreak) {
@@ -1234,23 +1630,20 @@ function renderStreakBlock(streakResult, currentStreak) {
 function triggerParticleBurst() {
   const container = document.getElementById('done-particles');
   if (!container) return;
-  // Respect reduced motion preference
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if (reducedMotion()) return;
 
   container.innerHTML = '';
   const colors = ['#D4AF37', '#E6C65A', '#4ade80', '#2F8592', '#fff'];
-  const cx = '50%';
-  const cy = '40%';
 
-  for (let i = 0; i < 22; i++) {
+  for (let i = 0; i < 26; i++) {
     const dot = document.createElement('span');
     dot.className = 'prac-done__particle';
-    const angle  = (i / 22) * 360;
-    const dist   = 60 + Math.random() * 80;
-    const dx     = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
-    const dy     = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
+    const angle = (i / 26) * 360;
+    const dist  = 60 + Math.random() * 90;
+    const dx    = Math.round(Math.cos((angle * Math.PI) / 180) * dist);
+    const dy    = Math.round(Math.sin((angle * Math.PI) / 180) * dist);
     dot.style.cssText = `
-      left: ${cx}; top: ${cy};
+      left: 50%; top: 40%;
       background: ${colors[i % colors.length]};
       --tx: translate(${dx}px, ${dy - 40}px);
       animation-delay: ${(i * 0.03).toFixed(2)}s;
@@ -1261,13 +1654,21 @@ function triggerParticleBurst() {
 }
 
 /* ================================================================
-   SESSION REPLAY & BACK TO MENU
+   NAVIGATION HOOKS (global — used by inline handlers in the HTML)
    ================================================================ */
 
+/** Replay the node just played. */
 window.replaySession = function() {
-  // Replay with the same module index
-  const moduleIdx = state.challenges[0] ? state.challenges[0].moduleIdx : 0;
-  startSession(moduleIdx);
+  if (state.node) startNode(state.node);
+  else window.backToMenu();
+};
+
+/** Jump straight into the next unfinished node on the path. */
+window.goNextNode = function() {
+  const data = loadData();
+  const next = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, data) && !isNodeDone(n, data));
+  if (next) startNode(next);
+  else window.replaySession();
 };
 
 window.backToMenu = function() {
@@ -1275,27 +1676,30 @@ window.backToMenu = function() {
   showView('menu');
 };
 
-/* ================================================================
-   MID-SESSION EXIT CONFIRM
-   ================================================================ */
-
+/* ---- mid-session exit confirm ---- */
 window.requestExit = function() {
-  const overlay = document.getElementById('confirm-overlay');
-  if (overlay) overlay.classList.add('prac-confirm-overlay--show');
+  document.getElementById('confirm-overlay')?.classList.add('prac-confirm-overlay--show');
 };
 
 window.confirmExit = function() {
-  const overlay = document.getElementById('confirm-overlay');
-  if (overlay) overlay.classList.remove('prac-confirm-overlay--show');
+  document.getElementById('confirm-overlay')?.classList.remove('prac-confirm-overlay--show');
+  // Bank the time actually spent so the daily cap stays honest
+  if (state.startTime) {
+    const elapsed = Math.round((new Date() - state.startTime) / 1000);
+    const data = loadData();
+    addDailyPlay(data, elapsed);
+    saveData(data);
+    state.startTime = null;
+  }
   hideFeedback();
   hideActionBar();
+  hideCombo();
   renderMenu();
   showView('menu');
 };
 
 window.cancelExit = function() {
-  const overlay = document.getElementById('confirm-overlay');
-  if (overlay) overlay.classList.remove('prac-confirm-overlay--show');
+  document.getElementById('confirm-overlay')?.classList.remove('prac-confirm-overlay--show');
 };
 
 /* ================================================================
@@ -1306,7 +1710,6 @@ document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   if (state.view !== 'play') return;
 
-  // Enter to continue when feedback is visible
   if (e.key === 'Enter') {
     const btn = document.getElementById('feedback-btn');
     if (btn && btn.closest('.prac-feedback--show')) { e.preventDefault(); btn.click(); return; }
@@ -1314,27 +1717,15 @@ document.addEventListener('keydown', e => {
     if (checkBtn && !checkBtn.disabled) { e.preventDefault(); checkBtn.click(); }
   }
 
-  // Escape to trigger exit confirm
   if (e.key === 'Escape') {
     const overlay = document.getElementById('confirm-overlay');
-    if (overlay && overlay.classList.contains('prac-confirm-overlay--show')) {
-      cancelExit();
-    } else {
-      requestExit();
-    }
+    if (overlay && overlay.classList.contains('prac-confirm-overlay--show')) window.cancelExit();
+    else window.requestExit();
   }
 });
 
-/* ================================================================
-   UTILITY: escape HTML to prevent XSS in dynamic content
-   ================================================================ */
-
-function escHtml(str) {
-  if (typeof str !== 'string') return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
+/* First interaction anywhere unlocks the audio context. */
+document.addEventListener('pointerdown', function once() {
+  unlockAudio();
+  document.removeEventListener('pointerdown', once);
+}, { once: true });

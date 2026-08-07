@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="../assets/css/design-tokens.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <link rel="stylesheet" href="../css/practice.css">
+<link rel="stylesheet" href="../css/practice-game.css">
 <link rel="stylesheet" href="../css/global-nav.css">
 
 <script>
@@ -55,9 +56,9 @@
   <section id="view-menu" class="prac-view" aria-label="בחירת מודול לתרגול">
 
     <div class="prac-menu__header">
-      <div class="prac-menu__eyebrow">תרגול פעיל</div>
+      <div class="prac-menu__eyebrow">מסלול התרגול</div>
       <h1 class="prac-menu__title">שכלל את הידע שלך</h1>
-      <p class="prac-menu__sub">התאמה, סידור, השלמת משפטים — שלושה סוגי אתגר שמחזקים זיכרון לטווח ארוך.</p>
+      <p class="prac-menu__sub">שיעור קצר בכל פעם. חמישה לבבות, רצף תשובות נכונות מכפיל XP, וכל טעות חוזרת בסוף הסבב.</p>
     </div>
 
     <!-- Stats bar -->
@@ -70,14 +71,40 @@
         <div class="prac-stat__value" id="stat-streak">0</div>
         <div class="prac-stat__label">רצף ימים</div>
       </div>
-      <div class="prac-stat g" aria-label="ציון אחרון">
+      <div class="prac-stat g" aria-label="אחוז השלמת המסלול">
         <div class="prac-stat__value" id="stat-last">—</div>
-        <div class="prac-stat__label">ציון אחרון</div>
+        <div class="prac-stat__label">מהמסלול</div>
       </div>
     </div>
 
-    <!-- Module grid — rendered by JS -->
-    <div class="prac-module-grid" id="module-grid" role="list" aria-label="מודולים לתרגול"></div>
+    <!-- ============================================================
+         MY STANDING — three axes: learning / persistence / application
+         Positive feedback only; percentiles appear only above the cohort
+         floor and only when the learner is in the top half.
+         ============================================================ -->
+    <section class="lg-card g" id="standing-card" aria-label="המעמד שלי" hidden></section>
+
+    <!-- Weekly league (collapsible) -->
+    <section class="lg-panel g" id="league-panel" aria-label="ליגה שבועית" hidden>
+      <button type="button" class="lg-panel__toggle" id="league-toggle" aria-expanded="false"
+              aria-controls="league-body">
+        <i class="fa-solid fa-medal" aria-hidden="true"></i>
+        <span class="lg-panel__title">ליגה שבועית</span>
+        <span class="lg-panel__summary" id="league-summary"></span>
+        <i class="fa-solid fa-chevron-down lg-panel__chev" aria-hidden="true"></i>
+      </button>
+      <div class="lg-panel__body" id="league-body"></div>
+    </section>
+
+    <!-- Sound preference (governs every in-game cue) -->
+    <div class="prac-prefs">
+      <button type="button" class="prac-sound" id="sound-toggle" aria-pressed="true" aria-label="כבה צלילים">
+        <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <!-- The path — rendered by JS -->
+    <div class="path-root" id="path-root" aria-label="מפת מסלול התרגול"></div>
 
   </section>
 
@@ -86,21 +113,20 @@
        ================================================================ -->
   <section id="view-play" class="prac-view" aria-label="תרגול פעיל">
 
-    <!-- Top bar: progress + close -->
-    <div class="prac-topbar">
-      <div class="prac-topbar__progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="התקדמות">
-        <div class="prac-topbar__label">
-          <span id="play-progress-label">אתגר 1 מתוך 1</span>
-        </div>
-        <div class="prac-progress-bar">
-          <div class="prac-progress-bar__fill" id="play-progress-fill" style="width:0%"></div>
-        </div>
-      </div>
-      <button type="button" class="prac-topbar__close" id="exitBtn" aria-label="יציאה מהתרגול">
+    <!-- HUD: quit · progress · hearts -->
+    <div class="prac-hud">
+      <button type="button" class="prac-hud__quit" id="exitBtn" aria-label="יציאה מהתרגול">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        <span>יציאה</span>
       </button>
+      <div class="prac-hud__bar" id="hud-bar" role="progressbar"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="התקדמות בסבב">
+        <div class="prac-hud__fill" id="hud-fill"></div>
+      </div>
+      <div class="prac-hearts" id="hearts" aria-live="polite" aria-label="לבבות"></div>
     </div>
+
+    <!-- Review-round ribbon (shown only when replaying a mistake) -->
+    <div class="prac-review-tag" id="review-tag" style="display:none"></div>
 
     <!-- Challenge card — rendered dynamically by JS -->
     <div id="challenge-card"></div>
@@ -120,6 +146,8 @@
       <!-- Gold particle burst -->
       <div class="prac-done__particles" id="done-particles" aria-hidden="true"></div>
 
+      <div class="prac-done__grade" id="done-grade"></div>
+
       <div class="prac-done__xp-label">XP הרווחתם</div>
       <div class="prac-done__xp" id="done-xp" aria-live="polite">+0</div>
       <div class="prac-done__xp-sub" id="done-xp-sub">0 נקודות XP</div>
@@ -127,11 +155,19 @@
       <div class="prac-done__stats" role="list">
         <div role="listitem">
           <div class="prac-done__stat-val" id="done-correct">0/0</div>
-          <div class="prac-done__stat-lbl">נכון / סך הכול</div>
+          <div class="prac-done__stat-lbl">נכון בניסיון ראשון</div>
         </div>
         <div role="listitem">
           <div class="prac-done__stat-val" id="done-pct">0%</div>
           <div class="prac-done__stat-lbl">דיוק</div>
+        </div>
+        <div role="listitem">
+          <div class="prac-done__stat-val" id="done-combo">0</div>
+          <div class="prac-done__stat-lbl">קומבו שיא</div>
+        </div>
+        <div role="listitem">
+          <div class="prac-done__stat-val" id="done-hearts">5/5</div>
+          <div class="prac-done__stat-lbl">לבבות שנותרו</div>
         </div>
         <div role="listitem">
           <div class="prac-done__stat-val" id="done-time">00:00</div>
@@ -140,6 +176,9 @@
       </div>
     </div>
 
+    <!-- Unit crowned block (hidden unless the whole unit is done) -->
+    <div class="prac-done__crown" id="done-crown" style="display:none" aria-live="polite"></div>
+
     <!-- Streak block -->
     <div class="prac-done__streak g" id="done-streak" aria-live="polite">
       <!-- Rendered by JS -->
@@ -147,13 +186,42 @@
 
     <!-- Action buttons -->
     <div class="prac-done__actions">
-      <button type="button" class="btn-gold" onclick="replaySession()">
-        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
-        תרגל שוב
+      <button type="button" class="btn-gold" id="done-next" onclick="goNextNode()">
+        <i class="fa-solid fa-forward" aria-hidden="true"></i>
+        לשיעור הבא
       </button>
       <button type="button" class="btn-ghost-dark" onclick="backToMenu()">
-        <i class="fa-solid fa-list" aria-hidden="true"></i>
-        חזרה לתפריט
+        <i class="fa-solid fa-map" aria-hidden="true"></i>
+        חזרה למסלול
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ================================================================
+       VIEW: FAIL (out of hearts)
+       ================================================================ -->
+  <section id="view-fail" class="prac-view prac-fail" aria-label="נגמרו הלבבות">
+
+    <div class="prac-fail__box g">
+      <div class="prac-fail__icon"><i class="fa-solid fa-heart-crack" aria-hidden="true"></i></div>
+      <h2 class="prac-fail__title">נגמרו הלבבות</h2>
+      <p class="prac-fail__sub">
+        הסבב נעצר כאן — וזה בסדר גמור. טעות היא בדיוק המקום שבו הידע נבנה.
+        רענן את השיעור וחזור לסבב, הפעם עם הידיעה איפה זה נשבר.
+      </p>
+      <p class="prac-fail__sub" id="fail-xp" style="margin-block-start:.75rem;color:var(--accent-gold)"></p>
+      <div class="prac-fail__mistakes" id="fail-mistakes"></div>
+    </div>
+
+    <div class="prac-done__actions">
+      <button type="button" class="btn-gold" onclick="replaySession()">
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+        נסה שוב
+      </button>
+      <button type="button" class="btn-ghost-dark" onclick="backToMenu()">
+        <i class="fa-solid fa-map" aria-hidden="true"></i>
+        חזרה למסלול
       </button>
     </div>
 
@@ -190,6 +258,13 @@
 </div>
 
 <!-- ================================================================
+     GAME FX LAYER: combo badge · screen flash · toast · sound toggle
+     ================================================================ -->
+<div class="prac-combo" id="combo-badge" aria-hidden="true"></div>
+<div class="prac-flash" id="prac-flash" aria-hidden="true"></div>
+<div class="prac-toast" id="prac-toast" role="status" aria-live="polite"></div>
+
+<!-- ================================================================
      MID-SESSION EXIT CONFIRMATION
      ================================================================ -->
 <div class="prac-confirm-overlay" id="confirm-overlay"
@@ -215,6 +290,7 @@
      ================================================================ -->
 <script src="../js/course-data.js"></script>
 <script src="../js/practice-data.js"></script>
+<script src="../js/practice-league.js"></script>
 <script src="../js/practice.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="../js/supabase-config.js" defer></script>
