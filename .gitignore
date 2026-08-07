@@ -68,3 +68,6 @@ api/_kb/*.json
 fixes-*.json
 מה-זה.txt
 שיווק-אטומי-לימוד/
+
+# Supabase CLI link state (local only)
+supabase/.temp/
