@@ -19,9 +19,12 @@
      - "שיעורים שסומנו" counts rows in course_progress, i.e. lessons the
        learner pressed "סמן כהושלם" on. It is NOT watch time — the portal
        does not measure playback at all.
-     - Cloud sync is one-time-per-device (known open bug in
-       js/sync-localstorage.js). Progress made after the first login stays in
-       the learner's browser. So every number here is a FLOOR.
+     - Cloud sync USED to be one-time-per-device: progress made after the
+       first login never left the learner's browser. That was fixed in
+       js/sync-localstorage.js in the same release as this page, but the fix
+       is not retroactive — historical progress only arrives when the learner
+       next opens the portal on that device. So for older accounts every
+       number here is still a FLOOR, not a ceiling.
 
    Added 2026-08-07.
    ========================================================================== */
