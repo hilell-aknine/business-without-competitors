@@ -8,8 +8,12 @@
 //     with "_" is NOT published. Verified live 2026-08-02: /api/_lib/*.js -> 404.
 //   => The transcripts (property of Ram & Zvika) are never exposed statically.
 //
-// Source KB: C:\Users\saraa\.claude\tmp-audit\kb\ (built 2026-06-01, 131/133
+// Source KB: kb-transcripts/ at the repo root (built 2026-06-01, 131/133
 // lessons; the 2 missing module-7 lessons are marked "תמלול חסר").
+// 2026-08-07: the KB used to live only in C:\Users\saraa\.claude\tmp-audit\kb\,
+// a temp dir that gets cleaned — one cleanup and this script could never run
+// again. It now lives in-repo (gitignored: public repo + paid content), with
+// the old temp path kept as a fallback.
 //
 // Usage: node tools/split-kb.mjs [--kb <dir>]
 import fs from 'node:fs';
@@ -17,9 +21,11 @@ import path from 'node:path';
 import url from 'node:url';
 
 const ROOT = path.dirname(path.dirname(url.fileURLToPath(import.meta.url)));
+const KB_FALLBACK = 'C:/Users/saraa/.claude/tmp-audit/kb';
+const KB_IN_REPO = path.join(ROOT, 'kb-transcripts');
 const KB_DIR = process.argv.includes('--kb')
   ? process.argv[process.argv.indexOf('--kb') + 1]
-  : 'C:/Users/saraa/.claude/tmp-audit/kb';
+  : (fs.existsSync(KB_IN_REPO) ? KB_IN_REPO : KB_FALLBACK);
 const OUT_DIR = path.join(ROOT, 'api', '_kb');
 
 // ---- load course-data.js (browser-style file) ----

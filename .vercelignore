@@ -26,3 +26,6 @@
 /tools/
 /workbooks/
 /kb-project-100/
+
+# Course transcript source-of-truth (plaintext, paid content) — defense in depth
+/kb-transcripts/

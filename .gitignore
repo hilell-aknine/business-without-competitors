@@ -50,6 +50,13 @@ docs-archive/
 # Project-100 methodology KB (transcripts belong to Zvika/Bar — never publish)
 kb-project-100/
 
+# Course transcript source-of-truth (4.2MB plaintext, 8 modules + seminars).
+# 2026-08-07: rescued out of C:\Users\saraa\.claude\tmp-audit\kb\ — a temp dir
+# that gets cleaned. This is the irreplaceable input to split-kb.mjs and
+# assemble-game-data.mjs. PAID CONTENT: the repo is public and GitHub Pages
+# serves every tracked file, so plaintext must never be committed.
+kb-transcripts/
+
 # Course transcript KB: the repo is PUBLIC, so only the encrypted form
 # (*.json.enc, AES-256-GCM, key in Vercel env KB_SECRET) is committed.
 # Plaintext stays local for dev. _index.json is harmless metadata (titles).

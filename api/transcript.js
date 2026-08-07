@@ -2,6 +2,8 @@
 // Strategy: scrape the watch page, find captionTracks, request the JSON3 transcript.
 // Returns { ok: true, transcript } or { ok: false, reason }.
 
+import { passesGuard, requireAuth } from './_lib/guard.js';
+
 const transcriptCache = new Map(); // videoId -> { ts, transcript }
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -92,6 +94,12 @@ export async function fetchTranscript(videoId) {
 }
 
 export default async function handler(req, res) {
+  // 2026-08-07: this was the last unguarded handler — an open proxy that let
+  // anyone on the internet pull YouTube captions through Hillel's Vercel
+  // account. Same two-layer guard + JWT as the protocol-* endpoints.
+  if (!passesGuard(req, res)) return;
+  if (!(await requireAuth(req, res))) return;
+
   const videoId =
     (req.query && req.query.videoId) ||
     new URL(req.url, `http://${req.headers.host}`).searchParams.get('videoId');
