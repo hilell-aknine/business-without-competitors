@@ -1978,13 +1978,29 @@ window.showToast = showToast;
 // FIX-ENGINE F-014 (2026-07-22): הכפתור הפך למתג — לחיצה על שיעור שכבר הושלם מסירה את
 // הסימון (קודם לחיצה כזו רק הציגה טוסט ו"לא קרה כלום"). auto='auto' מהטיימר של 45 שניות
 // רק מסמן, לעולם לא מסיר.
+// 2026-08-07: כל סימון/ביטול עובר דרך window.bwcSync כדי שההתקדמות תיכתב לשרת
+// בזמן אמת (course_progress), ולא רק ל-localStorage. bwcSync כותב מקומית קודם
+// ורק אז דוחף לשרת, אז כשל רשת אף פעם לא מאבד את הלחיצה — היא נשארת בתור.
+function persistCompleted(key, done){
+  if (window.bwcSync && typeof window.bwcSync.markLesson === 'function') {
+    completedLessons = window.bwcSync.markLesson(key, done);
+    return;
+  }
+  // Fallback: sync engine not loaded (offline CDN / script error) — local only.
+  if (done) {
+    if (!completedLessons.includes(key)) completedLessons.push(key);
+  } else {
+    completedLessons = completedLessons.filter(k => k !== key);
+  }
+  try { localStorage.setItem('bwc_completed', JSON.stringify(completedLessons)); } catch(e){}
+}
+
 function markCurrentComplete(auto){
   const key = currentLessonKey();
   if (!key) return;
   const wasNew = !completedLessons.includes(key);
   if (wasNew) {
-    completedLessons.push(key);
-    try { localStorage.setItem('bwc_completed', JSON.stringify(completedLessons)); } catch(e){}
+    persistCompleted(key, true);
 
     // Streak
     const today = new Date().toDateString();
@@ -2003,8 +2019,7 @@ function markCurrentComplete(auto){
     showToast('השיעור סומן כהושלם ✓');
   } else {
     if (auto === 'auto') return; // הטיימר האוטומטי לא מסיר סימון קיים
-    completedLessons = completedLessons.filter(k => k !== key);
-    try { localStorage.setItem('bwc_completed', JSON.stringify(completedLessons)); } catch(e){}
+    persistCompleted(key, false);
     renderHero();
     renderStats();
     renderSidebar(document.getElementById('lessonSearch').value);
@@ -2291,6 +2306,19 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('bwc:auth-change', (ev) => {
     const user = ev && ev.detail && ev.detail.user;
     applyAuthState(user);
+  });
+  // 2026-08-07: sync-localstorage.js מושך מהשרת וממזג אחרי ההתחברות (אסינכרוני,
+  // מסתיים אחרי bwc:auth-change). בלי זה, לומד שנכנס ממכשיר חדש היה רואה 0 שיעורים
+  // עד רענון הדף.
+  window.addEventListener('bwc:sync-done', (ev) => {
+    const merged = ev && ev.detail && ev.detail.merged;
+    completedLessons = Array.isArray(merged) ? merged : completedLessons;
+    if (typeof renderHero === 'function')      renderHero();
+    if (typeof renderStats === 'function')     renderStats();
+    if (typeof renderQuizStats === 'function') renderQuizStats();
+    const searchEl = document.getElementById('lessonSearch');
+    if (typeof renderSidebar === 'function')   renderSidebar(searchEl ? searchEl.value : '');
+    if (typeof updateLessonNav === 'function') updateLessonNav();
   });
   // Also check current state (auth may have resolved before this handler attached).
   // Cap retries at ~5s; the bwc:auth-change event above will catch any later changes.

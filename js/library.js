@@ -134,13 +134,23 @@
     }
   }
 
-  /* ---- Pull from Supabase, merge with localStorage, re-render ---- */
+  /* ---- Pull from Supabase, merge with localStorage, re-render ----
+     2026-08-07: delegate to window.bwcSync.pullMerge() when available. It does
+     the same union but ALSO (a) honours pending un-marks so a deleted lesson
+     can't be resurrected by the pull, and (b) pushes local-only keys back up.
+     The standalone fetch below stays as a fallback if the sync engine failed
+     to load — it is read-only and cannot make things worse. */
   async function syncAndRefresh(allLessons, refreshFn) {
     const user = window.bwcAuth && window.bwcAuth.getUser ? window.bwcAuth.getUser() : null;
     if (!user || !user.id) return; // guest — no action needed
-    const remoteKeys = await fetchRemoteCompleted(user.id);
-    if (remoteKeys === null) return; // fetch failed — keep existing state
-    mergeCompleted(remoteKeys);
+
+    if (window.bwcSync && typeof window.bwcSync.pullMerge === 'function') {
+      await window.bwcSync.pullMerge();
+    } else {
+      const remoteKeys = await fetchRemoteCompleted(user.id);
+      if (remoteKeys === null) return; // fetch failed — keep existing state
+      mergeCompleted(remoteKeys);
+    }
     updateStats(getCompleted(), allLessons.length);
     refreshFn();
   }
@@ -512,6 +522,15 @@
 
     /* Initial render */
     refresh();
+
+    /* ---- Re-render whenever the sync engine finishes a pull+merge.
+       sync-localstorage.js runs its own pull on auth change; if it got there
+       first our pullMerge() call short-circuits, so this event is what
+       guarantees the list reflects the merged data. ---- */
+    window.addEventListener('bwc:sync-done', () => {
+      updateStats(getCompleted(), allLessons.length);
+      refresh();
+    });
 
     /* ---- Supabase sync: pull remote progress after auth is ready ---- */
     if (window.bwcAuth && typeof window.bwcAuth.ready === 'function') {
