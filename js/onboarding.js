@@ -196,8 +196,19 @@
         return Math.min(n, MAX_BONUS);
     }
 
+    // The "already asked" flag is per user, not per browser.
+    // 2026-08-09: it used to be a single global key, and the questionnaire
+    // opened for logged-out visitors too. A guest who saw it once had the flag
+    // set with no account behind it — so after they registered they were never
+    // asked again and their answers were lost for good. Keying it by user id
+    // makes the old guest flag irrelevant and self-heals those visitors.
+    function seenKey() {
+        var u = currentUser();
+        return u ? KEY_SEEN + '_' + u.id : KEY_SEEN;
+    }
+
     function hasBeenSeen() {
-        return lsGet(KEY_SEEN, '') === 'true';
+        return lsGet(seenKey(), '') === 'true';
     }
 
     function isLegacyUser() {
@@ -299,7 +310,7 @@
         if (remote && remoteN >= localN && remoteN > 0) {
             var merged = { answers: remote.answers || {}, completedAt: remote.completed_at || null };
             saveState(merged);
-            if (merged.completedAt || remoteN >= TOTAL_STEPS) lsSet(KEY_SEEN, 'true');
+            if (merged.completedAt || remoteN >= TOTAL_STEPS) lsSet(seenKey(), 'true');
             applyDisplayBonus();
         } else if (localN > 0) {
             await pushToServer(local);
@@ -506,7 +517,7 @@
         setTimeout(function () {
             var s = getState();
             if (answeredCount(s) >= TOTAL_STEPS) {
-                lsSet(KEY_SEEN, 'true');
+                lsSet(seenKey(), 'true');
                 buildModal(true);
                 attachHandlers();
             } else {
@@ -579,7 +590,7 @@
     function close() {
         var root = document.getElementById('onbOverlay');
         if (!root) return;
-        lsSet(KEY_SEEN, 'true');
+        lsSet(seenKey(), 'true');
         root.hidden = true;
         root.removeEventListener('keydown', onKeydown);
         document.body.style.overflow = '';
@@ -665,25 +676,39 @@
 
     /* ------------------------------------------------------------- boot */
 
+    var openAttempted = false;
+
+    // The questionnaire belongs AFTER the account exists, never before:
+    //   sign up -> land here logged in -> get asked.
+    // Asking a logged-out visitor was wrong twice over — it put six personal
+    // questions in front of someone who had not committed to anything, and the
+    // answers had no user row to attach to.
+    async function maybeOpenForUser() {
+        if (openAttempted) return;
+        if (!currentUser()) return;
+
+        // Server first: someone who answered on another device must not be
+        // asked again here.
+        await reconcileOnLogin();
+
+        if (hasBeenSeen()) return;
+        if (answeredCount(getState()) >= TOTAL_STEPS) return;
+
+        openAttempted = true;
+        // Learners who went through the OLD 3-step flow still get asked the
+        // real questions once — that data is the whole point of this change.
+        // Their earned bonus is preserved (saveState never lowers it).
+        setTimeout(function () { open(); lsSet(seenKey(), 'true'); }, 350);
+    }
+
     function boot() {
         hookRenderHero();
         applyDisplayBonus();
 
-        // Learners who went through the OLD 3-step flow still get asked the
-        // real questions once — that data is the whole point of this change.
-        // Their earned bonus is preserved (saveState never lowers it).
-        if (!hasBeenSeen() && answeredCount(getState()) < TOTAL_STEPS) {
-            setTimeout(function () { open(); lsSet(KEY_SEEN, 'true'); }, 350);
-        }
-
-        // Reconcile with the server the moment a session exists (and again on
-        // any later login from this tab).
         if (window.bwcAuth) {
-            window.bwcAuth.ready().then(function () {
-                if (currentUser()) reconcileOnLogin();
-            });
+            window.bwcAuth.ready().then(maybeOpenForUser);
             window.bwcAuth.onChange(function (user) {
-                if (user) reconcileOnLogin();
+                if (user) maybeOpenForUser();
             });
         }
     }
@@ -705,7 +730,8 @@
         isLegacyUser: isLegacyUser,
         reset: function () {
             lsDel(KEY_DATA);
-            lsDel(KEY_SEEN);
+            lsDel(KEY_SEEN);       // legacy global flag
+            lsDel(seenKey());      // and this user's flag
             lsDel(KEY_BONUS);
             lsDel(LEGACY_SEEN);
             lsDel(LEGACY_DONE);
