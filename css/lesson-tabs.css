@@ -1,0 +1,245 @@
+/* ============================================================
+   lesson-tabs.css — רצועת הטאבים של דף השיעור
+   ------------------------------------------------------------
+   גיליון פיצ'ר בתיקיית css/ הקיימת, בדיוק כמו practice.css,
+   library.css ו-admin.css. הוא לא מגדיר אף צבע משלו — רק טוקנים
+   מ-assets/css/design-tokens.css. במכוון לא מערכת CSS רביעית.
+
+   הדפוס (רצועת טאבים + פאנל אחד גלוי) מיושר לתבנית-האם
+   C:\AtomicBusiness\demos\_template-full\lesson.html, אבל שום CSS
+   לא הועתק משם — היא מערכת עיצוב אחרת.
+   ============================================================ */
+
+/* ============================================================
+   1. הרצועה
+   ============================================================ */
+
+.lt {
+  border-radius: 28px;
+  overflow: hidden;
+  /* מרווח לניווט העליון הדביק כשגוללים את הרצועה לראש המסך */
+  scroll-margin-block-start: 76px;
+}
+
+.lt__tablist {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.45rem 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border-subtle);
+
+  /* מובייל: הרצועה נגללת אופקית ולא נשברת לשתי שורות */
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.lt__tablist::-webkit-scrollbar { display: none; }
+
+.lt__tab {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;              /* יעד מגע */
+  padding: 0.6rem 0.95rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.lt__tab i {
+  font-size: 0.82rem;
+  opacity: 0.9;
+}
+
+.lt__tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.05); }
+
+.lt__tab[aria-selected="true"] {
+  color: var(--text-inverse);
+  background: linear-gradient(135deg, var(--accent-gold-hover), var(--accent-gold-deep));
+  box-shadow: var(--shadow-gold-glow);
+}
+
+.lt__tab[aria-selected="true"] i { opacity: 1; }
+
+.lt__tab:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+/* תג קטן על טאב (למשל מספר אתגרים) */
+.lt__tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.lt__tab[aria-selected="true"] .lt__tab-badge {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* ============================================================
+   2. הפאנלים
+   ============================================================ */
+
+.lt__pane { display: none; padding: 1.75rem; }
+
+.lt__pane.is-active {
+  display: block;
+  animation: ltFadeIn 0.18s var(--ease-out-expo);
+}
+
+/* פאנל שמכיל מסגרת משחק/מבחן — בלי ריפוד כבד */
+.lt__pane--flush { padding: 0.6rem; }
+
+@keyframes ltFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lt__pane.is-active { animation: none; }
+}
+
+/* ============================================================
+   3. מסגרת מוטמעת (תרגול / מבחן)
+   הפריים חי כל עוד הדף חי — מעבר בין טאבים רק מסתיר אותו,
+   ולכן סבב תרגול באמצע ממשיך בדיוק מאיפה שהיה.
+   ============================================================ */
+
+.lt-embed {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--border-subtle);
+}
+
+.lt-embed > iframe {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+  background: transparent;
+  color-scheme: dark;
+}
+
+/* גובה: קונסולה עצמאית שגוללת בפנים, כדי שסרגל "בדוק תשובה"
+   והפידבק (position:fixed) יישבו בתחתית המסגרת ולא ידרכו על הדף. */
+.lt-embed--game { block-size: 640px; block-size: clamp(520px, 78vh, 760px); }
+.lt-embed--quiz { block-size: 660px; block-size: clamp(520px, 80vh, 800px); }
+
+@supports (height: 100svh) {
+  .lt-embed--game { block-size: clamp(520px, 78svh, 760px); }
+  .lt-embed--quiz { block-size: clamp(520px, 80svh, 800px); }
+}
+
+/* שלד טעינה — נעלם ברגע שהפריים דיווח load */
+.lt-embed__skeleton {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  background: rgba(0, 0, 0, 0.2);
+  transition: opacity var(--transition-base);
+}
+
+.lt-embed.is-ready .lt-embed__skeleton { opacity: 0; pointer-events: none; }
+
+.lt-embed__skeleton i {
+  font-size: 1.6rem;
+  color: rgba(229, 181, 71, 0.45);
+  animation: ltSpin 1.1s linear infinite;
+}
+
+@keyframes ltSpin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .lt-embed__skeleton i { animation: none; }
+}
+
+/* ============================================================
+   4. מצב ריק מכובד (אין שיעור נבחר / אין תרגול לשיעור)
+   ============================================================ */
+
+.lt-blank {
+  padding: 2.6rem 1.4rem;
+  text-align: center;
+}
+
+.lt-blank__icon {
+  inline-size: 62px;
+  block-size: 62px;
+  margin-inline: auto;
+  margin-block-end: 0.9rem;
+  border-radius: var(--radius-xl);
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  color: var(--accent-gold-light);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(229, 181, 71, 0.25);
+}
+
+.lt-blank__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
+}
+
+.lt-blank__text {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-inline-size: 34rem;
+  margin-inline: auto;
+  margin-block-end: 1.2rem;
+  text-wrap: pretty;
+}
+
+/* ============================================================
+   5. מובייל
+   ============================================================ */
+
+@media (max-width: 640px) {
+  .lt { border-radius: 22px; }
+  .lt__tablist { padding: 0.4rem 0.4rem; }
+  .lt__tab { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
+  .lt__pane { padding: 1.1rem 0.9rem; }
+  .lt__pane--flush { padding: 0.4rem; }
+  .lt-embed--game,
+  .lt-embed--quiz { block-size: clamp(500px, 72vh, 680px); }
+}
+
+@supports (height: 100svh) {
+  @media (max-width: 640px) {
+    .lt-embed--game,
+    .lt-embed--quiz { block-size: clamp(500px, 72svh, 680px); }
+  }
+}

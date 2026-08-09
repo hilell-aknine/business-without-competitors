@@ -1,0 +1,162 @@
+/* ============================================================
+   embed.css — מצב הטמעה בתוך דף השיעור
+   ------------------------------------------------------------
+   נטען ע"י pages/practice.html ו-pages/quiz.html בלבד, ומשפיע
+   רק כשה-URL מכיל ?embed=1 (אז אלמנט ה-html מקבל .bwc-embed
+   מסקריפט זעיר ב-<head>).
+
+   כשהדף נפתח ישירות (בלי embed) הקובץ הזה חסר-השפעה לחלוטין,
+   ולכן pages/practice.html ו-pages/quiz.html ממשיכים לעבוד
+   בדיוק כמו קודם.
+
+   הכל CSS בלבד — אפס שינוי התנהגות ב-global-nav.js,
+   credit-stamp.js או fix-engine.js, שמשותפים לכל הדפים.
+   ============================================================ */
+
+/* --glass = דף כהה (התרגול).
+   ⚠️ לא רקע שקוף. iframe שהמסמך שבתוכו שקוף לגמרי מצויר על קנבס
+   לבן כברירת מחדל בדפדפן, והתוצאה הייתה טקסט לבן על לבן. לכן
+   נותנים כאן רקע כהה מפורש בטוקנים של הפרויקט — הפאנל נקרא
+   כמסך שקוע בתוך כרטיס השיעור, בדיוק כמו נגן הווידאו שמעליו.
+   ⚠️ לא להחיל על pages/quiz.html — הוא דף בהיר עם טקסט כהה. */
+html.bwc-embed--glass,
+html.bwc-embed--glass body {
+  background: linear-gradient(165deg, var(--bg-secondary) 0%, var(--bg-primary) 100%) !important;
+}
+
+html.bwc-embed--glass { color-scheme: dark; }
+
+html.bwc-embed body { min-block-size: 0; }
+
+/* שכבת האווירה (blobs + grain) שייכת לדף מלא, לא למסגרת. */
+html.bwc-embed .atmos { display: none !important; }
+
+/* כרום של דף מלא — מיותר בתוך השיעור. */
+html.bwc-embed .gnav,
+html.bwc-embed .app-skip-link,
+html.bwc-embed .breadcrumb { display: none !important; }
+
+/* חותמת הקרדיט כבר מופיעה בדף השיעור עצמו. */
+html.bwc-embed #hilel-credit-stamp { display: none !important; }
+
+/* מנוע התיקונים — כפתור צף כפול בתוך המסגרת. */
+html.bwc-embed #fe-fab,
+html.bwc-embed #fe-popup,
+html.bwc-embed #fe-board,
+html.bwc-embed #fe-toast { display: none !important; }
+
+/* ריפוד: המסגרת כבר יושבת בתוך פאנל מרופד. */
+html.bwc-embed .prac-wrap,
+html.bwc-embed .quiz-wrap {
+  padding: 0.9rem 0.9rem 5.5rem;
+  max-inline-size: 100%;
+}
+
+@media (max-width: 640px) {
+  html.bwc-embed .prac-wrap,
+  html.bwc-embed .quiz-wrap { padding: 0.6rem 0.6rem 5.5rem; }
+}
+
+/* ============================================================
+   מצב "תרגול השיעור" — כרטיס פתיחה קומפקטי במקום מפת המסלול
+   (נבנה ב-js/practice.js תחת renderLessonMenu)
+   ============================================================ */
+
+/* כרטיס הפתיחה ממורכז בגובה המסגרת, כדי שלא ייראה תלוי בראש
+   מלבן ריק. חל רק על מצב שיעור מוטמע. */
+body.prac-lesson-mode #view-menu.prac-view--active {
+  display: grid;
+  place-items: center;
+  min-block-size: calc(100vh - 7rem);
+}
+
+.lp-intro {
+  padding: 1.6rem 1.2rem;
+  text-align: center;
+}
+
+.lp-intro__icon {
+  inline-size: 64px;
+  block-size: 64px;
+  margin-inline: auto;
+  margin-block-end: 0.9rem;
+  border-radius: var(--radius-xl);
+  display: grid;
+  place-items: center;
+  font-size: 1.6rem;
+  color: var(--accent-gold-light);
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(229, 181, 71, 0.25);
+}
+
+.lp-intro__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
+}
+
+.lp-intro__text {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  margin-block-end: 1.1rem;
+  text-wrap: pretty;
+}
+
+.lp-intro__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-block-end: 1.3rem;
+}
+
+.lp-intro__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-full);
+  background: rgba(47, 133, 146, 0.18);
+  border: 1px solid rgba(63, 170, 187, 0.3);
+  color: #9FDBE5;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.lp-intro__chip i { font-size: 0.7rem; opacity: 0.85; }
+
+.lp-intro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+.lp-intro__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-block-size: 44px;
+  padding: 0.6rem 1.1rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.lp-intro__link:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}

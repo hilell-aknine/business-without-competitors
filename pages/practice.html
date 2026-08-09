@@ -20,12 +20,26 @@
 <link rel="stylesheet" href="../css/practice.css">
 <link rel="stylesheet" href="../css/practice-game.css">
 <link rel="stylesheet" href="../css/global-nav.css">
+<link rel="stylesheet" href="../css/embed.css">
 
 <script>
   /* FOUC prevention — match index.html pattern */
   (function(){
     var t = localStorage.getItem('bwc-theme') || (window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
     document.documentElement.setAttribute('data-theme', t);
+  })();
+
+  /* מצב הטמעה (2026-08-09): כשהדף רץ בתוך טאב "תרגול" של השיעור, ה-URL
+     מכיל ?embed=1 והדגל הזה מדליק את css/embed.css שמסתיר את כרום הדף
+     המלא (נאב, קרדיט, רקע). בלי הפרמטר — הדף העצמאי הזה לא משתנה בכלל. */
+  (function(){
+    try {
+      if (new URLSearchParams(location.search).has('embed')) {
+        /* --glass: הדף הזה כהה, אז הרקע שלו נהיה שקוף וכרטיס
+           דף השיעור נראה מבעדו. */
+        document.documentElement.classList.add('bwc-embed', 'bwc-embed--glass');
+      }
+    } catch (e) { /* דפדפן ישן — פשוט נשאר במצב דף מלא */ }
   })();
 </script>
 </head>

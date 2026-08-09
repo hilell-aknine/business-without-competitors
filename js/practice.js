@@ -444,11 +444,128 @@ function unitTouched(moduleIdx, data) {
 }
 
 /* ================================================================
+   3b. LESSON MODE — a round scoped to a single lesson
+   ------------------------------------------------------------
+   Added 2026-08-09 for the "תרגול" tab inside the lesson player.
+   It is a thin entry point on top of the SAME engine: same node
+   shape, same startNode(), same challenge ids, same storage.
+   Nothing about pages/practice.html standalone changes — lesson
+   mode only turns on when the URL carries ?lesson=<lessonKey>.
+   ================================================================ */
+
+/** Challenges whose source lesson is exactly this one. */
+function lessonChallenges(lessonKey) {
+  return (window.PRACTICE_CHALLENGES || []).filter(c => c.sourceLessonKey === lessonKey);
+}
+
+/**
+ * Wrap a lesson's challenges in a normal node so startNode() can run
+ * them unchanged. flatIdx is -1 — this node never joins the path map.
+ */
+function buildLessonNode(lessonKey) {
+  const list = lessonChallenges(lessonKey);
+  if (list.length === 0) return null;
+
+  // Same type interleave as the path nodes, so a round feels varied.
+  const buckets = {};
+  list.forEach(c => { (buckets[c.type] = buckets[c.type] || []).push(c); });
+  Object.keys(buckets).forEach(t => buckets[t].sort((a, b) => a.id.localeCompare(b.id)));
+  const keys = TYPE_ORDER.concat(Object.keys(buckets).filter(k => TYPE_ORDER.indexOf(k) === -1));
+  const ordered = [];
+  let round = 0, added = true;
+  while (added) {
+    added = false;
+    keys.forEach(t => {
+      const item = (buckets[t] || [])[round];
+      if (item) { ordered.push(item); added = true; }
+    });
+    round++;
+  }
+
+  return {
+    id:         'lesson-' + lessonKey,
+    unitIdx:    ordered[0].moduleIdx,
+    nodeIdx:    0,
+    flatIdx:    -1,
+    kind:       'lesson',
+    title:      'תרגול השיעור',
+    lessonKey:  lessonKey,
+    challenges: ordered
+  };
+}
+
+/** Intro / empty screen shown in lesson mode instead of the path map. */
+function renderLessonMenu() {
+  const wrap = document.getElementById('view-menu');
+  if (!wrap) return;
+
+  const key  = state.lessonMode;
+  const node = state.lessonNode;
+  const data = loadData();
+
+  if (!node) {
+    // Not every lesson has challenges yet. Say exactly that — no invented
+    // reason — and hand the learner somewhere that does have practice.
+    const isSeminar = /^s\d/.test(key || '');
+    const text = isSeminar
+      ? 'האתגרים בנויים סביב שיעורי המודולים, ולסמינרים עדיין לא נבנו אתגרים. התרגול של המודולים פתוח ומחכה.'
+      : 'עדיין לא נבנו אתגרים לשיעור הזה. התרגול של שאר השיעורים במודול פתוח ומחכה.';
+    wrap.innerHTML = `
+      <div class="lp-intro">
+        <div class="lp-intro__icon" aria-hidden="true"><i class="fa-solid fa-seedling"></i></div>
+        <h2 class="lp-intro__title">לשיעור הזה עוד אין תרגול</h2>
+        <p class="lp-intro__text">${text}</p>
+        <div class="lp-intro__actions">
+          <a class="lp-intro__link" href="practice.html" target="_top">
+            <i class="fa-solid fa-map" aria-hidden="true"></i> למפת התרגול המלאה
+          </a>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const total  = node.challenges.length;
+  const solved = node.challenges.filter(c => isSolved(data, c.id)).length;
+  const done   = solved === total;
+
+  wrap.innerHTML = `
+    <div class="lp-intro">
+      <div class="lp-intro__icon" aria-hidden="true">
+        <i class="fa-solid ${done ? 'fa-circle-check' : 'fa-gamepad'}"></i>
+      </div>
+      <h2 class="lp-intro__title">${done ? 'שלטתם בשיעור הזה' : 'תרגול על השיעור הזה'}</h2>
+      <p class="lp-intro__text">
+        ${done
+          ? 'כל האתגרים של השיעור נפתרו. אפשר לרוץ עליהם שוב כדי לרענן — ההתקדמות שכבר נצברה נשמרת.'
+          : 'האתגרים כאן נשלפים ישירות מהתמלול של השיעור שאתם צופים בו. חמישה לבבות, פידבק עם ציטוט מהשיעור, וכל טעות חוזרת בסוף הסבב.'}
+      </p>
+      <div class="lp-intro__meta">
+        <span class="lp-intro__chip"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> ${total} אתגרים</span>
+        <span class="lp-intro__chip"><i class="fa-solid fa-check" aria-hidden="true"></i> ${solved} נפתרו</span>
+        <span class="lp-intro__chip"><i class="fa-solid fa-bolt" aria-hidden="true"></i> ${data.xp || 0} XP</span>
+      </div>
+      <div class="lp-intro__actions">
+        <button type="button" class="btn-check btn-check--ready" id="lp-start">
+          ${done ? 'תרגלו שוב' : 'התחילו תרגול'}
+        </button>
+        <a class="lp-intro__link" href="practice.html" target="_top">
+          <i class="fa-solid fa-map" aria-hidden="true"></i> למפת התרגול המלאה
+        </a>
+      </div>
+    </div>`;
+
+  const btn = document.getElementById('lp-start');
+  if (btn) btn.addEventListener('click', () => window.BwcPractice.startLessonRound(key));
+}
+
+/* ================================================================
    4. SESSION STATE
    ================================================================ */
 
 const state = {
   view: 'menu',          // 'menu' | 'play' | 'done' | 'fail'
+  lessonMode: null,      // lessonKey when embedded in the lesson player
+  lessonNode: null,      // the ad-hoc node built from that lesson
   units: [],
   allNodes: [],
   node: null,            // node currently being played
@@ -518,6 +635,16 @@ function init() {
   }
   state.units    = buildPath();
   state.allNodes = flatNodes(state.units);
+
+  // ?lesson=<key> → the round is scoped to one lesson (the "תרגול" tab).
+  // Everything below this line is identical to the standalone page.
+  const lessonKey = new URLSearchParams(window.location.search).get('lesson');
+  if (lessonKey) {
+    state.lessonMode = lessonKey;
+    state.lessonNode = buildLessonNode(lessonKey);
+    document.body.classList.add('prac-lesson-mode');
+  }
+
   renderMenu();
   showView('menu');
 }
@@ -570,6 +697,11 @@ function renderMenuEmpty() {
 }
 
 function renderMenu() {
+  // Lesson mode replaces the path map with a compact intro card for the
+  // single lesson. Everything else (round, hearts, feedback, summary) is
+  // the same engine, untouched.
+  if (state.lessonMode) { renderLessonMenu(); return; }
+
   const data = loadData();
 
   // Stats bar
@@ -1339,11 +1471,15 @@ function showFeedbackPanel(isCorrect, overrideMsg, explanation, onContinue, chal
   expEl.textContent = explanation || '';
   if (challenge && challenge.sourceQuote) {
     const lk = /^m(\d+)-(\d+)-(\d+)$/.exec(challenge.sourceLessonKey || '');
-    const href = lk ? `../index.html?module=${lk[1]}&week=${lk[2]}&day=${lk[3]}` : null;
+    // בתוך טאב התרגול של השיעור הקישור מיותר — הלומד כבר שם. ובלי
+    // target="_top" הוא גם היה טוען את כל הפורטל *בתוך* המסגרת.
+    const sameLesson = state.lessonMode && state.lessonMode === challenge.sourceLessonKey;
+    const href = (lk && !sameLesson) ? `../index.html?module=${lk[1]}&week=${lk[2]}&day=${lk[3]}` : null;
+    const target = state.lessonMode ? ' target="_top"' : '';
     expEl.insertAdjacentHTML('beforeend', `
       <div class="prac-source">
         <span class="prac-source__quote">מהשיעור: ״${escHtml(challenge.sourceQuote)}״</span>
-        ${href ? `<a class="prac-source__link" href="${href}">פתח את השיעור ←</a>` : ''}
+        ${href ? `<a class="prac-source__link" href="${href}"${target}>פתח את השיעור ←</a>` : ''}
       </div>`);
   }
   expEl.style.display = (explanation || (challenge && challenge.sourceQuote)) ? '' : 'none';
@@ -1567,12 +1703,17 @@ function endSession() {
   // Next-node button label
   const nextBtn = document.getElementById('done-next');
   if (nextBtn) {
-    const fresh = loadData();
-    const next = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, fresh) && !isNodeDone(n, fresh));
-    nextBtn.innerHTML = next
-      ? '<i class="fa-solid fa-forward" aria-hidden="true"></i> לשיעור הבא'
-      : '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> תרגל שוב';
+    if (state.lessonMode) {
+      nextBtn.innerHTML = '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> תרגלו שוב';
+    } else {
+      const fresh = loadData();
+      const next = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, fresh) && !isNodeDone(n, fresh));
+      nextBtn.innerHTML = next
+        ? '<i class="fa-solid fa-forward" aria-hidden="true"></i> לשיעור הבא'
+        : '<i class="fa-solid fa-rotate-right" aria-hidden="true"></i> תרגל שוב';
+    }
   }
+  relabelBackButtons();
 
   playSound('complete');
   haptic([12, 60, 12, 60, 22]);
@@ -1597,8 +1738,21 @@ function endFail() {
     ).join('');
   }
 
+  relabelBackButtons();
   playSound('fail');
   haptic([40, 60, 40]);
+}
+
+/**
+ * In lesson mode there is no path map to go back to — the "back" target is
+ * this lesson's own practice card. Relabels the two static buttons in
+ * pages/practice.html so the wording matches where the button actually goes.
+ */
+function relabelBackButtons() {
+  if (!state.lessonMode) return;
+  document.querySelectorAll('.prac-done__actions .btn-ghost-dark').forEach(btn => {
+    btn.innerHTML = '<i class="fa-solid fa-arrow-right" aria-hidden="true"></i> חזרה לתרגול השיעור';
+  });
 }
 
 function renderStreakBlock(streakResult, currentStreak) {
@@ -1665,10 +1819,37 @@ window.replaySession = function() {
 
 /** Jump straight into the next unfinished node on the path. */
 window.goNextNode = function() {
+  // Lesson mode has no "next node" — the round is this lesson's challenges.
+  if (state.lessonMode) { window.replaySession(); return; }
   const data = loadData();
   const next = state.allNodes.find(n => isNodeUnlocked(n, state.allNodes, data) && !isNodeDone(n, data));
   if (next) startNode(next);
   else window.replaySession();
+};
+
+/* ================================================================
+   PUBLIC ENTRY POINT — run a round over a given lesson's challenges
+   Used by the "תרגול" tab in the lesson player (index.html), which
+   loads this very file inside pages/practice.html?embed=1&lesson=…
+   ================================================================ */
+window.BwcPractice = {
+  /** How many challenges this lesson has (0 = no practice yet). */
+  countForLesson: function(lessonKey) {
+    return lessonChallenges(lessonKey).length;
+  },
+
+  /** Start a round over exactly this lesson's challenges. */
+  startLessonRound: function(lessonKey) {
+    const key = lessonKey || state.lessonMode;
+    if (!key) return false;
+    if (!state.lessonMode || state.lessonMode !== key) {
+      state.lessonMode = key;
+      state.lessonNode = buildLessonNode(key);
+    }
+    if (!state.lessonNode) { renderLessonMenu(); showView('menu'); return false; }
+    startNode(state.lessonNode);
+    return true;
+  }
 };
 
 window.backToMenu = function() {

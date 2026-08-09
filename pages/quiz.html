@@ -20,9 +20,23 @@
     <script>
         // FOUC prevention
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+
+        /* מצב הטמעה (2026-08-09): כשהדף רץ בתוך טאב "מבחן" של השיעור, ה-URL
+           מכיל ?embed=1 והדגל הזה מדליק את css/embed.css שמסתיר את כרום הדף
+           המלא (נאב, פירורי לחם, קרדיט). הדף הזה בהיר, ולכן במכוון בלי
+           bwc-embed--glass — רקע שקוף היה נותן כאן טקסט כהה על כהה.
+           בלי הפרמטר — הדף העצמאי לא משתנה בכלל. */
+        (function(){
+            try {
+                if (new URLSearchParams(location.search).has('embed')) {
+                    document.documentElement.classList.add('bwc-embed');
+                }
+            } catch (e) { /* דפדפן ישן — נשאר במצב דף מלא */ }
+        })();
     </script>
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/global-nav.css">
+    <link rel="stylesheet" href="../css/embed.css">
     <script src="../js/theme-toggle.js" defer></script>
     <style>
         /* Tokens come from /assets/css/design-tokens.css                  */
@@ -1001,7 +1015,10 @@
         document.getElementById('breadcrumbCurrent').textContent = 'מבחני הבנה';
         renderModuleGrid();
         renderOverallStats();
-        history.replaceState(null, '', window.location.pathname);
+        // מנקה את ?quiz=N מה-URL, אבל שומר על ?embed=1 — אחרת רענון של
+        // המסגרת בתוך דף השיעור היה חוזר למצב דף מלא עם נאב ופירורי לחם.
+        const keep = new URLSearchParams(window.location.search).has('embed') ? '?embed=1' : '';
+        history.replaceState(null, '', window.location.pathname + keep);
     }
 
     function showQuiz() {
