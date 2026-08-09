@@ -56,6 +56,10 @@
   }
 
   async function api(body) {
+    // GitHub Pages mirror has no /api/* — say so instead of 404-ing blindly.
+    if (window.bwcApi && !window.bwcApi.available) {
+      return { status: 0, data: { ok: false, reason: 'static_mirror' } };
+    }
     const token = await authToken();
     const res = await fetch('/api/apply-coach', {
       method: 'POST',
@@ -175,6 +179,10 @@
     try {
       const { status, data } = await api({ moduleIdx: mi, history: convo.messages, finalize });
       setLoading(false);
+      if (status === 0) {
+        chatError('עוזר היישום לא זמין בכתובת הזו — הוא רץ על שרת שקיים רק בפורטל המלא. פתח את ' + (window.bwcApi ? window.bwcApi.primary : '') + ' כדי להשתמש בו.');
+        return;
+      }
       if (status === 401) { chatError('נדרשת התחברות מחדש. רענן את הדף והתחבר.'); return; }
       if (!data?.ok) { chatError('לא הצלחתי לקבל תשובה כרגע. נסה שוב בעוד רגע.'); return; }
       if (finalize) {

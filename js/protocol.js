@@ -85,6 +85,11 @@
   }
 
   async function postJson(url, body) {
+    // On the GitHub Pages mirror there is no /api/*. Fail with an explicit
+    // marker instead of letting the 404 be misread as "no transcript".
+    if (window.bwcApi && !window.bwcApi.available) {
+      return { status: 0, data: { ok: false, reason: 'static_mirror' } };
+    }
     const headers = { 'Content-Type': 'application/json' };
     const token = await authToken();
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -301,7 +306,9 @@
           if (l) l.insertAdjacentHTML('beforeend', loginRequiredBlock());
           return;
         }
-        if (status === 404) {
+        if (status === 0) {
+          coach.messages.push({ role: 'assistant', content: 'עוזר הלמידה לא זמין בכתובת הזו — הוא רץ על שרת שקיים רק בפורטל המלא. השיעורים עצמם כאן מלאים. כדי לשאול אותי שאלות, פתח את הפורטל בכתובת ' + (window.bwcApi ? window.bwcApi.primary : '') });
+        } else if (status === 404) {
           coach.messages.push({ role: 'assistant', content: 'לשיעור הזה אין עדיין תמלול במערכת, אז אין לי על מה להתבסס. נסה שיעור אחר.' });
         } else if (!data?.ok) {
           coach.messages.pop();
