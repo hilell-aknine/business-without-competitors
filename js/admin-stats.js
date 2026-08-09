@@ -1,8 +1,20 @@
-/* דשבורד סטטיסטיקות אנונימי למנהל — pages/admin-stats.html.
-   Project-100 anonymous-stats principle: aggregate numbers only, never a
-   name, never an email, never personal content. Access: profiles.role='admin'
-   (checked via the is_admin() RPC from migration 004; RLS admin-select
-   policies expose the rows). Added 2026-08-02. */
+/* דשבורד בריאות התוכן — pages/admin-stats.html.
+   Aggregate-only by construction: this screen answers questions about the
+   COURSE (which lesson loses people, which module is abandoned, which quiz is
+   too hard), so it never needs a name or an email. Its sibling
+   pages/admin-users.html answers questions about PEOPLE.
+
+   Reframed 2026-08-09: this used to be sold as "the anonymous dashboard". That
+   framing was misleading — the same admin sees every name one click away, so
+   the aggregation protected nobody; it is simply the right shape for content
+   questions. Do NOT re-add per-learner identity here; use admin-users.html.
+
+   Access: profiles.role='admin' (checked via the is_admin() RPC from migration
+   004; RLS admin-select policies expose the rows). Added 2026-08-02.
+
+   No watch-time anywhere: the portal never measures video playback. Every
+   number here comes from an explicit "סמן כהושלם" click, a submitted quiz, a
+   practice challenge or an application doc. */
 (function () {
   'use strict';
 
@@ -14,7 +26,7 @@
 
   function bar(pct, warn) {
     const p = Math.max(0, Math.min(100, Math.round(pct)));
-    return `<div class="bar${warn ? ' bar--warn' : ''}" title="${p}%"><div class="bar__fill" style="width:${p}%"></div></div>`;
+    return `<div class="adm-barline"><div class="adm-bar${warn ? ' adm-bar--warn' : ''}" title="${p}%"><div class="adm-bar__fill" style="inline-size:${p}%"></div></div></div>`;
   }
 
   // lesson_key m{mi}-{wi}-{di} → module index, plus a flat order per module
@@ -98,18 +110,18 @@
     }
 
     $('tbl-modules').innerHTML = `
-      <tr><th>מודול</th><th>לומדים פעילים</th><th>השלמות</th><th>סיימו את המודול</th><th>נטישה</th></tr>` +
+      <thead><tr><th>מודול</th><th>לומדים פעילים</th><th>השלמות</th><th>סיימו את המודול</th><th>נטישה</th></tr></thead><tbody>` +
       perModule.map(m => {
         const started = m.users.size, finished = m.finishers.size;
         const dropPct = started ? ((started - finished) / started) * 100 : 0;
         return `<tr>
-          <td>מודול ${m.mi + 1} · ${esc(m.title)}</td>
-          <td>${started}</td>
-          <td>${m.completions}</td>
-          <td>${finished}</td>
-          <td>${started ? bar(dropPct, dropPct > 60) : '<span class="muted">אין נתונים</span>'}</td>
+          <td data-cell="name" class="adm-name">מודול ${m.mi + 1} · ${esc(m.title)}</td>
+          <td data-label="לומדים פעילים" class="adm-num">${started}</td>
+          <td data-label="השלמות" class="adm-num">${m.completions}</td>
+          <td data-label="סיימו את המודול" class="adm-num">${finished}</td>
+          <td data-label="נטישה" data-cell="progress">${started ? bar(dropPct, dropPct > 60) : '<span class="adm-muted">אין נתונים</span>'}</td>
         </tr>`;
-      }).join('');
+      }).join('') + '</tbody>';
 
     // quizzes per module
     const quizAgg = Array.from({ length: 8 }, () => ({ n: 0, sum: 0, passed: 0, attempts: 0 }));
@@ -120,35 +132,38 @@
       if (q.passed) a.passed++;
     }
     $('tbl-quiz').innerHTML = `
-      <tr><th>מודול</th><th>ניגשו</th><th>ציון ממוצע</th><th>אחוז עוברים</th><th>סך ניסיונות</th></tr>` +
+      <thead><tr><th>מודול</th><th>ניגשו</th><th>ציון ממוצע</th><th>אחוז עוברים</th><th>סך ניסיונות</th></tr></thead><tbody>` +
       quizAgg.map((a, mi) => `<tr>
-        <td>מודול ${mi + 1}</td>
-        <td>${a.n}</td>
-        <td>${a.n ? Math.round(a.sum / a.n) + '%' : '<span class="muted">—</span>'}</td>
-        <td>${a.n ? bar((a.passed / a.n) * 100) : '<span class="muted">—</span>'}</td>
-        <td>${a.attempts}</td>
-      </tr>`).join('');
+        <td data-cell="name" class="adm-name">מודול ${mi + 1}</td>
+        <td data-label="ניגשו" class="adm-num">${a.n}</td>
+        <td data-label="ציון ממוצע" class="adm-num">${a.n ? Math.round(a.sum / a.n) + '%' : '<span class="adm-muted">—</span>'}</td>
+        <td data-label="אחוז עוברים" data-cell="progress">${a.n ? bar((a.passed / a.n) * 100) : '<span class="adm-muted">—</span>'}</td>
+        <td data-label="סך ניסיונות" class="adm-num">${a.attempts}</td>
+      </tr>`).join('') + '</tbody>';
 
     // drop-off: distribution of each user's LAST completed lesson
     const lastCounts = {};
     Object.values(perUserLast).forEach(({ key }) => { lastCounts[key] = (lastCounts[key] || 0) + 1; });
     const top = Object.entries(lastCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
     $('tbl-dropoff').innerHTML = `
-      <tr><th>שיעור</th><th>לומדים שנעצרו כאן</th></tr>` +
+      <thead><tr><th>שיעור</th><th>לומדים שנעצרו כאן</th></tr></thead><tbody>` +
       (top.length ? top.map(([key, n]) => `<tr>
-        <td>${esc(titles[key] || key)}</td><td>${n}</td>
-      </tr>`).join('') : '<tr><td colspan="2"><span class="muted">אין עדיין נתוני התקדמות בענן</span></td></tr>');
+        <td data-cell="name" class="adm-name">${esc(titles[key] || key)}</td>
+        <td data-label="לומדים שנעצרו כאן" class="adm-num">${n}</td>
+      </tr>`).join('') : '<tr><td colspan="2"><span class="adm-muted">אין עדיין נתוני התקדמות בענן</span></td></tr>') + '</tbody>';
 
     // practice
     const xp = practice.map(p => p.total_xp || 0);
     const avg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
     $('tbl-practice').innerHTML = `
-      <tr><th>מדד</th><th>ערך</th></tr>
-      <tr><td>לומדים שתרגלו</td><td>${practice.length}</td></tr>
-      <tr><td>XP ממוצע ללומד</td><td>${avg(xp)}</td></tr>
-      <tr><td>XP מצטבר</td><td>${xp.reduce((a, b) => a + b, 0)}</td></tr>
-      <tr><td>הרצף הארוך ביותר שנרשם</td><td>${Math.max(0, ...practice.map(p => p.longest_streak || 0))} ימים</td></tr>
-      <tr><td>לומדים עם רצף פעיל</td><td>${practice.filter(p => (p.current_streak || 0) > 0).length}</td></tr>`;
+      <thead><tr><th>מדד</th><th>ערך</th></tr></thead>
+      <tbody>
+      <tr><td class="adm-mini__name">לומדים שתרגלו</td><td class="adm-num">${practice.length}</td></tr>
+      <tr><td class="adm-mini__name">XP ממוצע ללומד</td><td class="adm-num">${avg(xp)}</td></tr>
+      <tr><td class="adm-mini__name">XP מצטבר</td><td class="adm-num">${xp.reduce((a, b) => a + b, 0)}</td></tr>
+      <tr><td class="adm-mini__name">הרצף הארוך ביותר שנרשם</td><td class="adm-num">${Math.max(0, ...practice.map(p => p.longest_streak || 0))} ימים</td></tr>
+      <tr><td class="adm-mini__name">לומדים עם רצף פעיל</td><td class="adm-num">${practice.filter(p => (p.current_streak || 0) > 0).length}</td></tr>
+      </tbody>`;
 
     $('loading').classList.add('hidden');
     $('dash').classList.remove('hidden');

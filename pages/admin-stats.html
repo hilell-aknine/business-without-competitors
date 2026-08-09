@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#003B46">
-    <title>סטטיסטיקות למידה - עסק ללא מתחרים</title>
-    <meta name="description" content="דשבורד מנהל אנונימי: איפה לומדים מתקדמים ואיפה נתקעים.">
+    <meta name="theme-color" content="#04161b">
+    <title>בריאות התוכן - עסק ללא מתחרים</title>
+    <meta name="description" content="דשבורד מנהל: איפה לומדים נוטשים את הקורס, איזה מודול מאבד הכי הרבה ואילו מבחנים קשים מדי.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,103 +13,105 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="../assets/css/design-tokens.css">
-    <script>
-        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
-    </script>
-    <link rel="stylesheet" href="../css/theme.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <link rel="stylesheet" href="../css/global-nav.css">
     <link rel="stylesheet" href="../css/auth-modal.css">
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body {
-            min-height: 100vh; font-family: 'Heebo', sans-serif; direction: rtl;
-            background: #001e24; color: #e8f1f2; -webkit-text-size-adjust: 100%;
-        }
-        main { position: relative; z-index: 1; max-inline-size: 980px; margin-inline: auto; padding: 1.5rem 1.2rem 4rem; }
-        h1 { font-family: 'Frank Ruhl Libre', serif; font-size: clamp(1.5rem, 4vw, 2.1rem); text-align: center; padding-block: 1.2rem .3rem; }
-        h1 i { color: #D4AF37; margin-inline-end: .4rem; }
-        .sub { text-align: center; color: rgba(232,241,242,.65); font-size: .88rem; max-inline-size: 44rem; margin: 0 auto 1.4rem; line-height: 1.6; }
-        .g { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.09); border-radius: 18px; }
-        #gate { text-align: center; padding: 3rem 1.5rem; }
-        #gate.hidden { display: none; }
-        .gate-btn { margin-top: 1rem; padding: .7rem 1.6rem; border-radius: 12px; border: none;
-            background: linear-gradient(135deg, #D4AF37, #b8952e); color: #06232a; font: inherit; font-weight: 700; cursor: pointer; }
-        #dash.hidden { display: none; }
-        .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .8rem; margin-bottom: 1.2rem; }
-        .stat { padding: 1rem; text-align: center; }
-        .stat__num { font-size: 1.7rem; font-weight: 900; color: #D4AF37; }
-        .stat__label { font-size: .78rem; color: rgba(232,241,242,.65); margin-top: .2rem; }
-        section.g { padding: 1.2rem; margin-bottom: 1.2rem; }
-        section.g h2 { font-size: 1rem; margin-bottom: .8rem; }
-        section.g h2 i { color: #D4AF37; margin-inline-end: .4rem; }
-        table { inline-size: 100%; border-collapse: collapse; font-size: .85rem; }
-        th, td { text-align: start; padding: .5rem .6rem; border-block-end: 1px solid rgba(255,255,255,.07); }
-        th { color: rgba(232,241,242,.6); font-weight: 500; font-size: .76rem; }
-        .bar { position: relative; background: rgba(255,255,255,.07); border-radius: 6px; block-size: 10px; min-inline-size: 80px; overflow: hidden; }
-        .bar__fill { position: absolute; inset-block: 0; inset-inline-start: 0; background: linear-gradient(90deg, #D4AF37, #b8952e); border-radius: 6px; }
-        .bar--warn .bar__fill { background: linear-gradient(90deg, #e05c5c, #b84040); }
-        .muted { color: rgba(232,241,242,.55); font-size: .78rem; }
-        .note { margin-top: .6rem; font-size: .76rem; color: rgba(232,241,242,.5); line-height: 1.5; }
-        .tbl-scroll { overflow-x: auto; }
-        #loading { text-align: center; padding: 2rem; color: rgba(232,241,242,.6); }
-    </style>
+
+    <script>
+        /* FOUC prevention — match index.html / practice.html pattern */
+        (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
 </head>
 <body>
+
+    <!-- ===== Atmospheric background ===== -->
+    <div class="atmos" aria-hidden="true">
+      <div class="atmos__base"></div>
+      <div class="atmos__blob atmos__blob--a"></div>
+      <div class="atmos__blob atmos__blob--b"></div>
+      <div class="atmos__grid"></div>
+    </div>
+
+    <!-- ===== Skip link ===== -->
+    <a class="app-skip-link" href="#main">דלג לתוכן הראשי</a>
+
+    <!-- ===== Top navigation ===== -->
     <header class="gnav" data-page="admin-stats"></header>
-    <main>
-        <h1><i class="fa-solid fa-chart-column" aria-hidden="true"></i>סטטיסטיקות למידה</h1>
-        <p class="sub">מספרים בלבד, בלי שמות — עיקרון עוזר הסטטיסטיקות של פרויקט 100: מזהים מה עובד, מה לא מובן ואיפה לומדים נתקעים, בלי לקרוא נתונים אישיים של אף אחד.</p>
-        <p style="text-align:center;margin-bottom:1.4rem;">
-            <a href="admin-users.html" style="display:inline-block;min-block-size:44px;padding:.6rem 1.2rem;border-radius:12px;
-               background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.32);color:#D4AF37;
-               text-decoration:none;font-size:.86rem;font-weight:600;">
+
+    <main class="adm-wrap" id="main" tabindex="-1">
+        <!-- Reframed 2026-08-09: this screen used to be sold as "the anonymous
+             one". That split was meaningless — the same admin sees every name
+             one click away on admin-users.html, so hiding them here protected
+             nobody and only hid information from the owner. The two screens are
+             now split by what you DO with them: this one acts on the COURSE,
+             admin-users.html acts on PEOPLE. -->
+        <div class="adm-head">
+            <div class="adm-head__eyebrow">דשבורד מנהל · תוכן</div>
+            <h1 class="adm-head__title"><i class="fa-solid fa-chart-column" aria-hidden="true"></i> בריאות התוכן</h1>
+            <p class="adm-head__sub">איפה הקורס עצמו מאבד אנשים: באיזה שיעור לומדים נעצרים, איזה מודול נוטשים בו הכי הרבה ואילו מבחנים קשים מדי. המסך הזה הוא על התוכן — לפעולות על לומדים ספציפיים יש מסך נפרד.</p>
+        </div>
+
+        <p class="adm-switch">
+            <a class="adm-switch__link" href="admin-users.html">
                 <i class="fa-solid fa-users" aria-hidden="true"></i>
-                רשימת הלומדים (עם שמות ותשובות שאלון)
+                לומדים — מי תקוע ומה כל אחד למד
             </a>
         </p>
 
-        <div id="gate" class="g">
-            <div style="font-size:2rem;color:#D4AF37;"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
-            <h2 style="margin-top:.6rem;">גישה למנהלים בלבד</h2>
-            <p style="color:rgba(232,241,242,.7);margin-top:.4rem;" id="gateMsg">התחבר עם חשבון מנהל כדי לצפות בדשבורד.</p>
-            <button class="gate-btn" onclick="window.openLoginModal && window.openLoginModal()">התחברות</button>
+        <div id="gate" class="adm-gate g">
+            <div class="adm-gate__icon"><i class="fa-solid fa-user-shield" aria-hidden="true"></i></div>
+            <h2 class="adm-gate__title">גישה למנהלים בלבד</h2>
+            <p class="adm-gate__msg" id="gateMsg">התחבר עם חשבון מנהל כדי לצפות בדשבורד.</p>
+            <button class="adm-gate__btn" onclick="window.openLoginModal && window.openLoginModal()">התחברות</button>
         </div>
 
         <div id="dash" class="hidden">
-            <div class="stat-row">
-                <div class="stat g"><div class="stat__num" id="stat-users">–</div><div class="stat__label">לומדים רשומים</div></div>
-                <div class="stat g"><div class="stat__num" id="stat-completions">–</div><div class="stat__label">השלמות שיעורים בענן</div></div>
-                <div class="stat g"><div class="stat__num" id="stat-quiztakers">–</div><div class="stat__label">לומדים שניגשו למבחן</div></div>
-                <div class="stat g"><div class="stat__num" id="stat-practicers">–</div><div class="stat__label">לומדים שתרגלו</div></div>
-                <div class="stat g"><div class="stat__num" id="stat-appdocs">–</div><div class="stat__label">מסמכי יישום שהופקו</div></div>
+            <div class="adm-stats">
+                <div class="adm-stat g"><div class="adm-stat__num" id="stat-users">–</div><div class="adm-stat__label">לומדים רשומים</div></div>
+                <div class="adm-stat g"><div class="adm-stat__num" id="stat-completions">–</div><div class="adm-stat__label">השלמות שיעורים בענן</div></div>
+                <div class="adm-stat g"><div class="adm-stat__num" id="stat-quiztakers">–</div><div class="adm-stat__label">לומדים שניגשו למבחן</div></div>
+                <div class="adm-stat g"><div class="adm-stat__num" id="stat-practicers">–</div><div class="adm-stat__label">לומדים שתרגלו</div></div>
+                <div class="adm-stat g"><div class="adm-stat__num" id="stat-appdocs">–</div><div class="adm-stat__label">מסמכי יישום שהופקו</div></div>
             </div>
 
-            <section class="g">
-                <h2><i class="fa-solid fa-layer-group"></i>התקדמות לפי מודול</h2>
-                <div class="tbl-scroll"><table id="tbl-modules"></table></div>
-                <p class="note">"לומדים פעילים" = השלימו לפחות שיעור אחד במודול. "נטישה" = ההפרש בין מי שהתחיל את המודול למי שהגיע לשיעור האחרון שלו.</p>
+            <!-- Drop-off leads: it is the one table on this screen that names a
+                 specific lesson to go fix. Everything else is context for it. -->
+            <section class="adm-section g">
+                <h2 class="adm-section__title"><i class="fa-solid fa-arrow-trend-down" aria-hidden="true"></i>נקודות נטישה — 10 השיעורים האחרונים הנפוצים</h2>
+                <div class="adm-scroll"><table class="adm-table" id="tbl-dropoff"></table></div>
+                <p class="adm-note">"השיעור האחרון" של כל לומד — <strong>השיעור האחרון שהוא סימן כהושלם</strong>, כלומר איפה ההתקדמות נעצרה. ריכוז גבוה בשיעור מסוים = מקום לבדוק את התוכן.</p>
             </section>
 
-            <section class="g">
-                <h2><i class="fa-solid fa-circle-question"></i>מבחנים לפי מודול</h2>
-                <div class="tbl-scroll"><table id="tbl-quiz"></table></div>
-                <p class="note">ציון ממוצע = ממוצע ה-best_score של כל מי שניגש. אחוז עוברים = עברו 80% ומעלה.</p>
+            <section class="adm-section g">
+                <h2 class="adm-section__title"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>התקדמות לפי מודול</h2>
+                <div class="adm-scroll"><table class="adm-table" id="tbl-modules"></table></div>
+                <p class="adm-note">"לומדים פעילים" = השלימו לפחות שיעור אחד במודול. "נטישה" = ההפרש בין מי שהתחיל את המודול למי שהגיע לשיעור האחרון שלו.</p>
             </section>
 
-            <section class="g">
-                <h2><i class="fa-solid fa-arrow-trend-down"></i>נקודות נטישה — 10 השיעורים האחרונים הנפוצים</h2>
-                <div class="tbl-scroll"><table id="tbl-dropoff"></table></div>
-                <p class="note">"השיעור האחרון" של כל לומד — איפה הצפייה נעצרה. ריכוז גבוה בשיעור מסוים = מקום לבדוק את התוכן.</p>
+            <section class="adm-section g">
+                <h2 class="adm-section__title"><i class="fa-solid fa-circle-question" aria-hidden="true"></i>מבחנים לפי מודול</h2>
+                <div class="adm-scroll"><table class="adm-table" id="tbl-quiz"></table></div>
+                <p class="adm-note">ציון ממוצע = ממוצע ה-best_score של כל מי שניגש. אחוז עוברים = עברו 80% ומעלה. מודול שכולם נכשלים בו הוא בעיה בתוכן, לא בלומדים.</p>
             </section>
 
-            <section class="g">
-                <h2><i class="fa-solid fa-dumbbell"></i>תרגול</h2>
-                <div class="tbl-scroll"><table id="tbl-practice"></table></div>
+            <section class="adm-section g">
+                <h2 class="adm-section__title"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i>תרגול</h2>
+                <div class="adm-scroll"><table class="adm-mini" id="tbl-practice"></table></div>
             </section>
 
-            <p class="note" id="data-caveat">⚠️ הערת דיוק ידועה: סנכרון הענן הוא חד-פעמי למכשיר (באג מתועד) — המספרים כאן הם רצפת אמת, לא תקרה. חלק מההתקדמות קיימת רק על מכשירי הלומדים.</p>
+            <div class="adm-caveat" id="data-caveat">
+                <b>אין כאן מדידת צפייה.</b> כל מספר בדף הזה נספר מ<b>לחיצה על "סמן כהושלם"</b>, ממבחן שהוגש,
+                מאתגר תרגול או ממסמך יישום. הפורטל לא מודד זמן ניגון של וידאו בכלל, אז אין "אחוז צפייה"
+                ואין "זמן במערכת" — ולומד שצפה בשיעור בלי לסמן אותו פשוט לא נספר.
+            </div>
+            <div class="adm-caveat">
+                <b>המספרים הם רצפה, לא תקרה.</b> עד לאחרונה הסנכרון לענן היה חד-פעמי למכשיר: התקדמות שנרשמה
+                אחרי ההתחברות הראשונה נשארה בדפדפן של הלומד. הסנכרון הרציף תוקן, אבל
+                <b>הנתונים ההיסטוריים לא משוחזרים למפרע</b> — הם יעלו רק כשהלומד ייכנס שוב מאותו מכשיר.
+            </div>
         </div>
-        <div id="loading" class="hidden">טוען נתונים...</div>
+        <div id="loading" class="adm-loading hidden">טוען נתונים...</div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>

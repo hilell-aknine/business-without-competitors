@@ -1,0 +1,599 @@
+/* ==========================================================================
+   admin.css — shared shell for the two admin dashboards
+   (pages/admin-users.html + pages/admin-stats.html)
+
+   WHY THIS FILE EXISTS
+   Both admin pages used to carry a private <style> block full of hardcoded
+   hex values (#001e24, #e8f1f2, #D4AF37, rgba(232,241,242,.65)...) and they
+   loaded css/theme.css — the LEGACY theme layer. Everything else current
+   (index.html, pages/practice.html, pages/library.html) had already moved to
+   assets/css/design-tokens.css + assets/css/components.css, so the admin
+   screens visibly belonged to an older generation of the portal.
+
+   This is NOT a fourth CSS system. It is a feature stylesheet in css/,
+   exactly like practice.css / library.css / quiz styles: it consumes the
+   tokens from assets/css/design-tokens.css and adds nothing to the palette.
+   Every colour below is a token or a token-derived alpha.
+
+   Visual reference: pages/practice.html (the most up-to-date page).
+   RTL-first: logical properties only. Mobile-first, verified at 390px.
+   ========================================================================== */
+
+/* ===== Reset & base (mirrors css/practice.css) ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  min-block-size: 100vh;
+  overflow-x: hidden;
+  max-inline-size: 100vw;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--accent-gold);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Generic visibility utility.
+   js/admin-stats.js + js/admin-users.js toggle #gate / #dash / #loading with
+   classList.add('hidden') / remove('hidden'). The blocks used to define it
+   privately; it lives here now so the JS keeps working untouched. The
+   component-level [hidden] rules below stay — both mechanisms are supported. */
+.hidden { display: none !important; }
+
+/* ===== Atmospheric background — same shell as index/library/practice ===== */
+.atmos { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.atmos__base {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 90% 12%, rgba(26, 79, 79, .7), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 12% 88%, rgba(45, 107, 95, .6), transparent 60%),
+    radial-gradient(circle 480px at 70% 55%, rgba(212, 165, 116, .22), transparent 60%),
+    radial-gradient(circle 360px at 18% 18%, rgba(232, 213, 183, .13), transparent 60%),
+    linear-gradient(160deg, #0F2D2D 0%, #0a2528 55%, #0F2D2D 100%);
+}
+.atmos__blob {
+  position: absolute; border-radius: var(--radius-full);
+  filter: blur(120px); mix-blend-mode: screen; will-change: transform;
+}
+.atmos__blob--a {
+  inline-size: 600px; block-size: 600px; background: #D4A574; opacity: .18;
+  top: -220px; inset-inline-end: -180px;
+  animation: adFloatA 60s ease-in-out infinite;
+}
+.atmos__blob--b {
+  inline-size: 520px; block-size: 520px; background: #2D6B5F; opacity: .22;
+  bottom: -200px; inset-inline-start: -160px;
+  animation: adFloatB 60s ease-in-out infinite;
+}
+@keyframes adFloatA {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-60px, 40px) rotate(8deg); }
+  66% { transform: translate(30px, -30px) rotate(-5deg); }
+}
+@keyframes adFloatB {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(50px, -40px) rotate(-6deg); }
+  66% { transform: translate(-40px, 30px) rotate(9deg); }
+}
+.atmos__grid {
+  position: absolute; inset: 0; opacity: .06; mix-blend-mode: overlay;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+/* Keep page content above .atmos. See hindsight.md 2026-05-10: this selector
+   is (0,1,1), so it beats bare class rules — global-nav.css already re-lifts
+   the header past it with !important. */
+body > *:not(.atmos) { position: relative; z-index: var(--z-base); }
+
+/* ===== Glass utility (identical recipe to practice.css .g) ===== */
+.g {
+  position: relative; isolation: isolate;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .05) 100%);
+  backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+  border: 1px solid var(--border-subtle);
+  border-block-start-color: var(--border-strong);
+  border-block-end-color: rgba(255, 255, 255, .06);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+.g::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .02) 35%, transparent 55%);
+  z-index: 0;
+}
+.g > * { position: relative; z-index: 1; }
+
+/* ==========================================================================
+   Page shell
+   ========================================================================== */
+.adm-wrap {
+  max-inline-size: 1100px;
+  margin-inline: auto;
+  padding: 2rem 1.25rem 5rem;
+}
+@media (max-width: 720px) {
+  .adm-wrap { padding: 1.25rem .8rem 4rem; }
+}
+
+.adm-head { text-align: center; margin-block-end: 1.75rem; }
+.adm-head__eyebrow {
+  display: inline-block; color: var(--accent-gold);
+  font-size: .78rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; margin-block-end: .5rem;
+}
+.adm-head__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 5vw, 2.6rem);
+  font-weight: 700; color: var(--text-primary);
+  line-height: 1.2; margin-block-end: .5rem;
+}
+.adm-head__title i { color: var(--accent-gold); font-size: .8em; }
+.adm-head__sub {
+  color: var(--text-secondary); font-size: .95rem;
+  max-inline-size: 46rem; margin-inline: auto; line-height: 1.6;
+}
+
+/* Cross-link pill between the two admin screens */
+.adm-switch { text-align: center; margin-block-end: 1.75rem; }
+.adm-switch__link {
+  display: inline-flex; align-items: center; gap: .45rem;
+  min-block-size: 44px; padding: .6rem 1.2rem;
+  border-radius: var(--radius-lg);
+  background: rgba(212, 175, 55, .12);
+  border: 1px solid var(--border-gold);
+  color: var(--accent-gold);
+  text-decoration: none; font-size: .86rem; font-weight: 600;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.adm-switch__link:hover {
+  background: rgba(212, 175, 55, .2);
+  color: var(--accent-gold-light);
+}
+
+/* ==========================================================================
+   Admin gate
+   ========================================================================== */
+.adm-gate { text-align: center; padding: 3rem 1.2rem; }
+.adm-gate[hidden] { display: none !important; }
+.adm-gate__icon { font-size: 2rem; color: var(--accent-gold); }
+.adm-gate__title { font-family: var(--font-display); font-size: 1.3rem; margin-block-start: .6rem; }
+.adm-gate__msg { color: var(--text-secondary); margin-block-start: .4rem; font-size: .92rem; }
+.adm-gate__btn {
+  margin-block-start: 1rem; min-block-size: 46px; padding: .7rem 1.6rem;
+  border-radius: var(--radius-lg); border: none;
+  background: var(--gradient-gold);
+  color: var(--text-inverse); font: inherit; font-weight: 700; cursor: pointer;
+  box-shadow: var(--shadow-gold-glow);
+}
+.adm-gate__btn:hover { box-shadow: var(--shadow-gold-glow-strong); }
+
+/* ==========================================================================
+   Stat tiles
+   ========================================================================== */
+.adm-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: .75rem; margin-block-end: 1.25rem;
+}
+.adm-stat { padding: 1rem .75rem; text-align: center; border-radius: var(--radius-lg); }
+.adm-stat__num {
+  font-family: var(--font-display);
+  font-size: 1.7rem; font-weight: 700; color: var(--accent-gold); line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.adm-stat__label {
+  font-size: .75rem; color: var(--text-muted); margin-block-start: .3rem;
+  font-weight: 500; line-height: 1.4;
+}
+
+/* ==========================================================================
+   Section card
+   ========================================================================== */
+.adm-section { padding: 1.25rem 1.1rem; margin-block-end: 1.25rem; border-radius: var(--radius-xl); }
+@media (max-width: 720px) { .adm-section { padding: 1rem .85rem; } }
+
+.adm-section__title {
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 700; margin-block-end: .3rem;
+  display: flex; align-items: center; gap: .45rem;
+}
+.adm-section__title i { color: var(--accent-gold); font-size: .95rem; }
+.adm-section__hint {
+  font-size: .8rem; color: var(--text-muted); line-height: 1.55; margin-block-end: .9rem;
+}
+
+/* ==========================================================================
+   Toolbar (search + sort)
+   ========================================================================== */
+.adm-toolbar {
+  display: flex; gap: .5rem; flex-wrap: wrap; align-items: center;
+  margin-block-end: .9rem;
+}
+.adm-toolbar input,
+.adm-toolbar select {
+  min-block-size: 44px; padding: .5rem .8rem;
+  border-radius: var(--radius-lg);
+  background: rgba(0, 0, 0, .28);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: inherit;
+  /* 16px: anything smaller triggers iOS auto-zoom on focus. */
+  font-size: 16px;
+}
+.adm-toolbar input { flex: 1; min-inline-size: 10rem; }
+.adm-toolbar input::placeholder { color: var(--text-disabled); }
+.adm-toolbar input:focus,
+.adm-toolbar select:focus { outline: none; border-color: var(--border-gold); }
+.adm-toolbar select option { background: var(--bg-secondary); color: var(--text-primary); }
+.adm-toolbar__count { font-size: .8rem; color: var(--text-muted); white-space: nowrap; }
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+.adm-scroll { overflow-x: auto; }
+
+.adm-table { inline-size: 100%; border-collapse: collapse; font-size: .86rem; }
+.adm-table thead th {
+  text-align: start; padding: .5rem .6rem;
+  border-block-end: 1px solid var(--border-subtle);
+  color: var(--text-muted); font-weight: 500; font-size: .76rem; white-space: nowrap;
+}
+.adm-table tbody td {
+  text-align: start; padding: .65rem .6rem;
+  border-block-end: 1px solid rgba(255, 255, 255, .07);
+  vertical-align: middle;
+}
+.adm-table tbody tr.is-clickable { cursor: pointer; transition: background var(--transition-fast); }
+.adm-table tbody tr.is-clickable:hover { background: rgba(255, 255, 255, .05); }
+.adm-table tbody tr.is-clickable:focus-visible {
+  outline: 2px solid var(--accent-gold); outline-offset: -2px;
+}
+
+.adm-name { font-weight: 600; color: var(--text-primary); }
+.adm-name__none { color: var(--text-disabled); font-weight: 400; font-style: italic; }
+.adm-email {
+  color: var(--text-secondary); font-size: .82rem;
+  direction: ltr; unicode-bidi: plaintext; text-align: start;
+}
+.adm-num { font-variant-numeric: tabular-nums; }
+.adm-muted { color: var(--text-disabled); }
+
+/* ==========================================================================
+   Pills / badges
+   ========================================================================== */
+.adm-pill {
+  display: inline-block; padding: .14rem .55rem;
+  border-radius: var(--radius-full); font-size: .72rem; font-weight: 600;
+  background: rgba(212, 175, 55, .14);
+  border: 1px solid rgba(212, 175, 55, .3);
+  color: var(--accent-gold); white-space: nowrap;
+}
+.adm-pill--none {
+  background: rgba(255, 255, 255, .05);
+  border-color: var(--border-subtle);
+  color: var(--text-disabled);
+}
+.adm-pill--good {
+  background: rgba(16, 185, 129, .14);
+  border-color: rgba(16, 185, 129, .34);
+  color: #34D8A6;
+}
+.adm-pill--warn {
+  background: rgba(245, 158, 11, .14);
+  border-color: rgba(245, 158, 11, .34);
+  color: #F2B23C;
+}
+.adm-pill--stuck {
+  background: rgba(239, 68, 68, .13);
+  border-color: rgba(239, 68, 68, .32);
+  color: #F58585;
+}
+.adm-pill--teal {
+  background: rgba(63, 170, 187, .14);
+  border-color: rgba(63, 170, 187, .32);
+  color: var(--accent-teal-bright);
+}
+
+/* ==========================================================================
+   Progress bar
+   ========================================================================== */
+.adm-bar {
+  position: relative; background: rgba(255, 255, 255, .07);
+  border-radius: var(--radius-sm); block-size: 8px;
+  min-inline-size: 60px; overflow: hidden; flex: 1;
+}
+.adm-bar__fill {
+  position: absolute; inset-block: 0; inset-inline-start: 0;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-gold-deep));
+  border-radius: var(--radius-sm);
+}
+.adm-bar--warn .adm-bar__fill { background: linear-gradient(90deg, #EF4444, #B84040); }
+.adm-bar--teal .adm-bar__fill {
+  background: linear-gradient(90deg, var(--accent-teal-bright), var(--accent-teal));
+}
+.adm-barline { display: flex; align-items: center; gap: .45rem; }
+
+/* ==========================================================================
+   Notes / caveats (the transparency rules — these must stay legible)
+   ========================================================================== */
+.adm-note {
+  margin-block-start: .7rem; font-size: .78rem;
+  color: var(--text-muted); line-height: 1.6;
+}
+.adm-note strong { color: var(--text-secondary); }
+
+.adm-caveat {
+  border: 1px solid rgba(212, 175, 55, .28);
+  background: rgba(212, 175, 55, .07);
+  border-radius: var(--radius-lg);
+  padding: .85rem .95rem; font-size: .8rem; line-height: 1.65;
+  color: var(--text-secondary);
+}
+.adm-caveat b { color: var(--accent-gold); }
+.adm-caveat + .adm-caveat { margin-block-start: .6rem; }
+
+/* ==========================================================================
+   Loading / empty
+   ========================================================================== */
+.adm-loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+.adm-loading[hidden] { display: none !important; }
+
+/* The honest empty state: says what will appear here, not just "no rows". */
+.adm-empty { text-align: center; padding: 2.25rem 1.25rem; }
+.adm-empty[hidden] { display: none !important; }
+.adm-empty__icon {
+  font-size: 1.9rem; color: var(--accent-gold);
+  opacity: .75; margin-block-end: .7rem;
+}
+.adm-empty__title {
+  font-family: var(--font-display); font-size: 1.15rem;
+  color: var(--text-primary); margin-block-end: .45rem;
+}
+.adm-empty__body {
+  color: var(--text-secondary); font-size: .88rem; line-height: 1.7;
+  max-inline-size: 34rem; margin-inline: auto;
+}
+.adm-empty__list {
+  list-style: none; margin: .9rem auto 0; max-inline-size: 30rem;
+  display: grid; gap: .4rem; text-align: start;
+}
+.adm-empty__list li {
+  display: flex; gap: .55rem; align-items: flex-start;
+  font-size: .85rem; color: var(--text-secondary); line-height: 1.55;
+}
+.adm-empty__list i { color: var(--accent-gold); font-size: .8rem; margin-block-start: .3rem; flex-shrink: 0; }
+
+/* ==========================================================================
+   Learner detail drawer
+   ========================================================================== */
+.adm-drawer {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  display: grid; place-items: center; padding: 1rem;
+  background: var(--surface-overlay);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.adm-drawer[hidden] { display: none !important; }
+
+.adm-drawer__card {
+  position: relative;
+  inline-size: min(620px, 100%);
+  max-block-size: calc(100vh - 2rem);
+  overflow-y: auto;
+  border-radius: var(--radius-2xl);
+  padding: 1.4rem 1.15rem 1.6rem;
+  /* Opaque-ish so the scrolling roster behind it never bleeds into the text. */
+  background: linear-gradient(160deg, rgba(15, 45, 45, .96), rgba(10, 34, 38, .96));
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-xl);
+}
+@media (max-width: 720px) {
+  .adm-drawer { padding: .5rem; }
+  .adm-drawer__card { max-block-size: calc(100vh - 1rem); padding: 1.1rem .85rem 1.4rem; }
+}
+
+.adm-drawer__close {
+  position: absolute; top: 1rem; inset-inline-end: 1rem;
+  inline-size: 38px; block-size: 38px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary); cursor: pointer;
+  display: grid; place-items: center;
+  transition: background var(--transition-fast);
+}
+.adm-drawer__close:hover { background: rgba(255, 255, 255, .16); color: var(--text-primary); }
+
+.adm-drawer__head { padding-inline-end: 3rem; }
+.adm-drawer__name { font-family: var(--font-display); font-size: 1.3rem; line-height: 1.3; }
+.adm-drawer__email {
+  color: var(--text-muted); font-size: .84rem; margin-block-start: .2rem;
+  direction: ltr; unicode-bidi: plaintext; text-align: start;
+}
+.adm-drawer__tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-block-start: .55rem; }
+
+.adm-drawer__stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: .5rem; margin-block: 1.1rem;
+}
+.adm-drawer__stat {
+  background: rgba(255, 255, 255, .05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg); padding: .65rem .4rem; text-align: center;
+}
+.adm-drawer__stat b {
+  display: block; font-size: 1.2rem; color: var(--accent-gold);
+  font-variant-numeric: tabular-nums; line-height: 1.2;
+}
+.adm-drawer__stat b.is-text { font-size: .92rem; }
+.adm-drawer__stat span {
+  display: block; font-size: .7rem; color: var(--text-muted);
+  margin-block-start: .18rem; line-height: 1.35;
+}
+
+.adm-drawer__h {
+  font-size: .95rem; font-weight: 700; margin-block: 1.3rem .55rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+.adm-drawer__h i { color: var(--accent-gold); font-size: .85rem; }
+.adm-drawer__h:first-of-type { margin-block-start: .4rem; }
+
+/* --- Onboarding answers --- */
+.adm-qa { list-style: none; display: grid; gap: .45rem; }
+.adm-qa li {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg); padding: .55rem .7rem;
+}
+.adm-qa__q { display: block; font-size: .73rem; color: var(--text-muted); margin-block-end: .15rem; }
+.adm-qa__a { display: block; font-size: .9rem; font-weight: 600; color: var(--text-primary); }
+
+.adm-blank {
+  color: var(--text-muted); font-size: .85rem; line-height: 1.65;
+  background: rgba(255, 255, 255, .03);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-lg); padding: .7rem .8rem;
+}
+
+/* --- Per-module learning breakdown --- */
+.adm-mods { display: grid; gap: .5rem; }
+
+.adm-mod {
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.adm-mod--empty { opacity: .55; }
+
+.adm-mod__btn {
+  inline-size: 100%; display: flex; align-items: center; gap: .6rem;
+  padding: .6rem .7rem; min-block-size: 48px;
+  background: none; border: none; color: inherit;
+  font: inherit; text-align: start; cursor: pointer;
+}
+.adm-mod__btn:hover { background: rgba(255, 255, 255, .04); }
+.adm-mod__btn[disabled] { cursor: default; }
+.adm-mod__btn[disabled]:hover { background: none; }
+
+.adm-mod__idx {
+  inline-size: 26px; block-size: 26px; flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: rgba(212, 175, 55, .16);
+  border: 1px solid rgba(212, 175, 55, .3);
+  color: var(--accent-gold);
+  display: grid; place-items: center;
+  font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.adm-mod--empty .adm-mod__idx {
+  background: rgba(255, 255, 255, .05);
+  border-color: var(--border-subtle);
+  color: var(--text-disabled);
+}
+.adm-mod__main { flex: 1; min-inline-size: 0; }
+.adm-mod__name {
+  font-size: .88rem; font-weight: 600; color: var(--text-primary);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.adm-mod__meta {
+  display: flex; align-items: center; gap: .45rem; margin-block-start: .3rem;
+}
+.adm-mod__count {
+  font-size: .74rem; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.adm-mod__chev {
+  color: var(--text-disabled); font-size: .72rem; flex-shrink: 0;
+  transition: transform var(--transition-fast);
+}
+.adm-mod__btn[aria-expanded="true"] .adm-mod__chev { transform: rotate(-90deg); }
+
+.adm-mod__body {
+  padding: .1rem .7rem .65rem;
+  border-block-start: 1px solid var(--border-subtle);
+}
+.adm-mod__body[hidden] { display: none !important; }
+
+.adm-lessons { list-style: none; display: grid; gap: .1rem; }
+.adm-lesson {
+  display: flex; align-items: baseline; gap: .5rem;
+  padding: .35rem 0; font-size: .82rem; line-height: 1.45;
+}
+.adm-lesson i { font-size: .72rem; flex-shrink: 0; }
+.adm-lesson--done i { color: var(--color-success); }
+.adm-lesson--todo i { color: var(--text-disabled); }
+.adm-lesson--todo { color: var(--text-disabled); }
+.adm-lesson__name { flex: 1; min-inline-size: 0; }
+.adm-lesson__when {
+  font-size: .72rem; color: var(--text-muted);
+  font-variant-numeric: tabular-nums; white-space: nowrap; flex-shrink: 0;
+}
+.adm-lesson--last .adm-lesson__name { color: var(--accent-gold); font-weight: 600; }
+
+/* --- Quiz / practice / application mini tables --- */
+.adm-mini { inline-size: 100%; border-collapse: collapse; font-size: .82rem; }
+.adm-mini th {
+  text-align: start; font-weight: 500; font-size: .72rem;
+  color: var(--text-muted); padding: .3rem .45rem;
+  border-block-end: 1px solid var(--border-subtle);
+}
+.adm-mini td {
+  text-align: start; padding: .45rem;
+  border-block-end: 1px solid rgba(255, 255, 255, .06);
+}
+.adm-mini tr:last-child td { border-block-end: none; }
+.adm-mini__name { color: var(--text-secondary); }
+
+/* ==========================================================================
+   Mobile: roster rows become cards (390px target)
+   ========================================================================== */
+@media (max-width: 720px) {
+  .adm-table thead {
+    position: absolute; inline-size: 1px; block-size: 1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+  .adm-table tbody tr {
+    display: block;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: .75rem .85rem; margin-block-end: .6rem;
+    background: rgba(255, 255, 255, .03);
+  }
+  .adm-table tbody td {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: .8rem; padding: .3rem 0; border: 0;
+  }
+  .adm-table tbody td::before {
+    content: attr(data-label);
+    font-size: .74rem; color: var(--text-muted); flex-shrink: 0;
+  }
+  /* The name cell is the card headline — no label, full width, own rule. */
+  .adm-table tbody td[data-cell="name"] {
+    justify-content: flex-start; font-size: 1rem;
+    border-block-end: 1px solid var(--border-subtle);
+    padding-block-end: .5rem; margin-block-end: .4rem;
+  }
+  .adm-table tbody td[data-cell="name"]::before { display: none; }
+  /* The progress bar needs room; stack it under its label. */
+  .adm-table tbody td[data-cell="progress"] .adm-barline { flex: 1; min-inline-size: 0; }
+}
