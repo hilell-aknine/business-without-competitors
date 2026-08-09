@@ -217,8 +217,11 @@
     var onb = r.onboarding;
     if (!onb) {
       $('drawerAnswers').innerHTML =
-        '<p class="qa--empty">הלומד עדיין לא מילא את שאלון הכניסה. השאלון עולה אוטומטית בביקור הראשון בדף הבית, ' +
-        'ואפשר לפתוח אותו שוב מכפתור "ברוך הבא לפורטל" בסרגל הצד.</p>';
+        // Copy corrected 2026-08-09: the questionnaire used to open for any
+        // visitor on the home page. It now opens only after the account
+        // exists, on the first visit while logged in.
+        '<p class="qa--empty">הלומד עדיין לא מילא את שאלון הכניסה. השאלון עולה אוטומטית בביקור הראשון בדף הבית ' +
+        'אחרי פתיחת החשבון, ואפשר לפתוח אותו שוב מכפתור "ברוך הבא לפורטל" בסרגל הצד.</p>';
     } else {
       var answers = onb.answers || {};
       var items = QUESTION_ORDER.map(function (qid) {
