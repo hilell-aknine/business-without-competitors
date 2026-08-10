@@ -80,6 +80,15 @@ function buildSystem(lessonTitle, transcript, others) {
 
 // Pull the [[מקורות: ...]] marker out of the answer and resolve it to the
 // lessons we actually supplied (the model can't invent a key that way).
+//
+// These are RELATED lessons, not proven attribution — and the UI says exactly
+// that. Models over-attribute: asked to name what they leaned on they list most
+// of what they were handed (measured live on s3-0, where the answer came from
+// the current seminar yet three other lessons were credited). A term-overlap
+// filter was tried and measured against four cases: the distinctive-term ratio
+// of a true source (14%) sat *below* two false ones (16.7%, 19.4%), so it
+// cannot separate them. Rather than ship a filter that fakes precision, the
+// claim was weakened to one that is true: these lessons cover this topic too.
 function extractSources(answer, others) {
   const allowed = new Map(others.map(o => [o.key, o.title]));
   const found = [];

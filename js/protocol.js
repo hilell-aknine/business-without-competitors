@@ -149,7 +149,7 @@
       <button type="button" class="proto__source" data-action="goto-lesson" data-lesson="${escapeHtml(s.key)}">
         <i class="fa-solid fa-play" aria-hidden="true"></i>${escapeHtml(s.title || s.key)}
       </button>`).join('');
-    return `<div class="proto__sources"><span>מהשיעורים האלה בקורס:</span>${chips}</div>`;
+    return `<div class="proto__sources"><span>הנושא הזה מופיע גם כאן:</span>${chips}</div>`;
   }
 
   function coachBlock(coach) {
