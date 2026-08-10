@@ -141,10 +141,21 @@
     } catch {}
   }
 
+  // When the answer leaned on another lesson, the server returns which one.
+  // Showing it as a real link is the difference between "trust me" and "go see".
+  function sourcesBlock(sources) {
+    if (!Array.isArray(sources) || !sources.length) return '';
+    const chips = sources.map(s => `
+      <button type="button" class="proto__source" data-action="goto-lesson" data-lesson="${escapeHtml(s.key)}">
+        <i class="fa-solid fa-play" aria-hidden="true"></i>${escapeHtml(s.title || s.key)}
+      </button>`).join('');
+    return `<div class="proto__sources"><span>מהשיעורים האלה בקורס:</span>${chips}</div>`;
+  }
+
   function coachBlock(coach) {
     const msgs = coach.messages.map(m => `
       <div class="proto__chat-msg proto__chat-msg--${m.role === 'user' ? 'user' : 'ai'}">
-        ${m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content)}
+        ${m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content) + sourcesBlock(m.sources)}
       </div>`).join('');
     return `
       <div class="proto__card proto__coach" data-role="coach">
@@ -152,7 +163,7 @@
           <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
           שאל את השיעור
         </div>
-        <p class="proto__section-sub">עוזר הלמידה מכיר את התמלול המלא של השיעור הזה ועונה רק ממנו — בלי המצאות.</p>
+        <p class="proto__section-sub">עוזר הלמידה מכיר את התמלול המלא של השיעור הזה, ואם התשובה נמצאת במקום אחר בקורס — הוא ימצא אותה שם ויפנה אותך לשיעור. עונה רק מהחומר, בלי המצאות.</p>
         <div class="proto__chat-log" data-role="coach-log">${msgs || ''}</div>
         <div class="proto__chat-inputrow">
           <textarea data-role="coach-input" rows="2" maxlength="600"
@@ -309,7 +320,7 @@
         if (status === 0) {
           coach.messages.push({ role: 'assistant', content: 'עוזר הלמידה לא זמין בכתובת הזו — הוא רץ על שרת שקיים רק בפורטל המלא. השיעורים עצמם כאן מלאים. כדי לשאול אותי שאלות, פתח את הפורטל בכתובת ' + (window.bwcApi ? window.bwcApi.primary : '') });
         } else if (status === 404) {
-          coach.messages.push({ role: 'assistant', content: 'לשיעור הזה אין עדיין תמלול במערכת, אז אין לי על מה להתבסס. נסה שיעור אחר.' });
+          coach.messages.push({ role: 'assistant', content: 'לשיעור הזה אין תמלול במערכת, וגם בשאר הקורס לא מצאתי חומר שעונה על השאלה הזאת. נסה לנסח אותה אחרת, או לשאול אותה בשיעור אחר.' });
         } else if (!data?.ok) {
           coach.messages.pop();
           saveCoach(lessonKey, coach);
@@ -318,7 +329,7 @@
           if (l) l.insertAdjacentHTML('beforeend', errorBlock('לא הצלחתי לענות כרגע. נסה שוב בעוד רגע.'));
           return;
         } else {
-          coach.messages.push({ role: 'assistant', content: data.answer });
+          coach.messages.push({ role: 'assistant', content: data.answer, sources: data.sources || [] });
         }
         saveCoach(lessonKey, coach);
         paint();
@@ -408,6 +419,17 @@
         clearCache(lessonKey);
         cache = {};
         paint();
+      }
+      else if (action === 'goto-lesson') {
+        const key = btn.dataset.lesson;
+        // index.html owns lesson selection; inside the tabs iframe there is no
+        // such global, so fall back to a top-level navigation.
+        if (typeof window.selectLessonByKey === 'function' && window.selectLessonByKey(key)) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const base = (window.bwcApi && window.bwcApi.primary) ? window.bwcApi.primary : '';
+          window.top.location.href = `${base}/index.html#lesson=${encodeURIComponent(key)}`;
+        }
       }
       else if (action === 'mode') runStage2(btn.dataset.mode);
       else if (action === 'regen-active') {
