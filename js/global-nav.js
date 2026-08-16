@@ -28,6 +28,7 @@
     { id: 'hub',      label: 'השיטה',         icon: 'fa-atom',        path: 'hub.html' },
     { id: 'modules',  label: 'מודולים',       icon: 'fa-layer-group', path: 'pages/library.html?type=modules' },
     { id: 'seminars', label: 'סמינרים',       icon: 'fa-microphone',  path: 'pages/seminars.html' },
+    { id: 'track',    label: 'שיח מנהיגות עם תמר', icon: 'fa-heart-pulse', path: 'pages/track.html?id=tamar-tuesday' },
     {
       id: 'transcripts',
       label: 'תמלולים מלאים',

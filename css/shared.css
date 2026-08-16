@@ -532,6 +532,13 @@ button:focus-visible,
     padding: 7rem 2rem 3rem;
     text-align: center;
     position: relative;
+    /* 2026-08-16: the decorative ::before glow below is a fixed 600px circle
+       centred with translateX(-50%). On a 375-390px phone it spilled ~112px past
+       each edge, and RTL turned that into real horizontal page scroll on every
+       page using .page-hero (the seminars overflow logged in primer.md).
+       `clip` on the x axis only — `visible` on y keeps the glow bleeding
+       upwards exactly as designed. */
+    overflow-x: clip;
 }
 
 .page-hero::before {

@@ -411,6 +411,55 @@ const MODULES = [
     }
 ];
 
+// ===== TRACKS — curated cross-module courses =====
+// A track is a *view* over lessons that already exist in MODULES, not a copy.
+// Every entry points at a real {mi, wi, di} so progress, transcripts and the AI
+// coach keep working with zero duplication: marking a track lesson complete is
+// the same lesson-key as marking it complete inside its module.
+//
+// Track 1 — "שיח מנהיגות עם תמר": every Tuesday session in the program.
+// Verified 2026-08-16 against the raw transcripts in kb-transcripts/, not
+// against titles. Four Tuesday slots were deliberately LEFT OUT because Tamar
+// does not speak in them:
+//   m3-2-2  מוצר משנה חיים · שבוע 3   — labelled "(צביקה)"
+//   m4-1-2  הפיצוח האטומי · שבוע 2    — Tzvika solo, talking *about* Tamar
+//   m6-1-2  המרה אטומית · שבוע 2      — labelled "(צביקה)", transcript missing
+//   m6-2-2  המרה אטומית · שבוע 3      — titled "שיח מנהיגות" but the content is
+//                                        a sales lesson ("המכירה הקלה"). Title is
+//                                        wrong in the source course, not here.
+const TRACKS = [
+    {
+        id: 'tamar-tuesday',
+        title: 'שיח מנהיגות עם תמר',
+        host: 'תמר רוזנברג',
+        icon: 'fa-heart-pulse',
+        eyebrow: 'מסלול נבחר · יום שלישי',
+        shortDescription: 'המסלול הרגשי של התוכנית — כל מפגשי יום שלישי עם תמר, מהשיעור הראשון ועד האחרון',
+        description: 'לאורך כל שמונת חודשי ההכשרה, כל יום שלישי הוקדש לצד הרגשי: זיהוי ללא שיפוטיות, פרוטוקול הזהב, הווירוסים הפנימיים ושיח המנהיגות. כאן הם אספו למסלול אחד רציף, בסדר הכרונולוגי, כך שאפשר ללמוד את השיטה הרגשית כקורס עומד בפני עצמו ולא כפיזור בין שמונה מודולים.',
+        lessons: [
+            { key: 'm0-1-2', mi: 0, wi: 1, di: 2, videoId: 'Kny7pRefdOY', title: 'למה תוכנית עסקית צריכה מטפלת רגשית', context: 'מודול 1 · שבוע 1' },
+            { key: 'm0-2-2', mi: 0, wi: 2, di: 2, videoId: 'YCzMHzLoc9w', title: 'פציעות — מה באמת עוצר אותנו מלבצע', context: 'מודול 1 · שבוע 2' },
+            { key: 'm1-0-2', mi: 1, wi: 0, di: 2, videoId: 'GIUW676Zl4M', title: 'עדכון הגרסה הראשון במקום אנטי־וירוס', context: 'מודול 2 · שבוע 1' },
+            { key: 'm1-1-2', mi: 1, wi: 1, di: 2, videoId: 'ZhUjAWj99fk', title: 'הקולות שעולים מול החזון הגדול', context: 'מודול 2 · שבוע 2' },
+            { key: 'm1-2-2', mi: 1, wi: 2, di: 2, videoId: 'kjOaIHwRBDc', title: 'פרוטוקול הזהב — לגייס את החלק שמתנגד', context: 'מודול 2 · שבוע 3' },
+            { key: 'm2-0-2', mi: 2, wi: 0, di: 2, videoId: 'KPChQLVaTNo', title: 'לעשות משהו אחר עם הווירוסים', context: 'מודול 3 · שבוע 1' },
+            { key: 'm2-1-2', mi: 2, wi: 1, di: 2, videoId: 'U7PTP_X85UA', title: 'התיוגים השליליים שאנחנו מדביקים לעצמנו', context: 'מודול 3 · שבוע 2' },
+            { key: 'm2-2-2', mi: 2, wi: 2, di: 2, videoId: 'nnRYt-ISNQE', title: 'המכתב ללקוח והמשימה של השבוע', context: 'מודול 3 · שבוע 3' },
+            { key: 'm3-0-2', mi: 3, wi: 0, di: 2, videoId: 'OpiNVVxPpfU', title: 'עדכוני גרסה בדרך למוצר משנה חיים', context: 'מודול 4 · שבוע 1' },
+            { key: 'm3-1-2', mi: 3, wi: 1, di: 2, videoId: 'vuarz_Ych-M', variantIndex: 1, title: 'מוצר משנה חיים — הגרסה של תמר', context: 'מודול 4 · שבוע 2', note: 'לשיעור הזה שתי גרסאות בקורס. המסלול פותח את הגרסה של תמר.' },
+            { key: 'm4-0-2', mi: 4, wi: 0, di: 2, videoId: 'DO_YqMtyvWY', title: 'שיח מנהיגות בפתח הפיצוח האטומי', context: 'מודול 5 · שבוע 1' },
+            { key: 'm4-2-2', mi: 4, wi: 2, di: 2, videoId: 'S5K4bFR4-LI', title: 'קולות הזהב — אמפתיה עם החלק שמתנגד', context: 'מודול 5 · שבוע 3' },
+            { key: 'm5-0-2', mi: 5, wi: 0, di: 2, videoId: '-rb6xNj06pk', title: 'להיכנס לנעליים של משפיען', context: 'מודול 6 · שבוע 1' },
+            { key: 'm5-1-2', mi: 5, wi: 1, di: 2, videoId: 'p0e6e2AUyuU', title: 'רגע לפני כתיבת מסע הלקוח', context: 'מודול 6 · שבוע 2' },
+            { key: 'm5-2-2', mi: 5, wi: 2, di: 2, videoId: 'krW4Nmi3mjY', title: 'הכלי לניתוח מודעות', context: 'מודול 6 · שבוע 3' },
+            { key: 'm6-0-2', mi: 6, wi: 0, di: 2, videoId: 'JF6T2reo99w', title: 'שיח מנהיגות בחודש ההמראה', context: 'מודול 7 · שבוע 1' },
+            { key: 'm7-0-2', mi: 7, wi: 0, di: 2, videoId: 'ywomR2G4UF8', title: 'ההתנגדויות שלנו לאופטימיזציה', context: 'מודול 8 · שבוע 1' },
+            { key: 'm7-1-2', mi: 7, wi: 1, di: 2, videoId: 'Kf0FkRXN-hk', title: 'שיח מנהיגות בשוטף — להפוך את זה להרגל', context: 'מודול 8 · שבוע 2' },
+            { key: 'm7-2-2', mi: 7, wi: 2, di: 2, videoId: 'M6KvJ_DsQtA', title: 'שיח מנהיגות בשוטף — סיכום המסלול', context: 'מודול 8 · שבוע 3', note: 'הקלטה נוספת של אותו תוכן כמו השיעור הקודם. כך זה מופיע בקורס המקורי.' }
+        ]
+    }
+];
+
 // ===== Computed helpers =====
 function getModuleLessonCount(mod) {
     return mod.weeks.reduce((sum, w) => sum + w.days.filter(d => d.videoId).length, 0);
@@ -437,4 +486,5 @@ function getTotalLessonCount() {
 if (typeof window !== 'undefined') {
   window.MODULES = MODULES;
   window.SEMINARS = SEMINARS;
+  window.TRACKS = TRACKS;
 }

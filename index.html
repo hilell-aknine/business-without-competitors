@@ -1308,6 +1308,60 @@ function renderSidebar(filter=''){
     });
   }
 
+  // Curated tracks (cross-module courses — come last).
+  // These are a VIEW over lessons that already appear above, not extra content:
+  // the same lesson key, so the check-marks and progress stay in sync by design.
+  const TRACK_LIST = (typeof TRACKS !== 'undefined' && TRACKS) || [];
+  const trackMatches = TRACK_LIST.map((trk, ti) => ({trk, ti})).filter(({trk}) => {
+    if (!q) return true;
+    if (trk.title.toLowerCase().includes(q)) return true;
+    if ((trk.host || '').toLowerCase().includes(q)) return true;
+    return trk.lessons.some(l => l.title.toLowerCase().includes(q));
+  });
+  if (trackMatches.length) {
+    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">מסלולים נבחרים</h3>`;
+    trackMatches.forEach(({trk, ti}) => {
+      const isOpen = !!q;
+      const doneCount = trk.lessons.filter(l => completedLessons.includes(l.key)).length;
+      const trkPct = trk.lessons.length > 0 ? Math.round((doneCount / trk.lessons.length) * 100) : 0;
+      const trkProgressHtml = window.SidebarAccordion
+        ? window.SidebarAccordion.progressBarHtml(trkPct)
+        : '';
+
+      const lessonsHtml = trk.lessons.map((lesson, li) => {
+        if (q && !lesson.title.toLowerCase().includes(q) && !trk.title.toLowerCase().includes(q) && !(trk.host || '').toLowerCase().includes(q)) return '';
+        const done = completedLessons.includes(lesson.key);
+        const active = currentType === 'module' && currentMi === lesson.mi && currentWi === lesson.wi && currentDi === lesson.di;
+        const thumb = `<img src="https://img.youtube.com/vi/${lesson.videoId}/mqdefault.jpg" loading="lazy" alt="" onerror="this.style.display='none'">`;
+        const overlay = done
+          ? `<i class="fa-solid fa-check v1-les__check"></i>`
+          : (active ? `<i class="fa-solid fa-play v1-les__play"></i>` : '');
+        const lessonAria = `${lesson.title} (${lesson.context})${active?' — נצפה כעת':done?' — הושלם':' — לא נצפה'}`;
+        return `<button type="button" class="v1-les ${done?'done':''} ${active?'active':''}" onclick="selectTrackLesson(${ti},${li},true)" aria-label="${lessonAria}"${active?' aria-current="true"':''}>
+          <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
+          <span class="v1-les__txt">
+            <span class="v1-les__title">${lesson.title}</span>
+            <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${lesson.context}</span></span>
+          </span>
+        </button>`;
+      }).join('');
+      if (!lessonsHtml.trim()) return;
+
+      const trkListId = `trk-list-${ti}`;
+      const trkPage = `<a class="v1-side__resource" href="pages/track.html?id=${encodeURIComponent(trk.id)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> דף המסלול המלא</a>`;
+      html += `<div class="v1-mod ${isOpen?'open':''}" data-track="${ti}">
+        <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${trkListId}">
+          <span class="v1-mod__num seminar" aria-hidden="true"><i class="fa-solid ${trk.icon||'fa-route'}"></i></span>
+          <span class="v1-mod__title">${trk.title}</span>
+          <span class="v1-mod__count" aria-label="${trk.lessons.length} שיעורים — ${doneCount} הושלמו">${trk.lessons.length} שיעורים</span>
+          <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
+          ${trkProgressHtml}
+        </button>
+        <div class="v1-mod__list" id="${trkListId}">${lessonsHtml}${trkPage}</div>
+      </div>`;
+    });
+  }
+
   if (!html.trim()) {
     html = `<div class="v1-side__empty">
       <div style="font-size:1.4rem;margin-bottom:.5rem;opacity:.6;" aria-hidden="true">🔍</div>
@@ -1605,6 +1659,31 @@ function switchVariant(idx, btn, variants){
   if (document.getElementById('videoSection').classList.contains('show')) {
     playCurrent();
   }
+}
+
+/**
+ * Play a lesson from a curated track. A track never owns a video of its own —
+ * it points at a real {mi, wi, di}, so this is the ordinary lesson selection
+ * plus (when the track asked for it) the right instructor variant.
+ */
+function selectTrackLesson(ti, li, autoPlay){
+  const TRACK_LIST = (typeof TRACKS !== 'undefined' && TRACKS) || [];
+  const lesson = TRACK_LIST?.[ti]?.lessons?.[li];
+  if (!lesson) { console.warn('[selectTrackLesson] no lesson at', { ti, li }); return; }
+  selectLesson(lesson.mi, lesson.wi, lesson.di, false);
+  const day = MODULES?.[lesson.mi]?.weeks?.[lesson.wi]?.days?.[lesson.di];
+  applyVariantParam(day, lesson.variantIndex);
+  if (autoPlay) playCurrent();
+}
+window.selectTrackLesson = selectTrackLesson;
+
+/** Deep-link helper: select instructor variant `raw` on an already-selected day. */
+function applyVariantParam(day, raw){
+  if (raw == null || !day || !Array.isArray(day.variants)) return;
+  const idx = parseInt(raw, 10);
+  if (!Number.isInteger(idx) || idx <= 0 || idx >= day.variants.length) return;
+  const chip = document.querySelectorAll('#variantsBar .v1-variant')[idx];
+  if (chip) chip.click();
 }
 
 function renderAfterSelect(){
@@ -2339,6 +2418,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (wi < mod.weeks.length && di < mod.weeks[wi].days.length) {
         selectLesson(mi, wi, di);
         deepLinkApplied = true;
+        // `&v=` picks a specific instructor variant (e.g. the Tamar cut of a
+        // lesson that also has a Tzvika cut). Without it selectLesson always
+        // lands on variant 0, so the curated tracks could never open their own
+        // version. Clicking the rendered chip keeps the bar's active state and
+        // the variant logic in one place instead of duplicating it here.
+        applyVariantParam(mod.weeks[wi].days[di], params.get('v'));
       }
     }
   } else if (params.has('seminar')) {

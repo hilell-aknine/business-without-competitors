@@ -1,0 +1,279 @@
+/* ==========================================================================
+   track.css — feature sheet for the curated tracks page (pages/track.html).
+
+   Same rule as admin.css: this sheet adds NO colours of its own. Everything
+   here is expressed in the existing design tokens so the track page stays in
+   lockstep with the rest of the portal. It is a feature sheet inside the
+   existing css/ folder — deliberately NOT a fourth CSS system.
+   ========================================================================== */
+
+/* ---------- Track intro card ---------- */
+.trk-intro {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    padding: 1.6rem 1.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(12px);
+}
+
+.trk-intro p {
+    color: var(--text-secondary);
+    line-height: 1.85;
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ---------- Progress bar ---------- */
+.trk-progress {
+    max-width: 900px;
+    margin: 0 auto 2rem;
+    padding: 1.2rem 1.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+}
+
+.trk-progress__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: .7rem;
+}
+
+.trk-progress__label {
+    font-family: var(--font-heading);
+    font-size: .95rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.trk-progress__count {
+    font-size: .85rem;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.trk-progress__pct {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+    font-variant-numeric: tabular-nums;
+}
+
+.trk-progress__bar {
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, .08);
+    overflow: hidden;
+}
+
+.trk-progress__fill {
+    height: 100%;
+    width: 0;
+    border-radius: var(--radius-full);
+    background: linear-gradient(90deg, var(--accent-teal-bright), var(--accent-gold));
+    transition: width var(--transition-slow);
+}
+
+.trk-progress__hint {
+    margin-top: .7rem;
+    font-size: .8rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+}
+
+/* ---------- Lesson list ---------- */
+.trk-list {
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    padding: 0 1rem;
+}
+
+.trk-item {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    padding: .85rem;
+    margin-bottom: .8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--transition-base), border-color var(--transition-base), background var(--transition-base);
+}
+
+.trk-item:hover,
+.trk-item:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--border-gold);
+    background: var(--surface-glass);
+}
+
+.trk-item.is-done {
+    border-color: rgba(63, 170, 187, .35);
+}
+
+.trk-item__num {
+    flex: 0 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.trk-item.is-done .trk-item__num {
+    color: var(--accent-teal-bright);
+}
+
+.trk-item__thumb {
+    position: relative;
+    flex: 0 0 148px;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.trk-item__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.trk-item__badge {
+    position: absolute;
+    inset-block-end: .35rem;
+    inset-inline-end: .35rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .7rem;
+    background: rgba(4, 22, 27, .82);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+}
+
+.trk-item.is-done .trk-item__badge {
+    background: var(--accent-teal);
+    border-color: var(--accent-teal-bright);
+}
+
+.trk-item__body {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: .3rem;
+}
+
+.trk-item__title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin: 0;
+}
+
+.trk-item__meta {
+    font-size: .8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    flex-wrap: wrap;
+}
+
+.trk-item__note {
+    font-size: .78rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-inline-start: .55rem;
+    border-inline-start: 2px solid var(--border-gold);
+}
+
+.trk-item__go {
+    flex: 0 0 auto;
+    align-self: center;
+    color: var(--text-muted);
+    font-size: .9rem;
+    transition: color var(--transition-base), transform var(--transition-base);
+}
+
+.trk-item:hover .trk-item__go {
+    color: var(--accent-gold);
+    /* RTL: "forward" is to the left */
+    transform: translateX(-3px);
+}
+
+/* ---------- Excluded-lessons disclosure ---------- */
+.trk-note {
+    max-width: 900px;
+    margin: 0 auto 3rem;
+    padding: 0 1rem;
+}
+
+.trk-note details {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: .9rem 1.1rem;
+}
+
+.trk-note summary {
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: .92rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.trk-note summary:hover { color: var(--text-primary); }
+
+.trk-note ul {
+    margin: .9rem 0 0;
+    padding-inline-start: 1.2rem;
+    color: var(--text-muted);
+    font-size: .85rem;
+    line-height: 1.9;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 640px) {
+    .trk-item {
+        flex-wrap: wrap;
+        gap: .7rem;
+    }
+
+    .trk-item__num {
+        flex: 0 0 1.5rem;
+        font-size: .9rem;
+        align-items: flex-start;
+        padding-top: .2rem;
+    }
+
+    .trk-item__thumb { flex: 0 0 104px; }
+
+    .trk-item__body { flex: 1 1 140px; }
+
+    .trk-item__go { display: none; }
+
+    .trk-item__title { font-size: .92rem; }
+
+    .trk-intro,
+    .trk-progress { margin-inline: 1rem; }
+}
