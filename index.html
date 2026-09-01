@@ -33,6 +33,8 @@
 <link rel="stylesheet" href="css/sidebar-accordion.css">
 <link rel="stylesheet" href="css/lesson-tabs.css">
 <link rel="stylesheet" href="css/empty-state.css">
+<!-- Feature sheet, tokens only — same rule as track.css / admin.css. -->
+<link rel="stylesheet" href="css/home-intro.css">
 <link rel="stylesheet" href="css/global-nav.css">
 <link rel="stylesheet" href="css/a11y.css">
 <style>
@@ -940,6 +942,90 @@
       </button>
     </section>
 
+    <!-- HOME INTRO — only visible when no lesson is open.
+         The home view answered "what is in here" (a module list) and never
+         answered "why should I care". These three blocks do. Every claim is
+         taken from the course's own material (hub.html + the module
+         descriptions in js/course-data.js) or from features that actually
+         exist in this portal — nothing invented for marketing.
+         Hidden by openPlayer(), restored by closeVideo(). -->
+    <section class="v1-intro" id="homeIntro" aria-label="על התוכנית" data-area="home-intro" data-src="index.html (הסבר דף הבית)">
+
+      <div class="v1-intro__block">
+        <span class="v1-intro__eyebrow">למה זה חשוב</span>
+        <h2 class="v1-intro__h">רוב בעלי העסקים נלחמים על אותו מקום, באותה דרך</h2>
+        <p class="v1-intro__p v1-intro__lead">
+          וכשאתה נראה כמו כולם, הלקוח בוחר לפי מחיר.
+          זה מוריד את הרווחיות, מגדיל את שעות העבודה, ומשאיר אותך עובד קשה יותר בשביל פחות.
+        </p>
+        <ul class="v1-intro__list">
+          <li class="v1-intro__item"><b>המחיר הופך לשיקול היחיד.</b> אין סיבה נראית לעין לבחור דווקא בך, אז נשאר רק להוריד מחיר.</li>
+          <li class="v1-intro__item"><b>השיווק לא מחזיר.</b> משקיעים בפרסום, בתוכן וברשתות, והלידים שמגיעים לא מספיק איכותיים.</li>
+          <li class="v1-intro__item"><b>העסק תלוי בך לבד.</b> שעות ארוכות בלי צמיחה אמיתית, ובלי דרך ברורה לצאת מהלופ.</li>
+        </ul>
+        <p class="v1-intro__p" style="margin-top:1rem">
+          התוכנית הזאת לא מלמדת להילחם טוב יותר.
+          היא מלמדת לבנות עסק שלא נמצא באותה זירה מלכתחילה.
+        </p>
+      </div>
+
+      <div class="v1-intro__block">
+        <span class="v1-intro__eyebrow">למי זה מתאים</span>
+        <h2 class="v1-intro__h">לבעל עסק שכבר עובד, ורוצה להפסיק להתחרות</h2>
+        <ul class="v1-intro__list">
+          <li class="v1-intro__item"><b>יש לך כבר עסק פעיל.</b> יש לקוחות, יש הכנסה, והבעיה היא לא להתחיל אלא לבלוט.</li>
+          <li class="v1-intro__item"><b>אתה מוכן ליישם ולא רק לצפות.</b> כל מודול נסגר במשימת הטמעה בעסק שלך, וזה החלק שעושה את ההבדל.</li>
+          <li class="v1-intro__item"><b>אתה רוצה שיטה ולא טיפים.</b> שמונה מודולים בסדר מדויק, כל אחד בונה על הקודם.</li>
+        </ul>
+        <p class="v1-intro__p" style="margin-top:1rem">
+          המסלול המלא נפרש על שמונה מודולים ושבעה סמינרים חיים, בקצב שלך.
+          אפשר להתחיל היום ולהתקדם שיעור אחד בכל פעם.
+        </p>
+      </div>
+
+      <div class="v1-intro__block">
+        <span class="v1-intro__eyebrow">מה מיוחד בפורטל הזה</span>
+        <h2 class="v1-intro__h">זה לא תיקייה של סרטונים</h2>
+        <div class="v1-intro__grid">
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-play" aria-hidden="true"></i>
+            <h3>ממשיך מאיפה שעצרת</h3>
+            <p>הפורטל זוכר את השיעור ואת הדקה, גם אם עברת ממחשב לטלפון. אין חיפוש מחדש בכל כניסה.</p>
+          </div>
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+            <h3>מאמן AI שקרא את כל הקורס</h3>
+            <p>שואלים אותו על השיעור והוא עונה מהתמלול. אם התשובה נמצאת בשיעור אחר, הוא יפנה אליו.</p>
+          </div>
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-dumbbell" aria-hidden="true"></i>
+            <h3>תרגול, לא רק צפייה</h3>
+            <p>אתגרים קצרים בסגנון דואולינגו ומבחן לכל מודול, כדי לוודא שהחומר באמת נכנס.</p>
+          </div>
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-comments" aria-hidden="true"></i>
+            <h3>מה אחרים לקחו מהמודול</h3>
+            <p>בכל מודול יש קיר שיתופים. אתה רואה מה זה עשה לאנשים אחרים לפני שאתה מתחיל.</p>
+          </div>
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+            <h3>ההתקדמות נשמרת בענן</h3>
+            <p>מה שסיימת, מה שתרגלת וציוני המבחנים נשמרים לחשבון שלך ולא לדפדפן.</p>
+          </div>
+          <div class="v1-intro__card">
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+            <h3>עוזר יישום אישי</h3>
+            <p>ראיון קצר בסוף מודול שהופך את מה שלמדת למסמך יישום לעסק שלך.</p>
+          </div>
+        </div>
+        <a class="v1-intro__more" href="hub.html">
+          <span>לקרוא על השיטה האטומית במלואה</span>
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        </a>
+      </div>
+
+    </section>
+
     <!-- VIDEO PLAYER (shown when a lesson is playing) -->
     <section class="v1-video" id="videoSection" data-area="player" data-src="index.html (נגן שיעור)">
       <button class="v1-video__close" onclick="closeVideo()" aria-label="סגור"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
@@ -971,8 +1057,12 @@
          2026-08-09: האקורדיון הוחלף חזרה ברצועת טאבים אמיתית, בסטנדרט של תבנית
          הפורטלים (_template-full/lesson.html) — שישה טאבים בדף אחד, בלי טעינה
          מחדש, כולל תרגול ומבחן. הבקרה ב-js/lesson-tabs.js, העיצוב ב-css/lesson-tabs.css. -->
-    <!-- LESSON DETAILS — TABS -->
-    <div class="v1-tabs g lt">
+    <!-- LESSON DETAILS — TABS
+         Hidden until a lesson is actually selected. On the home view these six
+         tabs showed nothing but placeholders ("בחר שיעור כדי…"), which is
+         machinery, not a reason to start. renderAfterSelect() reveals it,
+         goHome() hides it again. -->
+    <div class="v1-tabs g lt" id="lessonTabs" hidden>
 
       <div class="lt__tablist" role="tablist" aria-label="תוכן השיעור">
         <button class="lt__tab" type="button" role="tab" data-tab="about"     id="ltTabAbout"     aria-controls="ltPaneAbout"     aria-selected="true"  tabindex="0"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> אודות</button>
@@ -1404,7 +1494,9 @@ function goHome(){
   currentType = null;
   currentSi = currentPi = currentMi = currentWi = currentDi = -1;
   currentVideoId = null;
-  closeVideo();
+  closeVideo();                       // also restores the home intro
+  const tabsEl = document.getElementById('lessonTabs');
+  if (tabsEl) tabsEl.hidden = true;
   document.getElementById('lessonNav').hidden = true;
   const crumbEl = document.getElementById('lessonCrumb');
   if (crumbEl) { crumbEl.hidden = true; crumbEl.innerHTML = ''; }
@@ -1491,7 +1583,7 @@ function renderHero(){
     ctaTextEl.textContent = allDone
       ? 'תרגול ומבחנים'
       : resumeItem ? (resumeLabel ? `המשך מ${resumeLabel}` : 'המשך ללמוד')
-      : freshStart ? 'התחל ללמוד'
+      : freshStart ? 'תיכנס לשיעור'
       : 'המשך ללמוד';
   }
 
@@ -1742,6 +1834,8 @@ function applyVariantParam(day, raw){
 }
 
 function renderAfterSelect(){
+  const tabsEl = document.getElementById('lessonTabs');
+  if (tabsEl) tabsEl.hidden = false;   // a lesson exists now, so its tabs do too
   renderSidebar(document.getElementById('lessonSearch').value);
   updateLessonNav();
   updateCrumb();
@@ -2140,6 +2234,9 @@ function loadYtApi(){
 
 function attachYtPlayer(attempt){
   if (ytApiState !== 'ready' || !window.YT || !window.YT.Player) return;
+  // Do NOT call ensureVideoFrame() here: if the frame is missing there is
+  // nothing playing to attach to, and rebuilding a blank one would attach the
+  // API to an empty player.
   const frame = document.getElementById('videoFrame');
   if (!frame || !frame.src || frame.src.indexOf('youtube.com/embed/') === -1) return;
   try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
@@ -2174,6 +2271,35 @@ function attachYtPlayer(attempt){
   }
 }
 
+/* YT.Player.destroy() REMOVES the iframe it manages from the DOM — it does not
+   just detach the API wrapper. Every later getElementById('videoFrame') then
+   returns null, so closing the player threw and reopening it silently wrote
+   `src` onto a detached node. Caught in a real browser: closeVideo() failed
+   with "Cannot set properties of null".
+   The frame is therefore treated as disposable: whoever needs it asks for it
+   here, and it is rebuilt with the exact same attributes if it is gone. */
+function ensureVideoFrame(){
+  let frame = document.getElementById('videoFrame');
+  if (frame) return frame;
+  const sec = document.getElementById('videoSection');
+  if (!sec) return null;
+  frame = document.createElement('iframe');
+  frame.id = 'videoFrame';
+  frame.src = 'about:blank';
+  frame.title = 'נגן וידאו של השיעור';
+  frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+  frame.setAttribute('allowfullscreen', '');
+  sec.appendChild(frame);
+  return frame;
+}
+
+// The home intro is a property of the home view, not of the page. One helper
+// so "is a lesson open" is asked in exactly one place.
+function setHomeIntroVisible(visible){
+  const intro = document.getElementById('homeIntro');
+  if (intro) intro.hidden = !visible;
+}
+
 /**
  * The single entry point that puts a video on screen.
  * @param {boolean} autoplay  false for a restored position (browsers block
@@ -2183,17 +2309,21 @@ function attachYtPlayer(attempt){
 function openPlayer(autoplay){
   if (!currentVideoId) return;
   const sec = document.getElementById('videoSection');
-  const frame = document.getElementById('videoFrame');
-  if (!sec || !frame) return;
+  if (!sec) return;
 
   const startAt = Math.max(0, Math.floor(pendingResumeSeconds || 0));
   pendingResumeSeconds = 0;   // consumed — a normal click always starts at 0
 
   // Detach before touching src: an attached YT.Player goes stale when the
-  // iframe navigates underneath it.
+  // iframe navigates underneath it. destroy() also deletes the iframe, so the
+  // frame is fetched AFTER this, never before.
   stopResumeTicker();
   try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
   ytPlayer = null;
+  window.__bwcYtPlayer = null;
+
+  const frame = ensureVideoFrame();
+  if (!frame) return;
 
   const params = ['rel=0', 'enablejsapi=1'];
   if (autoplay) params.push('autoplay=1');
@@ -2203,6 +2333,10 @@ function openPlayer(autoplay){
   sec.classList.add('show');
   const heroEl = document.getElementById('hero');
   if (heroEl) heroEl.style.display = 'none';
+  // The "why this matters" copy belongs to the home view only. Leaving it
+  // under an open lesson turns the page into a sales pitch aimed at someone
+  // who already bought.
+  setHomeIntroVisible(false);
 
   persistResumePoint(startAt);
   if (ytApiState === 'ready') setTimeout(attachYtPlayer, 0);
@@ -2234,9 +2368,14 @@ function closeVideo(){
   if (window.bwcResume) window.bwcResume.flush();
   try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
   ytPlayer = null;
-  document.getElementById('videoFrame').src = 'about:blank';
+  window.__bwcYtPlayer = null;
+  // destroy() may have taken the iframe with it — rebuild before blanking, so
+  // the next open finds a live element instead of a detached one.
+  const frame = ensureVideoFrame();
+  if (frame) frame.src = 'about:blank';
   sec.classList.remove('show');
   document.getElementById('hero').style.display = '';
+  setHomeIntroVisible(true);
   if (window.__completeTimer) clearTimeout(window.__completeTimer);
 }
 window.closeVideo = closeVideo;

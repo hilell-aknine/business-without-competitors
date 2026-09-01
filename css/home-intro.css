@@ -1,0 +1,154 @@
+/* ==========================================================================
+   home-intro.css — what the home page says when no lesson is open.
+
+   The home view used to be a hero plus a list of modules, which answers "what
+   is in here" and never answers "why should I care". These three blocks carry
+   that: why it matters, who it is for, and what this portal does that a folder
+   of videos does not.
+
+   Feature sheet in the existing css/ folder, tokens only — same rule as
+   admin.css, track.css and module-feed.css. Not a fourth CSS system.
+   ========================================================================== */
+
+.v1-intro {
+  margin: 2.5rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.v1-intro[hidden] { display: none; }
+
+.v1-intro__block { max-width: 78ch; }
+
+.v1-intro__eyebrow {
+  display: inline-block;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--accent-gold);
+  margin-bottom: .5rem;
+}
+
+.v1-intro__h {
+  font-size: clamp(1.25rem, 4.5vw, 1.6rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 .75rem;
+  line-height: 1.35;
+}
+
+.v1-intro__p {
+  color: var(--text-secondary);
+  line-height: 1.85;
+  font-size: 1rem;
+  margin: 0 0 .9rem;
+}
+
+.v1-intro__p:last-child { margin-bottom: 0; }
+
+.v1-intro__lead {
+  color: var(--text-primary);
+  font-size: clamp(1.02rem, 3.6vw, 1.12rem);
+  line-height: 1.8;
+}
+
+/* Pain / fit lists — a dot rail instead of bullets, so the text stays the
+   thing being read and the marker never competes with it in RTL. */
+.v1-intro__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.v1-intro__item {
+  position: relative;
+  padding-inline-start: 1.6rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.v1-intro__item::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: .68em;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--accent-gold);
+  opacity: .85;
+}
+
+.v1-intro__item b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* What the portal adds — small cards, no imagery, no icons competing for
+   attention with the one big action above them. */
+.v1-intro__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: .85rem;
+}
+
+.v1-intro__card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.05rem;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.v1-intro__card:hover {
+  border-color: var(--border-gold);
+  transform: translateY(-2px);
+}
+
+.v1-intro__card i {
+  color: var(--accent-gold);
+  font-size: 1.05rem;
+  margin-bottom: .55rem;
+  display: block;
+}
+
+.v1-intro__card h3 {
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 .35rem;
+}
+
+.v1-intro__card p {
+  font-size: .88rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.v1-intro__more {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 48px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  font-size: .95rem;
+  text-decoration: none;
+}
+
+.v1-intro__more:hover { color: var(--accent-gold-light); }
+
+@media (max-width: 480px) {
+  .v1-intro { gap: 1.9rem; margin-top: 2rem; }
+  .v1-intro__grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v1-intro__card { transition: none; }
+  .v1-intro__card:hover { transform: none; }
+}
