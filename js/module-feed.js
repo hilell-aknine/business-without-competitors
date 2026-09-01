@@ -45,7 +45,12 @@
     user: null,
     isAdmin: false,
     editingId: null,
-    busy: false
+    busy: false,
+    error: null,
+    // Set only by a read that comes back "table does not exist". It starts
+    // false on purpose: a guest never reaches that read, and starting true
+    // would hide the login gate from them entirely.
+    disabled: false
   };
 
   /* ---------------------------------------------------------------- utils */
@@ -245,6 +250,12 @@
     if (!root) return;
     root.innerHTML = '';
 
+    // The wall is not switched on in this environment. Show nothing at all —
+    // an empty section is honest, an error box is noise about our own deploy
+    // order that no learner can act on.
+    if (state.disabled) { root.hidden = true; return; }
+    root.hidden = false;
+
     var head = el('div', 'mfeed__head');
     head.appendChild(el('h2', 'mfeed__title', 'מה לומדים אחרים לקחו מהמודול הזה'));
     if (state.posts.length) {
@@ -289,13 +300,17 @@
 
   /* ------------------------------------------------------------------ data */
 
+  // Migration 009 not applied yet = the feature is not switched on, which is
+  // not an error the learner should ever read. Anything else IS worth showing.
+  function isMissingTable(error) {
+    if (!error) return false;
+    var msg = error.message || '';
+    return error.code === '42P01' || msg.indexOf('does not exist') !== -1;
+  }
+
   function friendlyError(error) {
     if (!error) return 'משהו השתבש. נסה שוב.';
     var msg = error.message || '';
-    if (error.code === '42P01' || msg.indexOf('does not exist') !== -1) {
-      // Migration 009 has not been run on the live database yet.
-      return 'הפיד עדיין לא הופעל במסד הנתונים.';
-    }
     if (msg.indexOf('rate_limited') !== -1) {
       return 'שיתפת הרבה בשעה האחרונה. קח הפסקה קצרה ותחזור.';
     }
@@ -315,15 +330,18 @@
       .then(function (res) {
         if (res.error) {
           state.posts = [];
-          state.error = friendlyError(res.error);
+          state.disabled = isMissingTable(res.error);
+          state.error = state.disabled ? null : friendlyError(res.error);
         } else {
+          state.disabled = false;
           state.posts = res.data || [];
         }
         render();
       })
       .catch(function (err) {
         state.posts = [];
-        state.error = friendlyError(err);
+        state.disabled = isMissingTable(err);
+        state.error = state.disabled ? null : friendlyError(err);
         render();
       });
   }
