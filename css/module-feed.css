@@ -1,0 +1,281 @@
+/* ==========================================================================
+   module-feed.css — the discussion wall inside a module.
+
+   Feature sheet in the existing css/ folder, exactly like admin.css,
+   practice.css and track.css. It declares NO colours of its own — every value
+   is a design token. This is deliberate: the project already carries three
+   overlapping CSS systems (shared.css / theme.css / design-tokens.css) as
+   known structural debt, and a fourth one is not being started here.
+   ========================================================================== */
+
+.mfeed {
+  max-width: 900px;
+  margin: 2.5rem auto 3rem;
+  padding-inline: 1rem;
+}
+
+.mfeed__head {
+  display: flex;
+  align-items: baseline;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-bottom: .35rem;
+}
+
+.mfeed__title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.mfeed__count {
+  font-size: .85rem;
+  color: var(--text-muted);
+}
+
+.mfeed__sub {
+  font-size: .9rem;
+  color: var(--text-secondary);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+/* ------------------------------------------------------------- composer */
+
+.mfeed__composer {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.mfeed__composer textarea {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: .75rem;
+  color: var(--text-primary);
+  /* 16px keeps iOS from zooming the whole page on focus. */
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+  transition: border-color var(--transition-fast);
+}
+
+.mfeed__composer textarea::placeholder { color: var(--text-disabled); }
+
+.mfeed__composer textarea:focus {
+  outline: none;
+  border-color: var(--border-gold);
+}
+
+.mfeed__composer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-top: .75rem;
+  flex-wrap: wrap;
+}
+
+.mfeed__counter {
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+
+.mfeed__counter.is-over { color: var(--accent-gold); }
+
+.mfeed__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  /* 48px minimum touch target — the portal's mobile standard. */
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--accent-gold);
+  color: var(--text-inverse);
+  font-family: inherit;
+  font-size: .95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.mfeed__btn:hover:not(:disabled) { background: var(--accent-gold-hover); }
+.mfeed__btn:active:not(:disabled) { transform: translateY(1px); }
+.mfeed__btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.mfeed__btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+}
+
+.mfeed__btn--ghost:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------- posts */
+
+.mfeed__list {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+}
+
+.mfeed__post {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 1rem 1.1rem;
+  transition: border-color var(--transition-fast);
+}
+
+.mfeed__post:hover { border-color: var(--border-default); }
+
+.mfeed__post.is-hidden {
+  opacity: .6;
+  border-style: dashed;
+}
+
+.mfeed__post-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .55rem;
+}
+
+.mfeed__avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: grid;
+  place-items: center;
+  background: var(--bg-tertiary);
+  color: var(--accent-gold);
+  font-weight: 700;
+  font-size: .95rem;
+}
+
+.mfeed__author {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: .95rem;
+}
+
+.mfeed__meta {
+  font-size: .78rem;
+  color: var(--text-muted);
+}
+
+.mfeed__post-actions {
+  margin-inline-start: auto;
+  display: flex;
+  gap: .25rem;
+}
+
+.mfeed__icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: .45rem .5rem;
+  border-radius: var(--radius-md);
+  font-size: .9rem;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.mfeed__icon-btn:hover { color: var(--text-primary); background: var(--bg-tertiary); }
+
+.mfeed__body {
+  color: var(--text-secondary);
+  line-height: 1.75;
+  font-size: .97rem;
+  /* Learner text is unpredictable — a pasted URL must not widen the page. */
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.mfeed__edit textarea {
+  width: 100%;
+  min-height: 88px;
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: .7rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.mfeed__edit-row {
+  display: flex;
+  gap: .5rem;
+  margin-top: .6rem;
+}
+
+/* ------------------------------------------------------- states & notes */
+
+.mfeed__state {
+  text-align: center;
+  padding: 2.25rem 1.25rem;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-xl);
+  color: var(--text-secondary);
+}
+
+.mfeed__state i {
+  font-size: 1.8rem;
+  color: var(--accent-gold);
+  opacity: .8;
+  display: block;
+  margin-bottom: .7rem;
+}
+
+.mfeed__state h3 {
+  margin: 0 0 .4rem;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.mfeed__state p { margin: 0; font-size: .9rem; line-height: 1.65; }
+
+.mfeed__state .mfeed__btn { margin-top: 1rem; }
+
+.mfeed__error {
+  border-color: var(--border-gold);
+  color: var(--text-secondary);
+}
+
+.mfeed__flag {
+  display: inline-block;
+  margin-top: .5rem;
+  font-size: .75rem;
+  color: var(--accent-gold);
+}
+
+@media (max-width: 480px) {
+  .mfeed { margin-top: 1.75rem; }
+  .mfeed__title { font-size: 1.15rem; }
+  .mfeed__composer { padding: .85rem; }
+  .mfeed__btn { width: 100%; justify-content: center; }
+  .mfeed__composer-row { flex-direction: column-reverse; align-items: stretch; }
+  .mfeed__counter { text-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mfeed__post, .mfeed__btn, .mfeed__icon-btn { transition: none; }
+}
