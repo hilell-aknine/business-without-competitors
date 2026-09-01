@@ -1131,9 +1131,16 @@ let currentType = null; // 'seminar' | 'module'
 let currentSi = -1, currentPi = -1;
 let currentMi = -1, currentWi = -1, currentDi = -1;
 let currentVideoId = null;
+// Which instructor cut is on screen (Tamar / Tzvika). Needed so that resuming a
+// lesson does not silently switch which video plays — same lesson key, different
+// video, which reads as a bug to the learner. null = the lesson has no variants.
+let currentVariantIdx = null;
 let completedLessons = JSON.parse(localStorage.getItem('bwc_completed') || '[]');
 let activeTab = 'about';
 let notesDebounce = null;
+// Seconds to seek to when the player next opens. Set only by the resume path;
+// consumed once so that clicking a lesson normally always starts at 0.
+let pendingResumeSeconds = 0;
 
 // Build flat list (only items with videoId)
 let flatLessons = [];
@@ -1435,7 +1442,20 @@ function renderHero(){
   const allDone = total > 0 && done >= total;
   const freshStart = done === 0;
 
-  const next = nextUncompleted() || flatLessons[0];
+  // The CTA used to be nextUncompleted() — the first lesson in COURSE ORDER
+  // without a completion mark — while the label said "המשך מהשיעור שעצרת בו".
+  // For anyone who jumped around, or who watched a lesson without it getting
+  // marked, those are two different lessons and the label was simply false.
+  // The saved position now wins, and nextUncompleted() becomes the fallback
+  // for a learner who has no position yet.
+  const upNext = nextUncompleted() || flatLessons[0];
+  const resumeRec = window.bwcResume ? window.bwcResume.get() : null;
+  const resumeItem = (resumeRec && !completedLessons.includes(resumeRec.key))
+    ? flatLessons.find(l => lessonKey(l) === resumeRec.key)
+    : null;
+  const resumeSecs = resumeItem ? (resumeRec.seconds || 0) : 0;
+  const next = (!allDone && resumeItem) ? resumeItem : upNext;
+
   if (!next) {
     // No lesson data yet — make sure the CTA isn't a dead button.
     // Sends the user to the library so they can pick something.
@@ -1452,15 +1472,27 @@ function renderHero(){
   // all done → celebrate + redirect CTA to practice.
   const eyebrowEl = document.getElementById('heroEyebrowText');
   const ctaTextEl = document.getElementById('heroCtaText');
+  // The eyebrow only promises "שעצרת בו" when that is literally true — i.e.
+  // when a saved position is what the CTA points at. Otherwise it says what
+  // is actually happening: the next lesson in line.
+  const resumeLabel = resumeItem ? formatResumeTime(resumeSecs) : '';
   if (eyebrowEl) {
+    // Order matters: a saved position outranks "freshStart". Someone who
+    // watched 16 minutes without ever pressing "סמן כהושלם" has done === 0,
+    // and greeting them with "השיעור הראשון שלך" is exactly the erasure being
+    // fixed here.
     eyebrowEl.textContent = allDone
       ? 'סיימת את כל השיעורים 🎉'
-      : freshStart ? 'השיעור הראשון שלך' : 'המשך מהשיעור שעצרת בו';
+      : resumeItem ? (resumeLabel ? `עצרת כאן ב${resumeLabel}` : 'השיעור שעצרת בו')
+      : freshStart ? 'השיעור הראשון שלך'
+      : 'השיעור הבא שלך';
   }
   if (ctaTextEl) {
     ctaTextEl.textContent = allDone
       ? 'תרגול ומבחנים'
-      : freshStart ? 'התחל ללמוד' : 'המשך ללמוד';
+      : resumeItem ? (resumeLabel ? `המשך מ${resumeLabel}` : 'המשך ללמוד')
+      : freshStart ? 'התחל ללמוד'
+      : 'המשך ללמוד';
   }
 
   document.getElementById('heroTitle').textContent = next.type === 'seminar'
@@ -1524,15 +1556,22 @@ function renderHero(){
   if (allDone) {
     document.getElementById('heroCta').onclick = () => { window.location.href = 'pages/practice.html'; };
   } else {
-    document.getElementById('heroCta').onclick = () => playByItem(next);
+    // Resuming means resuming: the CTA carries the saved seconds, so pressing
+    // it lands inside the video where the learner left, not at 0:00.
+    document.getElementById('heroCta').onclick = () => playByItem(next, resumeSecs);
   }
-  document.getElementById('heroSkip').onclick = () => playByItem(next);
-  document.getElementById('heroPreview').onclick = () => playByItem(next);
+  // "דלג לשיעור הבא" now genuinely skips. While the CTA resumes an unfinished
+  // lesson, skip goes to the next one in line — previously both buttons did
+  // exactly the same thing, which made the pair meaningless.
+  const skipTarget = (next === resumeItem && upNext && upNext !== resumeItem) ? upNext : next;
+  document.getElementById('heroSkip').onclick = () => playByItem(skipTarget, 0);
+  document.getElementById('heroPreview').onclick = () => playByItem(next, resumeSecs);
 }
 
-function playByItem(item){
+function playByItem(item, seconds){
   if (item.type === 'seminar') selectSeminar(item.si, item.pi);
   else selectLesson(item.mi, item.wi, item.di);
+  pendingResumeSeconds = Math.max(0, Math.floor(seconds || 0));
   playCurrent();
 }
 
@@ -1615,6 +1654,8 @@ function selectSeminar(si, pi, autoPlay){
   currentType = 'seminar';
   currentSi = si; currentPi = pi;
   currentMi = currentWi = currentDi = -1;
+  currentVariantIdx = null;   // seminars never have instructor variants
+  pendingResumeSeconds = 0;   // see selectLesson() — selecting resets the seek
   persistCurrentLesson();
   if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('seminar', si);
   const sem = SEMINARS[si];
@@ -1628,15 +1669,22 @@ function selectLesson(mi, wi, di, autoPlay){
   currentType = 'module';
   currentMi = mi; currentWi = wi; currentDi = di;
   currentSi = currentPi = -1;
+  // Selecting a lesson always clears the pending seek. Only an explicit resume
+  // (restoreCurrentLesson / playByItem) sets it again, immediately after this
+  // call. Without this, a deep link landing after a restore inherited the
+  // previous lesson's timestamp and opened a different video mid-way.
+  pendingResumeSeconds = 0;
   persistCurrentLesson();
   if (window.SidebarAccordion) window.SidebarAccordion.openForCurrent('module', mi);
   const day = MODULES?.[mi]?.weeks?.[wi]?.days?.[di];
   if (!day) { console.warn('[selectLesson] no lesson at', { mi, wi, di }); return; }
   if (day.variants) {
     currentVideoId = day.variants[0].videoId;
+    currentVariantIdx = 0;
     renderVariants(day.variants);
   } else {
     currentVideoId = day.videoId;
+    currentVariantIdx = null;
     document.getElementById('variantsBar').hidden = true;
     document.getElementById('variantsBar').innerHTML = '';
   }
@@ -1653,6 +1701,10 @@ function renderVariants(variants){
 }
 function switchVariant(idx, btn, variants){
   currentVideoId = variants[idx].videoId;
+  // Switching instructor is a different video, so the old timestamp is
+  // meaningless — start the new cut from the beginning, not from minute 14.
+  if (currentVariantIdx !== idx) pendingResumeSeconds = 0;
+  currentVariantIdx = idx;
   document.querySelectorAll('.v1-variant').forEach(b => {
     b.classList.remove('active');
     b.setAttribute('aria-pressed', 'false');
@@ -1993,14 +2045,177 @@ function initLessonTabs(){
 }
 
 // ===== Video =====
-function playCurrent(){
+/* --------------------------------------------------------------------------
+   RESUME TRACKING
+   The portal used a bare <iframe src="…/embed/ID">, which can tell us nothing
+   about where the learner is inside the video. The YouTube IFrame API is
+   attached ON TOP of that same iframe purely to read getCurrentTime().
+
+   Deliberately NOT taking over playback: the iframe src is still the single
+   thing that decides which video plays and where it starts (`start=` seconds).
+   So if the API script is blocked — filtered network, ad-blocker, offline —
+   playback and lesson-level resume keep working exactly as before, and the
+   only thing lost is second-level precision. Failure degrades, it does not
+   break the player.
+   -------------------------------------------------------------------------- */
+let ytPlayer = null;
+let ytApiState = 'idle';        // idle | loading | ready | failed
+let resumeTicker = null;
+let isRestoringResume = false;  // true only while the page restores a position
+
+// Writes the current lesson + position. Skipped during restore so that reading
+// a saved position never rewrites its own timestamp — that would let a stale
+// local record outrank a newer one arriving from another device.
+function persistResumePoint(seconds){
+  if (isRestoringResume) return;
+  if (!window.bwcResume) return;
+  const key = currentLessonKey();
+  if (!key) return;
+  window.bwcResume.save(key, seconds || 0, currentVariantIdx);
+}
+
+function stopResumeTicker(){
+  if (resumeTicker) { clearInterval(resumeTicker); resumeTicker = null; }
+}
+
+function startResumeTicker(){
+  stopResumeTicker();
+  resumeTicker = setInterval(() => {
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return;
+    let t = 0;
+    try { t = ytPlayer.getCurrentTime(); } catch (_) { return; }
+    if (isFinite(t) && t > 0) persistResumePoint(Math.floor(t));
+  }, 5000);
+}
+
+function markYtReady(){
+  if (ytApiState === 'ready') return;
+  ytApiState = 'ready';
+  window.__bwcYtState = 'ready';   // exposed for verification only
+  attachYtPlayer();
+}
+
+function loadYtApi(){
+  if (ytApiState === 'ready' || ytApiState === 'loading') return;
+  ytApiState = 'loading';
+  window.__bwcYtState = 'loading';
+
+  // Chain onto any existing callback instead of clobbering it.
+  const prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function(){
+    if (typeof prev === 'function') { try { prev(); } catch (_) {} }
+    markYtReady();
+  };
+
+  if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+    const s = document.createElement('script');
+    s.src = 'https://www.youtube.com/iframe_api';
+    s.async = true;
+    s.onerror = () => { ytApiState = 'failed'; window.__bwcYtState = 'failed'; };
+    document.head.appendChild(s);
+  }
+
+  // The callback alone is not reliable. iframe_api loads a SECOND script
+  // (www-widgetapi.js); on a slow or filtered connection YT.Player can exist
+  // while onYouTubeIframeAPIReady has not fired yet, and if any other code
+  // ever loads the API first the callback may already have been spent.
+  // Measured here: YT.Player was present and the callback never arrived, so
+  // nothing attached and the position could never advance past its start
+  // value. Polling for the real readiness flag closes that hole.
+  let waited = 0;
+  const poll = setInterval(() => {
+    if (ytApiState === 'ready') { clearInterval(poll); return; }
+    if (window.YT && window.YT.Player && (window.YT.loaded === 1 || typeof window.YT.Player === 'function')) {
+      clearInterval(poll);
+      markYtReady();
+      return;
+    }
+    waited += 400;
+    if (waited >= 20000) {           // genuinely unreachable — stop trying
+      clearInterval(poll);
+      if (ytApiState !== 'ready') { ytApiState = 'failed'; window.__bwcYtState = 'failed'; }
+    }
+  }, 400);
+}
+
+function attachYtPlayer(attempt){
+  if (ytApiState !== 'ready' || !window.YT || !window.YT.Player) return;
+  const frame = document.getElementById('videoFrame');
+  if (!frame || !frame.src || frame.src.indexOf('youtube.com/embed/') === -1) return;
+  try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
+  ytPlayer = null;
+  window.__bwcYtPlayer = null;
+  try {
+    ytPlayer = new YT.Player('videoFrame', {
+      events: {
+        onStateChange: (e) => {
+          // 1 = playing, 2 = paused, 0 = ended. Pausing and finishing are the
+          // two moments a learner most often walks away, so both write.
+          if (e.data === 1) startResumeTicker();
+          else {
+            stopResumeTicker();
+            let t = 0;
+            try { t = ytPlayer.getCurrentTime(); } catch (_) {}
+            if (isFinite(t) && t > 0) persistResumePoint(Math.floor(t));
+            if (window.bwcResume) window.bwcResume.flush();
+          }
+        }
+      }
+    });
+    window.__bwcYtPlayer = ytPlayer;
+  } catch (_) {
+    ytPlayer = null;
+    window.__bwcYtPlayer = null;
+    // The widget layer can still be settling right after YT.Player appears.
+    // Two short retries cost nothing and turn a permanent "no tracking" into
+    // a momentary one.
+    const n = (attempt || 0) + 1;
+    if (n <= 2) setTimeout(() => attachYtPlayer(n), 600);
+  }
+}
+
+/**
+ * The single entry point that puts a video on screen.
+ * @param {boolean} autoplay  false for a restored position (browsers block
+ *                            autoplay without a gesture, and a video that
+ *                            starts itself on page load is hostile anyway).
+ */
+function openPlayer(autoplay){
   if (!currentVideoId) return;
   const sec = document.getElementById('videoSection');
   const frame = document.getElementById('videoFrame');
-  frame.src = `https://www.youtube.com/embed/${currentVideoId}?autoplay=1&rel=0`;
+  if (!sec || !frame) return;
+
+  const startAt = Math.max(0, Math.floor(pendingResumeSeconds || 0));
+  pendingResumeSeconds = 0;   // consumed — a normal click always starts at 0
+
+  // Detach before touching src: an attached YT.Player goes stale when the
+  // iframe navigates underneath it.
+  stopResumeTicker();
+  try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
+  ytPlayer = null;
+
+  const params = ['rel=0', 'enablejsapi=1'];
+  if (autoplay) params.push('autoplay=1');
+  if (startAt > 0) params.push('start=' + startAt);
+  frame.src = `https://www.youtube.com/embed/${currentVideoId}?${params.join('&')}`;
+
   sec.classList.add('show');
-  document.getElementById('hero').style.display = 'none';
-  setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+  const heroEl = document.getElementById('hero');
+  if (heroEl) heroEl.style.display = 'none';
+
+  persistResumePoint(startAt);
+  if (ytApiState === 'ready') setTimeout(attachYtPlayer, 0);
+  else loadYtApi();
+}
+
+function playCurrent(){
+  if (!currentVideoId) return;
+  openPlayer(true);
+  setTimeout(() => {
+    const sec = document.getElementById('videoSection');
+    if (sec) sec.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 80);
   // Auto-mark complete after 45s
   if (window.__completeTimer) clearTimeout(window.__completeTimer);
   window.__completeTimer = setTimeout(() => markCurrentComplete('auto'), 45000);
@@ -2008,6 +2223,17 @@ function playCurrent(){
 
 function closeVideo(){
   const sec = document.getElementById('videoSection');
+  stopResumeTicker();
+  // Read the position one last time before the iframe is torn down — closing
+  // the player is exactly when a learner expects to be remembered.
+  if (ytPlayer && typeof ytPlayer.getCurrentTime === 'function') {
+    let t = 0;
+    try { t = ytPlayer.getCurrentTime(); } catch (_) {}
+    if (isFinite(t) && t > 0) persistResumePoint(Math.floor(t));
+  }
+  if (window.bwcResume) window.bwcResume.flush();
+  try { if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy(); } catch (_) {}
+  ytPlayer = null;
   document.getElementById('videoFrame').src = 'about:blank';
   sec.classList.remove('show');
   document.getElementById('hero').style.display = '';
@@ -2314,21 +2540,64 @@ function wireStatCubes() {
 
 // Restore the last viewed lesson so prev/next labels and breadcrumb populate
 // on a fresh page load instead of showing "—". Does not auto-play.
+//
+// Returns true when a real resume point was restored (lesson + position), so
+// the caller knows to actually open the player instead of leaving the learner
+// on the hero. That gap is the whole reason "return to where I was" never
+// appeared to work: the state WAS restored, it just stayed invisible.
 function restoreCurrentLesson(){
+  isRestoringResume = true;
   try {
+    const rec = window.bwcResume ? window.bwcResume.get() : null;
+    if (rec && selectLessonByKey(rec.key)) {
+      applyVariantIndex(rec.variant);
+      pendingResumeSeconds = rec.seconds || 0;
+      return true;
+    }
+    // Fallback: the legacy pointer, which knows the lesson but not the minute.
     const raw = localStorage.getItem('bwc_current_lesson');
-    if (!raw) return;
+    if (!raw) return false;
     const s = JSON.parse(raw);
     if (s && s.type === 'module'
         && Number.isInteger(s.mi) && Number.isInteger(s.wi) && Number.isInteger(s.di)
         && MODULES[s.mi] && MODULES[s.mi].weeks[s.wi] && MODULES[s.mi].weeks[s.wi].days[s.di]) {
       selectLesson(s.mi, s.wi, s.di);
+      return true;
     } else if (s && s.type === 'seminar'
         && Number.isInteger(s.si) && Number.isInteger(s.pi)
         && SEMINARS[s.si] && SEMINARS[s.si].parts[s.pi]) {
       selectSeminar(s.si, s.pi);
+      return true;
     }
-  } catch (_) { /* malformed payload — ignore */ }
+    return false;
+  } catch (_) {
+    return false;   // malformed payload — never block the page load
+  } finally {
+    isRestoringResume = false;
+  }
+}
+
+// Click the instructor chip for a saved variant. Reuses the existing chip so
+// the variant logic lives in exactly one place (same reasoning as the `&v=`
+// deep-link parameter).
+function applyVariantIndex(idx){
+  if (idx === null || idx === undefined) return;
+  const i = parseInt(idx, 10);
+  if (!Number.isInteger(i) || i <= 0) return;
+  const chip = document.querySelectorAll('#variantsBar .v1-variant')[i];
+  if (chip) chip.click();
+}
+
+// "3 דקות" / "1:04 שעות" — a position is only reassuring if the learner can
+// read it. Anything under a minute is not worth mentioning.
+function formatResumeTime(seconds){
+  const s = Math.floor(seconds || 0);
+  if (s < 60) return '';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `דקה ${m}`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}:${String(rem).padStart(2, '0')} שעות`;
 }
 
 // FIX-ENGINE F-018 (2026-07-22): רצועת הברוכים-הבאים עוברת אל תוך ההדר העליון (מרכז הנאב,
@@ -2346,7 +2615,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Deep link ב-hash קודם לשיעור השמור: #lesson=m0-1-0&tab=practice
   const hashLesson = window.LessonTabs ? window.LessonTabs.hashLesson() : null;
   const hashLinkApplied = !!(hashLesson && selectLessonByKey(hashLesson));
-  if (!hashLinkApplied) restoreCurrentLesson();
+  const resumeRestored = hashLinkApplied ? false : restoreCurrentLesson();
   initLessonTabs();
   renderSidebar();
   renderHero();
@@ -2365,6 +2634,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2026-08-07: sync-localstorage.js מושך מהשרת וממזג אחרי ההתחברות (אסינכרוני,
   // מסתיים אחרי bwc:auth-change). בלי זה, לומד שנכנס ממכשיר חדש היה רואה 0 שיעורים
   // עד רענון הדף.
+  // A position saved on another device arrives after login, i.e. after the
+  // page already rendered. Refresh the hero so the CTA points at it — but do
+  // NOT yank the player open underneath someone who is already reading.
+  // A quiet, dismissible offer respects whatever they are doing right now.
+  window.addEventListener('bwc:resume-ready', (ev) => {
+    const rec = ev && ev.detail && ev.detail.record;
+    if (typeof renderHero === 'function') renderHero();
+    if (!rec || !ev.detail.fromServer) return;
+    if (document.getElementById('videoSection').classList.contains('show')) return;
+    if (completedLessons.includes(rec.key)) return;
+    const label = formatResumeTime(rec.seconds || 0);
+    if (label) showToast(`במכשיר אחר עצרת ב${label} — הכפתור בראש הדף ימשיך משם`);
+  });
   window.addEventListener('bwc:sync-done', (ev) => {
     const merged = ev && ev.detail && ev.detail.merged;
     completedLessons = Array.isArray(merged) ? merged : completedLessons;
@@ -2397,17 +2679,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function showPlayerNoAutoplay(){
     if (!currentVideoId) return;
     const sec = document.getElementById('videoSection');
-    const frame = document.getElementById('videoFrame');
-    if (!sec || !frame) return;
-    // No autoplay=1 — render the YouTube poster + play button instead.
-    frame.src = `https://www.youtube.com/embed/${currentVideoId}?rel=0`;
-    sec.classList.add('show');
-    const heroEl = document.getElementById('hero');
-    if (heroEl) heroEl.style.display = 'none';
+    // openPlayer() consumes pendingResumeSeconds, so a restored position lands
+    // as `start=` on the embed. No autoplay — the learner still presses play,
+    // but on the right lesson at the right minute instead of the hero.
+    openPlayer(false);
     // אם הקישור ביקש טאב ספציפי (למשל #tab=practice) — הטאב מנצח את
     // הגלילה לנגן, אחרת שתי גלילות מתחרות והלומד נוחת במקום הלא נכון.
     const wantsTab = window.LessonTabs && window.LessonTabs.current() !== 'about';
-    if (!wantsTab) setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'center'}), 80);
+    if (!wantsTab && sec) setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'center'}), 80);
   }
 
   const params = new URLSearchParams(window.location.search);
@@ -2441,6 +2720,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Defer one tick so selectLesson/selectSeminar finished rendering (sidebar, crumb, tabs)
     // before we hide the hero and reveal the player.
     setTimeout(showPlayerNoAutoplay, 0);
+  } else if (resumeRestored) {
+    // THE ACTUAL RESUME. Only when there is a real position to return to:
+    // at least 30 seconds in, and the lesson is not already marked complete.
+    // Below that bar the hero is the better landing — its CTA now points at
+    // the same lesson anyway, so nothing is lost, and we never yank someone
+    // into a video they already finished.
+    const secs = pendingResumeSeconds || 0;
+    const key  = currentLessonKey();
+    const worthResuming = secs >= 30 && key && !completedLessons.includes(key);
+    if (worthResuming) {
+      const label = formatResumeTime(secs);
+      setTimeout(() => {
+        showPlayerNoAutoplay();
+        // Landing straight inside a video is only pleasant if the portal says
+        // why. Silent teleporting reads as a glitch.
+        if (label) showToast(`חזרנו לאיפה שעצרת — ${label}`);
+      }, 0);
+    }
   }
 });
 </script>
@@ -2452,6 +2749,10 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="js/auth.js" defer></script>
 <script src="js/auth-modal.js" defer></script>
 <script src="js/sync-localstorage.js" defer></script>
+<!-- resume.js owns "המשך מאיפה שעצרת" (lesson + minute, local + server).
+     MUST load after auth.js + supabase-config.js — it subscribes to auth
+     changes to pull the position saved on another device. -->
+<script src="js/resume.js" defer></script>
 <script src="js/global-nav.js?v=2" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used
