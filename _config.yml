@@ -1,0 +1,49 @@
+# GitHub Pages (Jekyll) publish rules — the Pages counterpart of .vercelignore.
+#
+# WHY THIS FILE EXISTS
+# The repo is public and Pages serves it from the root of `master`, so every
+# tracked file was reachable at hilell-aknine.github.io. `.vercelignore` does
+# not apply here — it is a Vercel-only file, and Pages served the exact paths
+# Vercel was told to hide. Measured live on 2026-09-01:
+#
+#   supabase/migrations/009_module_posts.sql   200   <- full RLS policy map
+#   tools/build-kb-index.mjs                   200
+#   api/lesson-coach.js                        200
+#   api/transcript.js                          200
+#   vercel.json                                200
+#
+# No credentials are in any of them, but the migrations publish exactly which
+# policies guard which table, which is a roadmap rather than a secret.
+#
+# WHY JEKYLL AND NOT .nojekyll
+# There is no `.nojekyll` in this repo, so Pages already runs Jekyll — which is
+# why `api/_lib/` and `api/_kb/` were ALREADY 404 (Jekyll skips underscore
+# directories) while their non-underscore siblings were served. That existing
+# behaviour is the lever: `exclude` below reaches the rest.
+#
+# Adding `.nojekyll` instead would do the opposite of what we want — it would
+# turn the underscore protection OFF and start publishing the encrypted KB.
+# Do not add one.
+#
+# THIS DOES NOT AFFECT VERCEL. Vercel never reads _config.yml; the files stay
+# in the repo and keep deploying there. `api/` is excluded from Pages only
+# because Pages has no serverless runtime anyway — js/api-host.js already
+# detects github.io and short-circuits before any /api call (cdbc9bf).
+
+exclude:
+  - supabase        # migrations + RLS policies
+  - tools           # build scripts (KB indexer, splitters)
+  - api             # serverless source; meaningless on a static mirror
+  - vercel.json     # routing + function config
+  - workbooks
+  - kb-transcripts  # paid course transcripts (gitignored, listed as defence in depth)
+  - docs-archive
+  # Jekyll's built-in defaults, restated because declaring `exclude` replaces them
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Nothing on this site is a Jekyll page — every file is served as-is.
+# Keeping the plugin list empty avoids any surprise processing of the HTML.
+plugins: []
