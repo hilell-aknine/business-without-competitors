@@ -780,6 +780,7 @@ function renderPath(data) {
 
     return `
       <section class="unit ${unitLocked ? 'unit--locked' : ''}"
+               data-unit="${unit.moduleIdx + 1}"
                style="--unit-c1:${colors[0]};--unit-c2:${colors[1]};--unit-shadow:${colors[2]}"
                aria-label="יחידה ${unit.moduleIdx + 1}: ${escHtml(unit.module.title)}">
         <div class="unit__banner">

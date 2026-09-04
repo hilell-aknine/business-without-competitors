@@ -39,10 +39,16 @@ body > .prac-toast           { position: fixed; z-index: 120; }
 }
 
 .unit__banner {
+  position: relative;
+  overflow: hidden;
+  /* Required. Without it this element forms no stacking context, so the
+     z-index:-1 art layer below paints BEHIND this element's own gradient
+     background and is invisible. */
+  isolation: isolate;
   display: flex;
   align-items: center;
   gap: .85rem;
-  padding: .95rem 1.15rem;
+  padding: 1.5rem 1.15rem;
   border-radius: 18px;
   background: linear-gradient(135deg, var(--unit-c1, #1d5f66) 0%, var(--unit-c2, #0f3d44) 100%);
   border: 1px solid rgba(255, 255, 255, .14);
@@ -50,6 +56,47 @@ body > .prac-toast           { position: fixed; z-index: 120; }
               0 12px 28px rgba(0, 0, 0, .28);
   margin-block-end: 1.75rem;
 }
+
+/* ---- Unit art -------------------------------------------------------
+   Generated banner art sits above the unit gradient and below the text.
+   The scrim is heaviest on the right, which is where the Hebrew title
+   and the eyebrow land in RTL. If the image fails to load the gradient
+   underneath is still the full designed background — nothing breaks.
+   URLs are relative to THIS stylesheet, so they resolve from any page
+   depth without a base-path helper.
+   -------------------------------------------------------------------- */
+.unit__banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(90deg,
+      rgba(4, 22, 27, .86) 0%,
+      rgba(4, 22, 27, .62) 38%,
+      rgba(4, 22, 27, .22) 68%,
+      rgba(4, 22, 27, .04) 100%),
+    var(--unit-art, none);
+  background-size: cover, cover;
+  background-position: center, center 46%;
+  background-repeat: no-repeat;
+  /* The generated art puts its subject on the right; in RTL that is exactly
+     where the Hebrew title sits. Mirroring moves the gold form to the empty
+     left half instead of dimming it into nothing. The art is abstract, so a
+     flip costs nothing. The scrim is declared at 90deg precisely because this
+     transform flips it too — it lands heavy under the text. */
+  transform: scaleX(-1);
+}
+
+.unit[data-unit="1"] .unit__banner { --unit-art: url(../assets/game/unit-1-prep.webp); }
+.unit[data-unit="2"] .unit__banner { --unit-art: url(../assets/game/unit-2-leadership.webp); }
+.unit[data-unit="3"] .unit__banner { --unit-art: url(../assets/game/unit-3-innovation.webp); }
+.unit[data-unit="4"] .unit__banner { --unit-art: url(../assets/game/unit-4-product.webp); }
+.unit[data-unit="5"] .unit__banner { --unit-art: url(../assets/game/unit-5-breakthrough.webp); }
+.unit[data-unit="6"] .unit__banner { --unit-art: url(../assets/game/unit-6-influence.webp); }
+.unit[data-unit="7"] .unit__banner { --unit-art: url(../assets/game/unit-7-conversion.webp); }
+.unit[data-unit="8"] .unit__banner { --unit-art: url(../assets/game/unit-8-optimization.webp); }
+.unit[data-unit="9"] .unit__banner { --unit-art: url(../assets/game/unit-9-tamar.webp); }
 
 .unit__banner-icon {
   inline-size: 42px;
@@ -87,7 +134,10 @@ body > .prac-toast           { position: fixed; z-index: 120; }
   font-size: .78rem;
   font-weight: 700;
   color: #fff;
-  background: rgba(0, 0, 0, .28);
+  /* Raised from .28 when the banner art landed behind it — the count now sits
+     over the brightest part of the artwork, not a flat gradient. */
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(3px);
   border-radius: 999px;
   padding: .3rem .7rem;
   white-space: nowrap;
@@ -505,6 +555,19 @@ body > .prac-toast           { position: fixed; z-index: 120; }
   font-weight: 700;
   color: var(--text-primary);
 }
+/* Axis emblems replace the flat Font Awesome glyphs. Each axis keeps the
+   colour it already carried, now as a rendered badge instead of an icon. */
+.lg-axis__emblem {
+  inline-size: 26px;
+  block-size: 26px;
+  flex-shrink: 0;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+.lg-axis__emblem--learning    { background-image: url(../assets/game/axis-learning.webp); }
+.lg-axis__emblem--persistence { background-image: url(../assets/game/axis-persistence.webp); }
+.lg-axis__emblem--application { background-image: url(../assets/game/axis-application.webp); }
 .lg-axis__chip {
   font-size: .68rem;
   font-weight: 800;
@@ -722,9 +785,12 @@ body > .prac-toast           { position: fixed; z-index: 120; }
   margin-block-end: 1.25rem;
 }
 .prac-fail__icon {
-  font-size: 3.2rem;
-  color: #f2555a;
+  inline-size: 132px;
+  block-size: 132px;
+  margin-inline: auto;
   margin-block-end: .8rem;
+  background: url(../assets/game/crest-retry.webp) center / contain no-repeat;
+  filter: drop-shadow(0 10px 26px rgba(212, 175, 55, .22));
   animation: fail-beat 1.4s ease-in-out infinite;
 }
 @keyframes fail-beat {
@@ -803,7 +869,7 @@ body > .prac-toast           { position: fixed; z-index: 120; }
   .node { inline-size: 66px; block-size: 66px; font-size: 1.4rem; }
   .node--boss { inline-size: 78px; block-size: 78px; font-size: 1.65rem; }
   .node-row__label { font-size: .68rem; max-inline-size: 7.5rem; }
-  .unit__banner { padding: .8rem .9rem; gap: .65rem; }
+  .unit__banner { padding: 1.2rem .9rem; gap: .65rem; }
   .unit__banner-icon { inline-size: 36px; block-size: 36px; font-size: .95rem; }
   .unit__banner-title { font-size: .95rem; }
   .prac-combo { inset-block-start: 4.6rem; font-size: .76rem; padding: .32rem .65rem; }

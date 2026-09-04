@@ -277,3 +277,22 @@
     .trk-intro,
     .trk-progress { margin-inline: 1rem; }
 }
+
+/* ======================================================================
+   Track hero art (2026-09-04)
+   Scoped to this page only via [data-area="track"] — .page-hero is shared
+   by every page and must not pick up a background image globally.
+   The art sits under a heavy scrim so the Hebrew title keeps its contrast;
+   if the image never loads the hero is exactly what it was before.
+   ====================================================================== */
+.page-hero[data-area="track"] {
+    background-image:
+        linear-gradient(180deg,
+            rgba(4, 22, 27, .72) 0%,
+            rgba(4, 22, 27, .58) 45%,
+            rgba(4, 22, 27, .92) 100%),
+        url(../assets/game/unit-9-tamar.webp);
+    background-size: cover, cover;
+    background-position: center, center 35%;
+    background-repeat: no-repeat;
+}

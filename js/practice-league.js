@@ -294,7 +294,7 @@
         <div class="lg-axis">
           <div class="lg-axis__head">
             <span class="lg-axis__name">
-              <i class="fa-solid ${cfg.icon}" aria-hidden="true" style="color:${cfg.color}"></i>
+              <span class="lg-axis__emblem lg-axis__emblem--${k}" aria-hidden="true"></span>
               ${cfg.label}
             </span>
             ${chip}

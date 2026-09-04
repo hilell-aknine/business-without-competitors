@@ -529,6 +529,22 @@ body > *:not(.atmos) { position: relative; z-index: 1; }
   top: 0; inset-inline-start: 0; inset-inline-end: 0; height: 4px;
   background: linear-gradient(90deg, var(--accent-teal), var(--accent-gold), var(--accent-teal));
 }
+/* Victory crest — sits above the particle burst, before the grade chip.
+   Path is relative to this stylesheet, so it resolves from any page depth. */
+.prac-done__crest {
+  inline-size: 116px; block-size: 116px;
+  margin: 0 auto .85rem;
+  background: url(../assets/game/crest-victory.webp) center / contain no-repeat;
+  filter: drop-shadow(0 12px 30px rgba(212, 175, 55, .28));
+  animation: crest-rise 700ms var(--ease-out-expo) both;
+}
+@keyframes crest-rise {
+  from { opacity: 0; transform: translateY(14px) scale(.86); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prac-done__crest { animation: none; }
+}
 .prac-done__particles {
   position: absolute; inset: 0; pointer-events: none; overflow: hidden;
 }

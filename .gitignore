@@ -71,3 +71,7 @@ fixes-*.json
 
 # Supabase CLI link state (local only)
 supabase/.temp/
+
+# Generated image sources (2026-09-04) — 24MB of full-res PNGs.
+# Only the optimised .webp files ship; keep the originals local for re-crops.
+assets/game/_src/
