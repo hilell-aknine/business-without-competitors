@@ -89,6 +89,15 @@
      excluded here. See hindsight.md 2026-09-15. */
   body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.onb-overlay):not(.v1-fabs):not(.v1-toast):not(.v1-drawer-overlay):not(.bwc-auth-overlay){position:relative;z-index:var(--z-base,1);}
 
+  /* ==================== AUDIENCE GATING ====================
+     `is-member` was being added to <body> on login and removed on logout since
+     the day it was written, and NOTHING in any stylesheet ever read it. The
+     class did literally nothing, so a signed-in learner with a live streak got
+     the full sales pitch on every visit. These two rules are what the class was
+     always supposed to mean. Tag a section and it lands on the right side. */
+  body.is-member  [data-audience="guest"],
+  body:not(.is-member) [data-audience="member"]{display:none !important;}
+
   /* ==================== BUTTONS ==================== */
   .btn{position:relative;display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1rem;border-radius:10px;font-family:'Heebo',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:-.01em;border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);cursor:pointer;text-decoration:none;transition:transform .2s,background .2s;isolation:isolate;overflow:hidden;white-space:nowrap;}
   .btn::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.2) 0%,transparent 50%);}
@@ -263,7 +272,7 @@
     padding:.18rem .35rem;border:1px solid rgba(255,255,255,.12);border-radius:5px;background:rgba(255,255,255,.04);
     pointer-events:none;}
   .v1-side__search-clear{position:absolute;inset-inline-end:.4rem;top:50%;transform:translateY(-50%);
-    width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+    width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
     color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:.72rem;
     padding:0;line-height:1;}
   .v1-side__search-clear:hover{background:rgba(255,255,255,.2);}
@@ -463,7 +472,11 @@
   .v1-hero__content{display:flex;flex-direction:column;gap:.85rem;}
   .v1-hero__eyebrow{font-size:.72rem;font-weight:600;color:var(--lg-gold);letter-spacing:.16em;text-transform:uppercase;}
   .v1-hero__title{font-family:'Frank Ruhl Libre',serif;font-size:2.15rem;line-height:1.18;letter-spacing:-.022em;font-weight:700;color:#fff;margin:0;text-wrap:balance;}
-  .v1-hero__meta{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;font-size:.82rem;color:rgba(255,255,255,.72);}
+  /* Empty in the markup and filled by renderHero(), so it went 0 -> ~21px after
+     first paint and pushed everything below the hero down with it. Reserving one
+     line costs nothing and removes the jump; the row still grows if the meta
+     wraps to two lines on a narrow phone. */
+  .v1-hero__meta{display:flex;align-items:center;flex-wrap:wrap;gap:.45rem;font-size:.82rem;color:rgba(255,255,255,.72);min-block-size:1.35rem;}
   .v1-hero__meta i{margin-inline-end:.3rem;opacity:.7;font-size:.78rem;}
   .v1-hero__dot{opacity:.4;}
   .v1-hero__actions{display:flex;align-items:center;gap:.7rem;margin-top:.4rem;flex-wrap:wrap;}
@@ -490,6 +503,14 @@
   .v1-hero__progress-quiz b{color:rgba(255,255,255,.85);font-weight:600;font-variant-numeric:tabular-nums;}
 
   /* Welcome banner — shown to logged-in members above the hero */
+  /* `display:flex` on a class beats the browser's own [hidden]{display:none},
+     so this banner painted at full height on every load and then collapsed the
+     moment auth state resolved — a ~130px jump that shoved the whole page up.
+     It was the single largest layout shift on the site (mobile CLS 0.217, and
+     the threshold is 0.1). The same trap is already documented for .v1-empty in
+     css/empty-state.css; the existing rule below only covered the copy inside
+     the nav bar, not this one. */
+  .v1-welcome[hidden]{display:none;}
   .v1-welcome{display:flex;justify-content:space-between;align-items:center;gap:.75rem;
     padding:.7rem 1rem;margin-bottom:.85rem;border-radius:16px;
     background:linear-gradient(135deg,rgba(229,181,71,.10),rgba(229,181,71,.04));
@@ -955,7 +976,11 @@
          descriptions in js/course-data.js) or from features that actually
          exist in this portal — nothing invented for marketing.
          Hidden by openPlayer(), restored by closeVideo(). -->
-    <section class="v1-intro" id="homeIntro" aria-label="על התוכנית" data-area="home-intro" data-src="index.html (הסבר דף הבית)">
+    <!-- data-audience="guest": this is the pitch. A learner who is already
+         signed in has bought the thing it is selling, so it takes the most
+         valuable screen in the product and spends it re-explaining why to buy.
+         Hidden for members by the rule in the stylesheet above. -->
+    <section class="v1-intro" id="homeIntro" data-audience="guest" aria-label="על התוכנית" data-area="home-intro" data-src="index.html (הסבר דף הבית)">
 
       <div class="v1-intro__block">
         <span class="v1-intro__eyebrow">למה זה חשוב</span>
@@ -2531,6 +2556,19 @@ let drawerLastFocus = null;
 
 function openDrawer(){
   drawerLastFocus = document.activeElement;
+  /* Reset the filter on every open. The field kept whatever had been typed in a
+     previous session (the browser restores input values across reloads), so the
+     drawer could open showing 3 lessons out of 131 with no visible reason why.
+     A filter the learner does not remember setting reads as a broken list. */
+  var searchEl = document.getElementById('lessonSearch');
+  if (searchEl && searchEl.value) {
+    searchEl.value = '';
+    if (typeof renderSidebar === 'function') renderSidebar('');
+    var clearBtn = document.getElementById('lessonSearchClear');
+    if (clearBtn) clearBtn.style.display = 'none';
+    var countEl = document.getElementById('lessonSearchCount');
+    if (countEl) countEl.textContent = '';
+  }
   document.body.classList.add('drawer-open');
   if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'true');
   drawerOverlay && drawerOverlay.setAttribute('aria-hidden', 'false');

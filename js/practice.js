@@ -387,7 +387,7 @@ function buildPath() {
         nodeIdx:    nodes.length,
         flatIdx:    flat++,
         kind:       'boss',
-        title:      'אתגר היחידה',
+        title:      'אתגר המודול',
         challenges: list.slice() // drawn from at session start
       });
     }
@@ -758,7 +758,7 @@ function renderPath(data) {
       else                           icon = done ? 'fa-check' : 'fa-star';
 
       const label = node.kind === 'boss'
-        ? (done ? 'היחידה הושלמה' : `${node.title} · ${totalCh} אתגרים`)
+        ? (done ? 'המודול הושלם' : `${node.title} · ${totalCh} אתגרים`)
         : (done ? `${node.title} · הושלם` : `${node.title} · ${solved}/${node.challenges.length}`);
 
       const aria = `${unit.module.title} — ${node.title}` +
@@ -782,11 +782,11 @@ function renderPath(data) {
       <section class="unit ${unitLocked ? 'unit--locked' : ''}"
                data-unit="${unit.moduleIdx + 1}"
                style="--unit-c1:${colors[0]};--unit-c2:${colors[1]};--unit-shadow:${colors[2]}"
-               aria-label="יחידה ${unit.moduleIdx + 1}: ${escHtml(unit.module.title)}">
+               aria-label="מודול ${unit.moduleIdx + 1}: ${escHtml(unit.module.title)}">
         <div class="unit__banner">
           <div class="unit__banner-icon"><i class="fa-solid ${unit.module.icon || 'fa-dumbbell'}" aria-hidden="true"></i></div>
           <div class="unit__banner-text">
-            <div class="unit__banner-eyebrow">יחידה ${unit.moduleIdx + 1}</div>
+            <div class="unit__banner-eyebrow">מודול ${unit.moduleIdx + 1}</div>
             <h2 class="unit__banner-title">${escHtml(unit.module.title)}</h2>
           </div>
           <div class="unit__banner-count">${doneCount}/${unit.nodes.length}</div>
@@ -1695,8 +1695,8 @@ function endSession() {
       crown.innerHTML = `
         <i class="fa-solid fa-crown" aria-hidden="true"></i>
         <div>
-          <strong>היחידה הושלמה</strong>
-          <span>${escHtml(unit.module.title)} — כל האתגרים ביחידה נפתרו.</span>
+          <strong>המודול הושלם</strong>
+          <span>${escHtml(unit.module.title)} — כל האתגרים במודול נפתרו.</span>
         </div>`;
     }
   }

@@ -371,6 +371,30 @@ body > header.gnav {
   outline-offset: 2px;
 }
 
+/* "You are here" inside the MORE menu. A gold bar on the inline-start edge
+   rather than an underline: menu rows are stacked, so an edge marker reads as
+   position in a list the way an underline reads as position in a bar. Kept
+   deliberately distinct from :hover, which only tints the background. */
+.gnav__more-item.is-active {
+  position: relative;
+  background: rgba(229, 181, 71, 0.10);
+  border-color: rgba(229, 181, 71, 0.28);
+  font-weight: 700;
+}
+
+/* ::before, not an inset box-shadow: box-shadow offsets are physical, so a
+   left-edge bar lands on the wrong side of an RTL menu. This one follows the
+   text direction. */
+.gnav__more-item.is-active::before {
+  content: "";
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  inline-size: 3px;
+  border-radius: 999px;
+  background: var(--lg-gold, #E5B547);
+}
+
 /* ====================== End cluster: Auth button ====================== */
 .gnav__auth-wrap {
   position: relative;

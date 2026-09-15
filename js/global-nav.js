@@ -78,12 +78,19 @@
     );
   }
 
-  function renderMoreItem(item) {
+  /* The MORE menu never marked the page you were standing on. Items that live
+     only here — "ההתקדמות שלי", "הפרופיל שלי", "עוזר היישום", the track — gave
+     no "you are here" signal at all, which reads as "this page is not in the
+     navigation". Primary links have carried aria-current since day one; this
+     brings the menu in line. */
+  function renderMoreItem(item, currentPage) {
     var attrs = item.external ? ' target="_blank" rel="noopener noreferrer"' : '';
+    var isActive = !item.external && item.id === currentPage;
     return (
       '<a href="' + escapeHtml(resolveHref(item)) + '"' +
-      ' class="gnav__more-item"' +
+      ' class="gnav__more-item' + (isActive ? ' is-active' : '') + '"' +
       ' role="menuitem"' +
+      (isActive ? ' aria-current="page"' : '') +
       ' data-gnav-item="' + escapeHtml(item.id) + '"' +
       attrs + '>' +
         '<i class="fa-solid ' + escapeHtml(item.icon) + '" aria-hidden="true"></i>' +
@@ -97,7 +104,7 @@
     // לבקשת הלל — הפורטל עצמו הוא המרכז. בשאר הדפים התפריט נשאר כדי שאפשר יהיה לחזור.
     var primaryItems = currentPage === 'home' ? [] : PRIMARY_ITEMS;
     var primary = primaryItems.map(function (i) { return renderPrimaryLink(i, currentPage); }).join('');
-    var more    = MORE_ITEMS.map(renderMoreItem).join('');
+    var more    = MORE_ITEMS.map(function (i) { return renderMoreItem(i, currentPage); }).join('');
     var brandHref = getBasePath() + 'index.html';
     return (
       '<div class="gnav__start">' +
