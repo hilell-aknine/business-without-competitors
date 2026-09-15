@@ -353,38 +353,30 @@
             /* ---- Stats calculation ---- */
 
             var _mods = (typeof MODULES !== 'undefined') ? MODULES : [];
-            var _sems = (typeof SEMINARS !== 'undefined') ? SEMINARS : [];
 
-            function calcTotalLessons() {
-                var t = 0;
-                _mods.forEach(function (m) { m.weeks.forEach(function (w) { t += w.days.length; }); });
-                _sems.forEach(function (s) { t += s.parts.length; });
-                return t;
+            /* The shared progress module. Every fallback below it is only there
+               so the page still renders if the file fails to load — it is not a
+               second implementation of the numbers. */
+            function global_progress() {
+                return (typeof window.BwcProgress !== 'undefined') ? window.BwcProgress : null;
             }
 
-            function calcTotalCompleted(completed) {
-                var done = 0;
-                _mods.forEach(function (mod, mi) {
-                    mod.weeks.forEach(function (week, wi) {
-                        week.days.forEach(function (day, di) {
-                            if (completed.has('m' + mi + '-' + wi + '-' + di)) done++;
-                        });
-                    });
-                });
-                _sems.forEach(function (sem, si) {
-                    sem.parts.forEach(function (part, pi) {
-                        if (completed.has('s' + si + '-' + pi)) done++;
-                    });
-                });
-                return done;
-            }
+            /* Totals, per-module stats and the streak all come from
+               js/progress-source.js now. This page used to count every day and
+               every seminar part, including `m6-2-4` which carries no videoId
+               and therefore can never be marked complete — so a learner who had
+               finished the whole course read "131 / 132" here and never saw
+               100%. The shared module counts only completable items, exactly
+               like index.html and library.js already did. */
 
             function calcModuleStats(mi, completed) {
+                if (global_progress()) return global_progress().getModuleStats(mi);
                 var mod = _mods[mi];
                 if (!mod) return { total: 0, done: 0, pct: 0 };
                 var total = 0, done = 0;
                 mod.weeks.forEach(function (week, wi) {
                     week.days.forEach(function (day, di) {
+                        if (!day || !day.videoId) return;
                         total++;
                         if (completed.has('m' + mi + '-' + wi + '-' + di)) done++;
                     });
@@ -403,12 +395,18 @@
             /* ---- Render ---- */
 
             function render(completed, quizScores, practice) {
-                var totalLessons  = calcTotalLessons();
-                var totalDone     = calcTotalCompleted(completed);
+                var P = global_progress();
+                var totalLessons  = P ? P.getTotalLessons()     : _mods.length;
+                var totalDone     = P ? P.getCompletedLessons() : completed.size;
                 var quizzesPassed = calcQuizzesPassed(quizScores);
                 var totalModules  = _mods.length || 8;
                 var xp     = practice.xp || 0;
-                var streak = practice.streak || 0;
+                /* One streak, one day boundary. index.html kept a second counter
+                   in `bwc_streak` using the visitor's machine clock while this
+                   page read `bwc_practice_v1.streak` in Israel time, so the two
+                   screens showed different numbers. The shared module owns it
+                   now and folds the old key in once. */
+                var streak = P ? P.getStreakDays() : (practice.streak || 0);
 
                 if (statLessons) statLessons.textContent = totalDone + ' / ' + totalLessons;
                 if (statQuizzes) statQuizzes.textContent = quizzesPassed + ' / ' + totalModules;
@@ -448,7 +446,12 @@
 
                 /* Practice */
                 if (practiceEl) {
-                    var challengesDone = Object.keys(practice.completed || {}).length;
+                    /* "/ 72" was hardcoded here and had gone stale — the bank
+                       holds far more than that today, so a learner past 72
+                       would have seen a total smaller than their own count.
+                       Read the real length from the data file instead. */
+                    var challengesDone  = Object.keys(practice.completed || {}).length;
+                    var challengesTotal = P ? P.getTotalChallenges() : 0;
                     practiceEl.innerHTML =
                         '<div class="practice-stat">' +
                           '<span class="practice-stat__value">' + xp.toLocaleString('he') + '</span>' +
@@ -459,7 +462,7 @@
                           '<div class="practice-stat__label">ימים ברצף</div>' +
                         '</div>' +
                         '<div class="practice-stat">' +
-                          '<span class="practice-stat__value">' + challengesDone + ' / 72</span>' +
+                          '<span class="practice-stat__value">' + challengesDone + (challengesTotal ? ' / ' + challengesTotal : '') + '</span>' +
                           '<div class="practice-stat__label">אתגרים הושלמו</div>' +
                         '</div>';
                 }
@@ -634,6 +637,10 @@
     <script src="../js/auth-modal.js" defer></script>
     <script src="../js/sync-localstorage.js" defer></script>
     <script src="../js/course-data.js" defer></script>
+    <!-- practice-data.js is loaded for its length only: the challenge total is
+         read from the data file instead of being retyped here. -->
+    <script src="../js/practice-data.js" defer></script>
+    <script src="../js/progress-source.js" defer></script>
     <script src="../js/global-nav.js" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
 <!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->

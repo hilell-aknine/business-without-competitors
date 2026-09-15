@@ -1216,6 +1216,9 @@
 </div>
 
 <script src="js/course-data.js"></script>
+<!-- Single source of truth for totals, percentage and streak. Must come after
+     course-data.js: every number it returns is derived from MODULES/SEMINARS. -->
+<script src="js/progress-source.js"></script>
 <script src="js/quiz-data.js"></script>
 <script src="js/sidebar-accordion.js"></script>
 <script src="js/api-host.js"></script>
@@ -1686,7 +1689,7 @@ function renderStats(){
   const elProg   = document.getElementById('welcomeProgress');
   if (!elStreak && !elMod && !elProg) return;
 
-  const streak = parseInt(localStorage.getItem('bwc_streak') || '0');
+  const streak = window.BwcProgress ? window.BwcProgress.getStreakDays() : 0;
   if (elStreak) {
     elStreak.querySelector('span').textContent = streak > 0
       ? `רצף ${streak} ימים`
@@ -2426,16 +2429,13 @@ function markCurrentComplete(auto){
   if (wasNew) {
     persistCompleted(key, true);
 
-    // Streak
-    const today = new Date().toDateString();
-    const lastDate = localStorage.getItem('bwc_last_learn_date');
-    let streak = parseInt(localStorage.getItem('bwc_streak') || '0');
-    if (lastDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toDateString();
-      streak = (lastDate === yesterday) ? streak + 1 : 1;
-      localStorage.setItem('bwc_streak', streak);
-      localStorage.setItem('bwc_last_learn_date', today);
-    }
+    // Streak. This used to keep its OWN counter in `bwc_streak`, stamped with
+    // new Date().toDateString() — the visitor's machine clock. The practice game
+    // kept a second counter in bwc_practice_v1 using Asia/Jerusalem. Two stores,
+    // two day boundaries, so the home page and the progress page drifted apart
+    // and showed different streaks. There is one store now, and it is the one
+    // that syncs to Supabase.
+    if (window.BwcProgress) window.BwcProgress.recordActivityToday();
     renderHero();
     renderStats();
     renderSidebar(document.getElementById('lessonSearch').value);

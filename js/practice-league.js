@@ -151,14 +151,24 @@
      ============================================================== */
 
   function localStanding() {
+    /* Totals come from the shared source (js/progress-source.js) so this score
+       is computed against the same denominators the rest of the portal shows.
+       Both totals used to be typed in here by hand — 132 lessons and 88
+       challenges — and both had gone stale. */
+    const P = window.BwcProgress || null;
+
     let d = {};
     try { d = JSON.parse(localStorage.getItem('bwc_practice_v1') || '{}'); } catch (_) {}
     const completed = d.completed || {};
     const solved = Object.keys(completed).filter(k => completed[k] >= 80).length;
-    const totalCh = (window.PRACTICE_CHALLENGES || []).length || 88;
+    const totalCh = P ? P.getTotalChallenges() : ((window.PRACTICE_CHALLENGES || []).length || 0);
 
+    /* The raw bwc_completed array can also hold keys for lessons that no longer
+       exist in the course; the shared module filters those out. */
+    const totalLessons = P ? P.getTotalLessons() : 131;
     let lessons = 0;
-    try { lessons = (JSON.parse(localStorage.getItem('bwc_completed') || '[]') || []).length; } catch (_) {}
+    if (P) { lessons = P.getCompletedLessons(); }
+    else { try { lessons = (JSON.parse(localStorage.getItem('bwc_completed') || '[]') || []).length; } catch (_) {} }
 
     let quizAvg = 0;
     try {
@@ -175,9 +185,9 @@
       show_percentiles: false,
       axes: {
         learning: {
-          score: Math.round(0.6 * Math.min(100, (lessons * 100) / 132) + 0.4 * Math.min(100, quizAvg)),
+          score: Math.round(0.6 * Math.min(100, totalLessons ? (lessons * 100) / totalLessons : 0) + 0.4 * Math.min(100, quizAvg)),
           top_pct: null,
-          raw: { lessons, total_lessons: 132, quiz_avg: quizAvg }
+          raw: { lessons, total_lessons: totalLessons, quiz_avg: quizAvg }
         },
         persistence: {
           score: Math.round(0.5 * Math.min(100, ((d.streak || 0) * 100) / 30) +
