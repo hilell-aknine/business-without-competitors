@@ -27,7 +27,7 @@ html, body {
   color: var(--text-primary);
   font-family: var(--font-body);
   min-block-size: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-inline-size: 100vw;
   line-height: 1.6;
   -webkit-text-size-adjust: 100%;
@@ -101,10 +101,12 @@ button:focus-visible,
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
 }
 
-/* Keep page content above .atmos. See hindsight.md 2026-05-10: this selector
-   is (0,1,1), so it beats bare class rules — global-nav.css already re-lifts
-   the header past it with !important. */
-body > *:not(.atmos) { position: relative; z-index: var(--z-base); }
+/* Keep page content above .atmos. This selector is (0,1,1), so it beats bare
+   class rules. The 2026-05-10 note said global-nav.css "already re-lifts the
+   header" — it only re-lifts the z-index, never the `position`, so the header
+   was still stuck on `relative` and never actually stuck to the top. Exclude
+   every self-positioning body child instead. See hindsight.md 2026-09-15. */
+body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { position: relative; z-index: var(--z-base, 1); }
 
 /* ===== Glass utility (identical recipe to practice.css .g) ===== */
 .g {
