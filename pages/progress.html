@@ -117,6 +117,15 @@
             color: #D4AF37;
             line-height: 1.1;
             display: block;
+            /* "19 / 132" inside an RTL block renders as "132 / 19" — the spaces
+               around the slash split it into two separate bidi runs, which then
+               lay out right-to-left. Measured: logical "19" painted to the RIGHT
+               of "132". Isolating the value as its own LTR run fixes the order
+               without touching the strings. The same trap bit the character
+               counter ("62 / 1500" read as "1500 / 62") — see hindsight.md.
+               Only numeric values carry this class, so forcing LTR is safe. */
+            direction: ltr;
+            unicode-bidi: isolate;
         }
         .stat-card__sub {
             font-size: .82rem;
@@ -260,6 +269,10 @@
             color: #D4AF37;
             display: block;
             line-height: 1.15;
+            /* Same bidi isolation as .stat-card__value — this one holds
+               "<n> / 72" and a 🔥-prefixed streak. Numbers only. */
+            direction: ltr;
+            unicode-bidi: isolate;
         }
         .practice-stat__label {
             font-size: .75rem;
