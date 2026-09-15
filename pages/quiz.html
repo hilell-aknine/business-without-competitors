@@ -779,7 +779,10 @@
                 <div class="question-num" id="questionNum">שאלה 1</div>
                 <div class="question-text" id="questionText">—</div>
                 <div class="answers" id="answers"></div>
-                <div class="explanation" id="explanation">
+                <!-- role="status" so a screen reader announces the verdict and
+                     the explanation when they appear. Without it the page gave
+                     no audible signal at all that the answer had registered. -->
+                <div class="explanation" id="explanation" role="status" aria-live="polite" aria-atomic="true">
                     <strong id="explanationTitle">הסבר</strong>
                     <span id="explanationText">—</span>
                 </div>
@@ -787,9 +790,12 @@
 
             <div class="quiz-actions">
                 <div class="left">
+                    <!-- Was "ביטול", which in the middle of a quiz reads as
+                         "undo my answer" just as easily as "leave". The action
+                         it actually performs is leaving, so it says so. -->
                     <button class="btn btn-ghost" onclick="abortQuiz()">
                         <i class="fa-solid fa-xmark"></i>
-                        ביטול
+                        יציאה מהמבחן
                     </button>
                 </div>
                 <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>
@@ -1147,6 +1153,26 @@
         document.getElementById('nextBtnText').textContent = isLast ? 'סיום וצפייה בתוצאות' : 'שאלה הבאה';
 
         renderProgressDots();
+
+        /* The verdict, the explanation, the source quote and the "next" button
+           all render BELOW the answer list. On a laptop that put them off the
+           bottom of the screen, so clicking an answer looked like nothing had
+           happened. Bring the verdict into view, and hand focus to the one
+           action that follows — the answer buttons are disabled now, so
+           keyboard focus would otherwise fall off to the body. */
+        const reduceMotion = window.matchMedia &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const behavior = reduceMotion ? 'auto' : 'smooth';
+        /* Scroll to the BUTTON, not to the verdict. The verdict sits directly
+           above it, so bringing the button up reveals both; scrolling to the
+           verdict alone left the button off-screen and the flow still looked
+           stuck. If the explanation is long enough that the two cannot share
+           the screen, the verdict wins — it is what the learner came for. */
+        nextBtn.scrollIntoView({ behavior: behavior, block: 'nearest' });
+        if (exp.getBoundingClientRect().top < 0) {
+            exp.scrollIntoView({ behavior: behavior, block: 'start' });
+        }
+        nextBtn.focus({ preventScroll: true });
     }
 
     function nextQuestion() {
