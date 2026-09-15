@@ -1,0 +1,735 @@
+{
+  "model": "qwen/qwen3.8-27b",
+  "total": 106,
+  "failed": 0,
+  "repeatedTitles": [],
+  "titles": [
+    {
+      "key": "m0-1-0",
+      "currentTitle": "הכנה אטומית · שבוע 1 · יום 1",
+      "chars": 13033,
+      "suggested": "להגדיר זמן פריצה יומי",
+      "error": null
+    },
+    {
+      "key": "m0-1-1",
+      "currentTitle": "הכנה אטומית · שבוע 1 · יום 2",
+      "chars": 7317,
+      "suggested": "לבנות משפך שיווקי אטומי",
+      "error": null
+    },
+    {
+      "key": "m0-1-2",
+      "currentTitle": "הכנה אטומית · שבוע 1 · יום 3",
+      "chars": 3192,
+      "suggested": "לכתוב את הוירוס הפנימי",
+      "error": null
+    },
+    {
+      "key": "m0-1-3",
+      "currentTitle": "הכנה אטומית · שבוע 1 · יום 4",
+      "chars": 7571,
+      "suggested": "ליצור רגש חדש ללקוח",
+      "error": null
+    },
+    {
+      "key": "m0-1-4",
+      "currentTitle": "הכנה אטומית · שבוע 1 · יום 5",
+      "chars": 7685,
+      "suggested": "לכתוב חזון אישי ללא מתחרים",
+      "error": null
+    },
+    {
+      "key": "m0-2-0",
+      "currentTitle": "הכנה אטומית · שבוע 2 · יום 1",
+      "chars": 9816,
+      "suggested": "לבנות תוכנית אימוני צמיחה",
+      "error": null
+    },
+    {
+      "key": "m0-2-1",
+      "currentTitle": "הכנה אטומית · שבוע 2 · יום 2",
+      "chars": 10397,
+      "suggested": "לשדרג את המיומנויות באמצעות אימון",
+      "error": null
+    },
+    {
+      "key": "m0-2-2",
+      "currentTitle": "הכנה אטומית · שבוע 2 · יום 3",
+      "chars": 5373,
+      "suggested": "לזהות פציעות קטנות בתהליך השינוי",
+      "error": null
+    },
+    {
+      "key": "m0-2-3",
+      "currentTitle": "הכנה אטומית · שבוע 2 · יום 4",
+      "chars": 8892,
+      "suggested": "לחלום על העסק הבא שלך",
+      "error": null
+    },
+    {
+      "key": "m0-2-4",
+      "currentTitle": "הכנה אטומית · שבוע 2 · יום 5",
+      "chars": 7720,
+      "suggested": "לזהות את הווירוס שמנצח את העסק שלך",
+      "error": null
+    },
+    {
+      "key": "m1-0-0",
+      "currentTitle": "מנהיגות אטומית · שבוע 1 · יום 1",
+      "chars": 15498,
+      "suggested": "לבנות מוטיבציה אטומית לצוות",
+      "error": null
+    },
+    {
+      "key": "m1-0-1",
+      "currentTitle": "מנהיגות אטומית · שבוע 1 · יום 2",
+      "chars": 13024,
+      "suggested": "לזהות את החזון הגדול של האנשים סביבך",
+      "error": null
+    },
+    {
+      "key": "m1-0-2",
+      "currentTitle": "מנהיגות אטומית · שבוע 1 · יום 3",
+      "chars": 3132,
+      "suggested": "לצטט את הקול הפנימי שמכשיל אותך",
+      "error": null
+    },
+    {
+      "key": "m1-0-3",
+      "currentTitle": "מנהיגות אטומית · שבוע 1 · יום 4",
+      "chars": 16856,
+      "suggested": "למצוא את הצרכים שמניעים את הצוות",
+      "error": null
+    },
+    {
+      "key": "m1-0-4",
+      "currentTitle": "מנהיגות אטומית · שבוע 1 · יום 5",
+      "chars": 8703,
+      "suggested": "להפוך עובדים לשותפים פנימיים",
+      "error": null
+    },
+    {
+      "key": "m1-1-0",
+      "currentTitle": "מנהיגות אטומית · שבוע 2 · יום 1",
+      "chars": 10396,
+      "suggested": "לנסח חזון עסקי שמעורר מוטיבציה",
+      "error": null
+    },
+    {
+      "key": "m1-1-1",
+      "currentTitle": "מנהיגות אטומית · שבוע 2 · יום 2",
+      "chars": 7232,
+      "suggested": "לתמצת את החזון הגדול שלך",
+      "error": null
+    },
+    {
+      "key": "m1-1-2",
+      "currentTitle": "מנהיגות אטומית · שבוע 2 · יום 3",
+      "chars": 3477,
+      "suggested": "לזהות את הצורך הפנימי של הקול המתנגד",
+      "error": null
+    },
+    {
+      "key": "m1-1-3",
+      "currentTitle": "מנהיגות אטומית · שבוע 2 · יום 4",
+      "chars": 13105,
+      "suggested": "לצייר יומן הרגלים עם תגמולים אישיים",
+      "error": null
+    },
+    {
+      "key": "m1-1-4",
+      "currentTitle": "מנהיגות אטומית · שבוע 2 · יום 5",
+      "chars": 5624,
+      "suggested": "לזהות את המוצר שמשנה את הזהות",
+      "error": null
+    },
+    {
+      "key": "m1-2-0",
+      "currentTitle": "מנהיגות אטומית · שבוע 3 · יום 1",
+      "chars": 17872,
+      "suggested": "להדליק חזון בכל חלקי הארגון",
+      "error": null
+    },
+    {
+      "key": "m1-2-1",
+      "currentTitle": "מנהיגות אטומית · שבוע 3 · יום 2",
+      "chars": 15263,
+      "suggested": "לעדכן את החזון הגדול שלך",
+      "error": null
+    },
+    {
+      "key": "m1-2-2",
+      "currentTitle": "מנהיגות אטומית · שבוע 3 · יום 3",
+      "chars": 2935,
+      "suggested": "לבחון את הבחירות שלך ברגעי חוסר מוטיבציה",
+      "error": null
+    },
+    {
+      "key": "m1-2-3",
+      "currentTitle": "מנהיגות אטומית · שבוע 3 · יום 4",
+      "chars": 17127,
+      "suggested": "לבנות נוסחת שפע משודרגת לעסק",
+      "error": null
+    },
+    {
+      "key": "m1-2-4",
+      "currentTitle": "מנהיגות אטומית · שבוע 3 · יום 5",
+      "chars": 16626,
+      "suggested": "להציב זמני שפע ביומן",
+      "error": null
+    },
+    {
+      "key": "m2-0-0",
+      "currentTitle": "חדשנות אטומית · שבוע 1 · יום 1",
+      "chars": 12016,
+      "suggested": "לזהות את המתנות שיש לך לתת",
+      "error": null
+    },
+    {
+      "key": "m2-0-1",
+      "currentTitle": "חדשנות אטומית · שבוע 1 · יום 2",
+      "chars": 15028,
+      "suggested": "לצייר את הלקוח האידיאלי שלך",
+      "error": null
+    },
+    {
+      "key": "m2-0-2",
+      "currentTitle": "חדשנות אטומית · שבוע 1 · יום 3",
+      "chars": 2560,
+      "suggested": "לתת לעצמך תיוגים שליליים",
+      "error": null
+    },
+    {
+      "key": "m2-0-3",
+      "currentTitle": "חדשנות אטומית · שבוע 1 · יום 4",
+      "chars": 18090,
+      "suggested": "לצייר מטרת תהליך שמושכת קהל",
+      "error": null
+    },
+    {
+      "key": "m2-0-4",
+      "currentTitle": "חדשנות אטומית · שבוע 1 · יום 5",
+      "chars": 9449,
+      "suggested": "לשלב חוזקות ותשוקות לשיטה ייחודית",
+      "error": null
+    },
+    {
+      "key": "m2-1-0",
+      "currentTitle": "חדשנות אטומית · שבוע 2 · יום 1",
+      "chars": 15635,
+      "suggested": "לכתוב את ארבעת הכאבים מהפער",
+      "error": null
+    },
+    {
+      "key": "m2-1-1",
+      "currentTitle": "חדשנות אטומית · שבוע 2 · יום 2",
+      "chars": 12788,
+      "suggested": "לזהות את הרווח המשני שמחזיק אותך",
+      "error": null
+    },
+    {
+      "key": "m2-1-2",
+      "currentTitle": "חדשנות אטומית · שבוע 2 · יום 3",
+      "chars": 3095,
+      "suggested": "להפוך תיוגים שליליים לחוזקות",
+      "error": null
+    },
+    {
+      "key": "m2-1-3",
+      "currentTitle": "חדשנות אטומית · שבוע 2 · יום 4",
+      "chars": 9164,
+      "suggested": "להפוך תכונות רעות לכוחות על",
+      "error": null
+    },
+    {
+      "key": "m2-1-4",
+      "currentTitle": "חדשנות אטומית · שבוע 2 · יום 5",
+      "chars": 7067,
+      "suggested": "לכתוב רשימת אבני הדרך והסולמות",
+      "error": null
+    },
+    {
+      "key": "m2-2-0",
+      "currentTitle": "חדשנות אטומית · שבוע 3 · יום 1",
+      "chars": 15459,
+      "suggested": "לכתוב מדיטציה לאהוב את הלקוח",
+      "error": null
+    },
+    {
+      "key": "m2-2-1",
+      "currentTitle": "חדשנות אטומית · שבוע 3 · יום 2",
+      "chars": 10414,
+      "suggested": "לכתוב את הכאבים והחסמים של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m2-2-2",
+      "currentTitle": "חדשנות אטומית · שבוע 3 · יום 3",
+      "chars": 4205,
+      "suggested": "לזהות את הקולות הפנימיים שמפריעים לך",
+      "error": null
+    },
+    {
+      "key": "m2-2-3",
+      "currentTitle": "חדשנות אטומית · שבוע 3 · יום 4",
+      "chars": 12095,
+      "suggested": "לזהות את הרווח המשני של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m3-0-0",
+      "currentTitle": "מוצר משנה חיים · שבוע 1 · יום 1",
+      "chars": 18049,
+      "suggested": "לבנות מוצר שמשנה חיים",
+      "error": null
+    },
+    {
+      "key": "m3-0-1",
+      "currentTitle": "מוצר משנה חיים · שבוע 1 · יום 2",
+      "chars": 12778,
+      "suggested": "לזהות את האמונות שהמוצר צריך לשנות",
+      "error": null
+    },
+    {
+      "key": "m3-0-2",
+      "currentTitle": "מוצר משנה חיים · שבוע 1 · יום 3",
+      "chars": 4103,
+      "suggested": "לזהות את הבור המוטיבציוני שלך",
+      "error": null
+    },
+    {
+      "key": "m3-0-3",
+      "currentTitle": "מוצר משנה חיים · שבוע 1 · יום 4",
+      "chars": 16501,
+      "suggested": "לצור חווייה משנת זהות במוצר",
+      "error": null
+    },
+    {
+      "key": "m3-0-4",
+      "currentTitle": "מוצר משנה חיים · שבוע 1 · יום 5",
+      "chars": 13236,
+      "suggested": "לזהות את הנטייה שגומרת את העסק",
+      "error": null
+    },
+    {
+      "key": "m3-1-0",
+      "currentTitle": "מוצר משנה חיים · שבוע 2 · יום 1",
+      "chars": 14276,
+      "suggested": "לזהות את מוצר משנה החיים שלך",
+      "error": null
+    },
+    {
+      "key": "m3-1-1",
+      "currentTitle": "מוצר משנה חיים · שבוע 2 · יום 2",
+      "chars": 23437,
+      "suggested": "לזהות את הפיצול בין הרצונות הסותרים",
+      "error": null
+    },
+    {
+      "key": "m3-1-2",
+      "currentTitle": "מוצר משנה חיים · שבוע 2 · יום 3",
+      "chars": 11113,
+      "suggested": "לנסח מטרה עם שריטה לעסק",
+      "error": null
+    },
+    {
+      "key": "m3-1-3",
+      "currentTitle": "מוצר משנה חיים · שבוע 2 · יום 4",
+      "chars": 13918,
+      "suggested": "לבנות אבני דרך בתהליך",
+      "error": null
+    },
+    {
+      "key": "m3-1-4",
+      "currentTitle": "מוצר משנה חיים · שבוע 2 · יום 5",
+      "chars": 14496,
+      "suggested": "לבנות סולמות יציאה לבורות",
+      "error": null
+    },
+    {
+      "key": "m3-2-0",
+      "currentTitle": "מוצר משנה חיים · שבוע 3 - שבוע הטמעה אישי · יום 1",
+      "chars": 17537,
+      "suggested": "לזהות את המוצר שמשנה לך את החיים",
+      "error": null
+    },
+    {
+      "key": "m3-2-1",
+      "currentTitle": "מוצר משנה חיים · שבוע 3 - שבוע הטמעה אישי · יום 2",
+      "chars": 11432,
+      "suggested": "להגדיר את נקודת התיקון של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m3-2-3",
+      "currentTitle": "מוצר משנה חיים · שבוע 3 - שבוע הטמעה אישי · יום 4",
+      "chars": 16235,
+      "suggested": "להגדיר את ההרגלים האטומים של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m4-0-0",
+      "currentTitle": "הפיצוח האטומי · שבוע 1 · יום 1",
+      "chars": 14610,
+      "suggested": "לתפוס את אמונות העל שמובילות אותך",
+      "error": null
+    },
+    {
+      "key": "m4-0-1",
+      "currentTitle": "הפיצוח האטומי · שבוע 1 · יום 2",
+      "chars": 17539,
+      "suggested": "להפוך קורבנות למנהיגים באמצעות אמונות",
+      "error": null
+    },
+    {
+      "key": "m4-0-2",
+      "currentTitle": "הפיצוח האטומי · שבוע 1 · יום 3",
+      "chars": 5671,
+      "suggested": "להפוך את החלק המתנגד לחלק שרוצה",
+      "error": null
+    },
+    {
+      "key": "m4-0-3",
+      "currentTitle": "הפיצוח האטומי · שבוע 1 · יום 4",
+      "chars": 17540,
+      "suggested": "לזהות את שלושת הקונפליקטים הפנימיים של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m4-0-4",
+      "currentTitle": "הפיצוח האטומי · שבוע 1 · יום 5",
+      "chars": 15987,
+      "suggested": "לכתיבת טבלת CPB של קונפליקטי הלקוח",
+      "error": null
+    },
+    {
+      "key": "m4-1-0",
+      "currentTitle": "הפיצוח האטומי · שבוע 2 · יום 1",
+      "chars": 12345,
+      "suggested": "לזהות את החפיפה בין הצרכים שלכם",
+      "error": null
+    },
+    {
+      "key": "m4-1-1",
+      "currentTitle": "הפיצוח האטומי · שבוע 2 · יום 2",
+      "chars": 18655,
+      "suggested": "לזהות את התיוגים שמנעים ממך",
+      "error": null
+    },
+    {
+      "key": "m4-1-2",
+      "currentTitle": "הפיצוח האטומי · שבוע 2 · יום 3",
+      "chars": 3669,
+      "suggested": "לכתוב את שני הקולות הפנימיים",
+      "error": null
+    },
+    {
+      "key": "m4-1-3",
+      "currentTitle": "הפיצוח האטומי · שבוע 2 · יום 4",
+      "chars": 11873,
+      "suggested": "לכתוב שלושה קונפליקטים פנימיים של הלקוח",
+      "error": null
+    },
+    {
+      "key": "m4-1-4",
+      "currentTitle": "הפיצוח האטומי · שבוע 2 · יום 5",
+      "chars": 20277,
+      "suggested": "לשקף את המצב ולבנות אמון",
+      "error": null
+    },
+    {
+      "key": "m4-2-0",
+      "currentTitle": "הפיצוח האטומי · שבוע 3 · יום 1",
+      "chars": 21241,
+      "suggested": "לזהות אמונות נוגדות שינוי בלקוח",
+      "error": null
+    },
+    {
+      "key": "m4-2-1",
+      "currentTitle": "הפיצוח האטומי · שבוע 3 · יום 2",
+      "chars": 20630,
+      "suggested": "לבנות מפת פיצוח אמונות ללקוח",
+      "error": null
+    },
+    {
+      "key": "m4-2-2",
+      "currentTitle": "הפיצוח האטומי · שבוע 3 · יום 3",
+      "chars": 5147,
+      "suggested": "לקביעת תאריך מפגש חירום עם המסטר מיינד",
+      "error": null
+    },
+    {
+      "key": "m4-2-3",
+      "currentTitle": "הפיצוח האטומי · שבוע 3 · יום 4",
+      "chars": 17289,
+      "suggested": "לסדר אמונות חדשות בסדר עולה",
+      "error": null
+    },
+    {
+      "key": "m5-0-0",
+      "currentTitle": "השפעה אטומית · שבוע 1 · יום 1",
+      "chars": 24557,
+      "suggested": "להפוך תוכן להשפעה משכנעת",
+      "error": null
+    },
+    {
+      "key": "m5-0-1",
+      "currentTitle": "השפעה אטומית · שבוע 1 · יום 2",
+      "chars": 20110,
+      "suggested": "לבנות חווייה שיוצרת מעבר טבעי של אמונות",
+      "error": null
+    },
+    {
+      "key": "m5-0-2",
+      "currentTitle": "השפעה אטומית · שבוע 1 · יום 3",
+      "chars": 5317,
+      "suggested": "לעצב חווייה שמכבדת את שני הקולות",
+      "error": null
+    },
+    {
+      "key": "m5-0-3",
+      "currentTitle": "השפעה אטומית · שבוע 1 · יום 4",
+      "chars": 15369,
+      "suggested": "לסדר את הידע ולהנגיש אותו בלי הצפה",
+      "error": null
+    },
+    {
+      "key": "m5-0-4",
+      "currentTitle": "השפעה אטומית · שבוע 1 · יום 5",
+      "chars": 10242,
+      "suggested": "לבנות חווייה משנה זהות לקוח",
+      "error": null
+    },
+    {
+      "key": "m5-1-0",
+      "currentTitle": "השפעה אטומית · שבוע 2 · יום 1",
+      "chars": 16930,
+      "suggested": "לזהות את הלקוחות העקשנים והרדוקים",
+      "error": null
+    },
+    {
+      "key": "m5-1-1",
+      "currentTitle": "השפעה אטומית · שבוע 2 · יום 2",
+      "chars": 17201,
+      "suggested": "לזהות את החלק שרוצה להצליח",
+      "error": null
+    },
+    {
+      "key": "m5-1-2",
+      "currentTitle": "השפעה אטומית · שבוע 2 · יום 3",
+      "chars": 7333,
+      "suggested": "לזהות את הפרמטר הלא מדויק בלקוח",
+      "error": null
+    },
+    {
+      "key": "m5-1-3",
+      "currentTitle": "השפעה אטומית · שבוע 2 · יום 4",
+      "chars": 8337,
+      "suggested": "למפות את ההשלכות של שינוי אמונה",
+      "error": null
+    },
+    {
+      "key": "m5-1-4",
+      "currentTitle": "השפעה אטומית · שבוע 2 · יום 5",
+      "chars": 12399,
+      "suggested": "לנסח שאלות שמפצחות אמונות קיימות",
+      "error": null
+    },
+    {
+      "key": "m5-2-0",
+      "currentTitle": "השפעה אטומית · שבוע 3 · יום 1",
+      "chars": 15383,
+      "suggested": "להפוך שיח מנהיגות לתוכן שיווקי",
+      "error": null
+    },
+    {
+      "key": "m5-2-1",
+      "currentTitle": "השפעה אטומית · שבוע 3 · יום 2",
+      "chars": 13632,
+      "suggested": "לכתוב הוק שמפתח לופ חייב לסגור",
+      "error": null
+    },
+    {
+      "key": "m5-2-2",
+      "currentTitle": "השפעה אטומית · שבוע 3 · יום 3",
+      "chars": 5449,
+      "suggested": "לבדוק אם הטקסט משקף את כל החלקים",
+      "error": null
+    },
+    {
+      "key": "m5-2-3",
+      "currentTitle": "השפעה אטומית · שבוע 3 · יום 4",
+      "chars": 42671,
+      "suggested": "לתכנן תוכן שמסווה שינוי אמונה",
+      "error": null
+    },
+    {
+      "key": "m6-0-0",
+      "currentTitle": "המרה אטומית · שבוע 1 · יום 1",
+      "chars": 24835,
+      "suggested": "לזהות את הפרסונה שמעוררת את רגש המטרה",
+      "error": null
+    },
+    {
+      "key": "m6-0-2",
+      "currentTitle": "המרה אטומית · שבוע 1 · יום 3",
+      "chars": 4898,
+      "suggested": "לבחור צעד קדימה משותף לאחר הרגעה",
+      "error": null
+    },
+    {
+      "key": "m6-0-3",
+      "currentTitle": "המרה אטומית · שבוע 1 · יום 4",
+      "chars": 8129,
+      "suggested": "לנעול עסקה באמצעות רגע המרה",
+      "error": null
+    },
+    {
+      "key": "m6-0-4",
+      "currentTitle": "המרה אטומית · שבוע 1 · יום 5",
+      "chars": 13383,
+      "suggested": "לכתוב תוכן עם שקיפות",
+      "error": null
+    },
+    {
+      "key": "m6-1-0",
+      "currentTitle": "המרה אטומית · שבוע 2 · יום 1",
+      "chars": 13682,
+      "suggested": "לסגור את הלופ המחשבתי בדרך להמרה",
+      "error": null
+    },
+    {
+      "key": "m6-1-1",
+      "currentTitle": "המרה אטומית · שבוע 2 · יום 2",
+      "chars": 17396,
+      "suggested": "לכתוב כותרות לדף ההרשמה",
+      "error": null
+    },
+    {
+      "key": "m6-1-3",
+      "currentTitle": "המרה אטומית · שבוע 2 · יום 4",
+      "chars": 12830,
+      "suggested": "לכתוב קריאה לפעולה לצעד הבא",
+      "error": null
+    },
+    {
+      "key": "m6-1-4",
+      "currentTitle": "המרה אטומית · שבוע 2 · יום 5",
+      "chars": 8105,
+      "suggested": "לכתוב כותרות ובולטים לתוכן הטרנספורמציה",
+      "error": null
+    },
+    {
+      "key": "m6-2-0",
+      "currentTitle": "המרה אטומית · שבוע 3 · יום 1",
+      "chars": 46285,
+      "suggested": "להפוך שיחת פתיחה למעמד השפעה",
+      "error": null
+    },
+    {
+      "key": "m6-2-1",
+      "currentTitle": "המרה אטומית · שבוע 3 · יום 2",
+      "chars": 18838,
+      "suggested": "לשלב בונוסים קטנים בתהליך המכירה",
+      "error": null
+    },
+    {
+      "key": "m6-2-3",
+      "currentTitle": null,
+      "suggested": "לנסח שלושה סוגי השלכות ללקוח",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-0-0",
+      "currentTitle": null,
+      "suggested": "לשפר ביצועים בעזרת טסטים מתמשכים",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-0-1",
+      "currentTitle": null,
+      "suggested": "לזהות חסמים ולמצוא שותפים משלימים",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-0-2",
+      "currentTitle": "אופטימיזציה אטומית · שבוע 1 · יום 3",
+      "chars": 2201,
+      "suggested": "לזהות התנגדויות אישיות לאופטימיזציה",
+      "error": null
+    },
+    {
+      "key": "m7-0-3",
+      "currentTitle": null,
+      "suggested": "לבנות תהליך אופטימיזציה אסטרטגית",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-0-4",
+      "currentTitle": null,
+      "suggested": "לזהות מודעה מנצחת ולבצע טסט",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-1-0",
+      "currentTitle": null,
+      "suggested": "לשפר CTR של מודעות קיימות",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-1-1",
+      "currentTitle": null,
+      "suggested": "לבנות הצעת אופטימיזציה אטומית",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-1-2",
+      "currentTitle": null,
+      "suggested": "לכתוב שיחת מנהיגות שבועית",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-1-3",
+      "currentTitle": null,
+      "suggested": "לזהות שינויים זמניים באסטרטגיה",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-1-4",
+      "currentTitle": null,
+      "suggested": "להוסיף השלכות ספציפיות בטסטים",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-2-0",
+      "currentTitle": null,
+      "suggested": "לבנות תוכנית אופטימיזציה רבעונית",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-2-1",
+      "currentTitle": null,
+      "suggested": "ליישם ארבעת ההרגלים ברבעון",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-2-2",
+      "currentTitle": null,
+      "suggested": "לכתוב שיח מנהיגות יומי",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-2-3",
+      "currentTitle": null,
+      "suggested": "לעצב למידה מותאמת אישית בעזרת AI",
+      "model": "groq/compound-mini"
+    },
+    {
+      "key": "m7-2-4",
+      "currentTitle": null,
+      "suggested": "לאפיין ולשפר תהליכים קיימים",
+      "model": "groq/compound-mini"
+    }
+  ]
+}

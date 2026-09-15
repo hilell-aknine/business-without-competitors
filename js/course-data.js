@@ -100,21 +100,21 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'Pm7HfmdWziU' },
-                    { title: 'יום 2', videoId: 'eCaUBdsb3Co' },
-                    { title: 'יום 3', videoId: 'Kny7pRefdOY' },
-                    { title: 'יום 4', videoId: 'Le3GbdccnfQ' },
-                    { title: 'יום 5', videoId: 'JsXXqEb1UVU' }
+                    { title: 'להגדיר זמן פריצה יומי', seq: 'יום 1', videoId: 'Pm7HfmdWziU' },
+                    { title: 'לבנות משפך שיווקי אטומי', seq: 'יום 2', videoId: 'eCaUBdsb3Co' },
+                    { title: 'לכתוב את הוירוס הפנימי', seq: 'יום 3', videoId: 'Kny7pRefdOY' },
+                    { title: 'ליצור רגש חדש ללקוח', seq: 'יום 4', videoId: 'Le3GbdccnfQ' },
+                    { title: 'לכתוב חזון אישי ללא מתחרים', seq: 'יום 5', videoId: 'JsXXqEb1UVU' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'BvQUBidILYU' },
-                    { title: 'יום 2', videoId: '6MWTRPyQhsM' },
-                    { title: 'יום 3', videoId: 'YCzMHzLoc9w' },
-                    { title: 'יום 4', videoId: '1yEjtL3ROVY' },
-                    { title: 'יום 5', videoId: 'HQXQhpVKXuM' }
+                    { title: 'לבנות תוכנית אימוני צמיחה', seq: 'יום 1', videoId: 'BvQUBidILYU' },
+                    { title: 'לשדרג את המיומנויות באמצעות אימון', seq: 'יום 2', videoId: '6MWTRPyQhsM' },
+                    { title: 'לזהות פציעות קטנות בתהליך השינוי', seq: 'יום 3', videoId: 'YCzMHzLoc9w' },
+                    { title: 'לחלום על העסק הבא שלך', seq: 'יום 4', videoId: '1yEjtL3ROVY' },
+                    { title: 'לזהות את הווירוס שמנצח את העסק שלך', seq: 'יום 5', videoId: 'HQXQhpVKXuM' }
                 ]
             }
         ]
@@ -133,31 +133,31 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'FaSkvCTJz04' },
-                    { title: 'יום 2', videoId: 'I34D3SoygaE' },
-                    { title: 'יום 3', videoId: 'GIUW676Zl4M' },
-                    { title: 'יום 4', videoId: 'ji7ekKoo20M' },
-                    { title: 'יום 5', videoId: '0ANOF3g1ww8' }
+                    { title: 'לבנות מוטיבציה אטומית לצוות', seq: 'יום 1', videoId: 'FaSkvCTJz04' },
+                    { title: 'לזהות את החזון הגדול של האנשים סביבך', seq: 'יום 2', videoId: 'I34D3SoygaE' },
+                    { title: 'לצטט את הקול הפנימי שמכשיל אותך', seq: 'יום 3', videoId: 'GIUW676Zl4M' },
+                    { title: 'למצוא את הצרכים שמניעים את הצוות', seq: 'יום 4', videoId: 'ji7ekKoo20M' },
+                    { title: 'להפוך עובדים לשותפים פנימיים', seq: 'יום 5', videoId: '0ANOF3g1ww8' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'lSJe09pT0uo' },
-                    { title: 'יום 2', videoId: 'lqx_YCBIAas' },
-                    { title: 'יום 3', videoId: 'ZhUjAWj99fk' },
-                    { title: 'יום 4', videoId: 'bP6whiZ0PcY' },
-                    { title: 'יום 5', videoId: 'saFQsrTjwFc' }
+                    { title: 'לנסח חזון עסקי שמעורר מוטיבציה', seq: 'יום 1', videoId: 'lSJe09pT0uo' },
+                    { title: 'לתמצת את החזון הגדול שלך', seq: 'יום 2', videoId: 'lqx_YCBIAas' },
+                    { title: 'לזהות את הצורך הפנימי של הקול המתנגד', seq: 'יום 3', videoId: 'ZhUjAWj99fk' },
+                    { title: 'לצייר יומן הרגלים עם תגמולים אישיים', seq: 'יום 4', videoId: 'bP6whiZ0PcY' },
+                    { title: 'לזהות את המוצר שמשנה את הזהות', seq: 'יום 5', videoId: 'saFQsrTjwFc' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: 'GEX3-Ejfsvs' },
-                    { title: 'יום 2', videoId: '96YU_T6bMMI' },
-                    { title: 'יום 3', videoId: 'kjOaIHwRBDc' },
-                    { title: 'יום 4', videoId: 'wHjf3PztETs' },
-                    { title: 'יום 5', videoId: 'UCGLqxAcXlc' }
+                    { title: 'להדליק חזון בכל חלקי הארגון', seq: 'יום 1', videoId: 'GEX3-Ejfsvs' },
+                    { title: 'לעדכן את החזון הגדול שלך', seq: 'יום 2', videoId: '96YU_T6bMMI' },
+                    { title: 'לבחון את הבחירות שלך ברגעי חוסר מוטיבציה', seq: 'יום 3', videoId: 'kjOaIHwRBDc' },
+                    { title: 'לבנות נוסחת שפע משודרגת לעסק', seq: 'יום 4', videoId: 'wHjf3PztETs' },
+                    { title: 'להציב זמני שפע ביומן', seq: 'יום 5', videoId: 'UCGLqxAcXlc' }
                 ]
             }
         ]
@@ -173,30 +173,30 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'f9z6yCgl8cs' },
-                    { title: 'יום 2', videoId: 'Ng-CoLYLWXI' },
-                    { title: 'יום 3', videoId: 'KPChQLVaTNo' },
-                    { title: 'יום 4', videoId: 'kzzE-fisVIE' },
-                    { title: 'יום 5', videoId: 'HCYTCwQud4M' }
+                    { title: 'לזהות את המתנות שיש לך לתת', seq: 'יום 1', videoId: 'f9z6yCgl8cs' },
+                    { title: 'לצייר את הלקוח האידיאלי שלך', seq: 'יום 2', videoId: 'Ng-CoLYLWXI' },
+                    { title: 'לתת לעצמך תיוגים שליליים', seq: 'יום 3', videoId: 'KPChQLVaTNo' },
+                    { title: 'לצייר מטרת תהליך שמושכת קהל', seq: 'יום 4', videoId: 'kzzE-fisVIE' },
+                    { title: 'לשלב חוזקות ותשוקות לשיטה ייחודית', seq: 'יום 5', videoId: 'HCYTCwQud4M' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'H8mFC1Adfak' },
-                    { title: 'יום 2', videoId: 'kUBHkPr8Y3c' },
-                    { title: 'יום 3', videoId: 'U7PTP_X85UA' },
-                    { title: 'יום 4', videoId: 'wQzieVpgZVs' },
-                    { title: 'יום 5', videoId: 'XKljnYtP144' }
+                    { title: 'לכתוב את ארבעת הכאבים מהפער', seq: 'יום 1', videoId: 'H8mFC1Adfak' },
+                    { title: 'לזהות את הרווח המשני שמחזיק אותך', seq: 'יום 2', videoId: 'kUBHkPr8Y3c' },
+                    { title: 'להפוך תיוגים שליליים לחוזקות', seq: 'יום 3', videoId: 'U7PTP_X85UA' },
+                    { title: 'להפוך תכונות רעות לכוחות על', seq: 'יום 4', videoId: 'wQzieVpgZVs' },
+                    { title: 'לכתוב רשימת אבני הדרך והסולמות', seq: 'יום 5', videoId: 'XKljnYtP144' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: '7JESTOdTs14', variants: [ { label: 'גברים', videoId: '7JESTOdTs14' }, { label: 'נשים', videoId: 'lt_vbGVVaq4' } ] },
-                    { title: 'יום 2', videoId: 'cy3YVIpqk14' },
-                    { title: 'יום 3', videoId: 'nnRYt-ISNQE' },
-                    { title: 'יום 4', videoId: 'T1pvpNWdMPg' },
+                    { title: 'לכתוב מדיטציה לאהוב את הלקוח', seq: 'יום 1', videoId: '7JESTOdTs14', variants: [ { label: 'גברים', videoId: '7JESTOdTs14' }, { label: 'נשים', videoId: 'lt_vbGVVaq4' } ] },
+                    { title: 'לכתוב את הכאבים והחסמים של הלקוח', seq: 'יום 2', videoId: 'cy3YVIpqk14' },
+                    { title: 'לזהות את הקולות הפנימיים שמפריעים לך', seq: 'יום 3', videoId: 'nnRYt-ISNQE' },
+                    { title: 'לזהות את הרווח המשני של הלקוח', seq: 'יום 4', videoId: 'T1pvpNWdMPg' },
                     { title: 'יום 5 - משימת הטמעה', videoId: 'uVJmjA6Uirk' }
                 ]
             }
@@ -213,30 +213,30 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'zvGGZxBf6BE' },
-                    { title: 'יום 2', videoId: 'JAnDd7SXpWE' },
-                    { title: 'יום 3', videoId: 'OpiNVVxPpfU' },
-                    { title: 'יום 4', videoId: '4cP64cEdDA0' },
-                    { title: 'יום 5', videoId: 'FR2il4NCMHE' }
+                    { title: 'לבנות מוצר שמשנה חיים', seq: 'יום 1', videoId: 'zvGGZxBf6BE' },
+                    { title: 'לזהות את האמונות שהמוצר צריך לשנות', seq: 'יום 2', videoId: 'JAnDd7SXpWE' },
+                    { title: 'לזהות את הבור המוטיבציוני שלך', seq: 'יום 3', videoId: 'OpiNVVxPpfU' },
+                    { title: 'לצור חווייה משנת זהות במוצר', seq: 'יום 4', videoId: '4cP64cEdDA0' },
+                    { title: 'לזהות את הנטייה שגומרת את העסק', seq: 'יום 5', videoId: 'FR2il4NCMHE' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'eELg9ST93VQ' },
-                    { title: 'יום 2', videoId: '3bVy40j3YII' },
-                    { title: 'יום 3', videoId: 'hfjk11y28m8', variants: [ { label: 'צביקה', videoId: 'hfjk11y28m8' }, { label: 'תמר', videoId: 'vuarz_Ych-M' } ] },
-                    { title: 'יום 4', videoId: 'flcxwJkJsDY' },
-                    { title: 'יום 5', videoId: 'noKTvTuHwmI' }
+                    { title: 'לזהות את מוצר משנה החיים שלך', seq: 'יום 1', videoId: 'eELg9ST93VQ' },
+                    { title: 'לזהות את הפיצול בין הרצונות הסותרים', seq: 'יום 2', videoId: '3bVy40j3YII' },
+                    { title: 'לנסח מטרה עם שריטה לעסק', seq: 'יום 3', videoId: 'hfjk11y28m8', variants: [ { label: 'צביקה', videoId: 'hfjk11y28m8' }, { label: 'תמר', videoId: 'vuarz_Ych-M' } ] },
+                    { title: 'לבנות אבני דרך בתהליך', seq: 'יום 4', videoId: 'flcxwJkJsDY' },
+                    { title: 'לבנות סולמות יציאה לבורות', seq: 'יום 5', videoId: 'noKTvTuHwmI' }
                 ]
             },
             {
                 title: 'שבוע 3 - שבוע הטמעה אישי',
                 days: [
-                    { title: 'יום 1', videoId: 'G4izsR_45Wk' },
-                    { title: 'יום 2', videoId: 'F_KXh0ZZB0M' },
+                    { title: 'לזהות את המוצר שמשנה לך את החיים', seq: 'יום 1', videoId: 'G4izsR_45Wk' },
+                    { title: 'להגדיר את נקודת התיקון של הלקוח', seq: 'יום 2', videoId: 'F_KXh0ZZB0M' },
                     { title: 'יום 3 (צביקה)', videoId: 'yhMCeGOe1YA' },
-                    { title: 'יום 4', videoId: 'UQge4OvcvqA' },
+                    { title: 'להגדיר את ההרגלים האטומים של הלקוח', seq: 'יום 4', videoId: 'UQge4OvcvqA' },
                     { title: 'יום 5 - משימת הטמעה', videoId: 'hPNvwNpgJaE' }
                 ]
             }
@@ -253,30 +253,30 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'R7s0xuu7zOY' },
-                    { title: 'יום 2', videoId: 'k97S5RTgeao' },
-                    { title: 'יום 3', videoId: 'DO_YqMtyvWY' },
-                    { title: 'יום 4', videoId: 'zYIOk6_jO1U' },
-                    { title: 'יום 5', videoId: 'tu9ZK0cnr24' }
+                    { title: 'לתפוס את אמונות העל שמובילות אותך', seq: 'יום 1', videoId: 'R7s0xuu7zOY' },
+                    { title: 'להפוך קורבנות למנהיגים באמצעות אמונות', seq: 'יום 2', videoId: 'k97S5RTgeao' },
+                    { title: 'להפוך את החלק המתנגד לחלק שרוצה', seq: 'יום 3', videoId: 'DO_YqMtyvWY' },
+                    { title: 'לזהות את שלושת הקונפליקטים הפנימיים של הלקוח', seq: 'יום 4', videoId: 'zYIOk6_jO1U' },
+                    { title: 'לכתיבת טבלת CPB של קונפליקטי הלקוח', seq: 'יום 5', videoId: 'tu9ZK0cnr24' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'X0yEBnG-t2U' },
-                    { title: 'יום 2', videoId: 'cCAu5yxAy5k' },
-                    { title: 'יום 3', videoId: 'vrtdccnt9Zs' },
-                    { title: 'יום 4', videoId: 'T06CoW6evnA' },
-                    { title: 'יום 5', videoId: 'Mv5cpiNYxlM' }
+                    { title: 'לזהות את החפיפה בין הצרכים שלכם', seq: 'יום 1', videoId: 'X0yEBnG-t2U' },
+                    { title: 'לזהות את התיוגים שמנעים ממך', seq: 'יום 2', videoId: 'cCAu5yxAy5k' },
+                    { title: 'לכתוב את שני הקולות הפנימיים', seq: 'יום 3', videoId: 'vrtdccnt9Zs' },
+                    { title: 'לכתוב שלושה קונפליקטים פנימיים של הלקוח', seq: 'יום 4', videoId: 'T06CoW6evnA' },
+                    { title: 'לשקף את המצב ולבנות אמון', seq: 'יום 5', videoId: 'Mv5cpiNYxlM' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: 'V-fy0QO-dzM' },
-                    { title: 'יום 2', videoId: 'Zzk-b8mBlH8' },
-                    { title: 'יום 3', videoId: 'S5K4bFR4-LI' },
-                    { title: 'יום 4', videoId: 'r0IJ73PT2Ac' },
+                    { title: 'לזהות אמונות נוגדות שינוי בלקוח', seq: 'יום 1', videoId: 'V-fy0QO-dzM' },
+                    { title: 'לבנות מפת פיצוח אמונות ללקוח', seq: 'יום 2', videoId: 'Zzk-b8mBlH8' },
+                    { title: 'לקביעת תאריך מפגש חירום עם המסטר מיינד', seq: 'יום 3', videoId: 'S5K4bFR4-LI' },
+                    { title: 'לסדר אמונות חדשות בסדר עולה', seq: 'יום 4', videoId: 'r0IJ73PT2Ac' },
                     { title: 'יום 5 - משימת הטמעה', videoId: 'h_RTLzPF1no' }
                 ]
             }
@@ -297,30 +297,30 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: '1TqLVPgWzUY' },
-                    { title: 'יום 2', videoId: 'DFfhc3xWzNk' },
-                    { title: 'יום 3', videoId: '-rb6xNj06pk' },
-                    { title: 'יום 4', videoId: '72-A93-KVSE' },
-                    { title: 'יום 5', videoId: '1RDdiaTmvUg' }
+                    { title: 'להפוך תוכן להשפעה משכנעת', seq: 'יום 1', videoId: '1TqLVPgWzUY' },
+                    { title: 'לבנות חווייה שיוצרת מעבר טבעי של אמונות', seq: 'יום 2', videoId: 'DFfhc3xWzNk' },
+                    { title: 'לעצב חווייה שמכבדת את שני הקולות', seq: 'יום 3', videoId: '-rb6xNj06pk' },
+                    { title: 'לסדר את הידע ולהנגיש אותו בלי הצפה', seq: 'יום 4', videoId: '72-A93-KVSE' },
+                    { title: 'לבנות חווייה משנה זהות לקוח', seq: 'יום 5', videoId: '1RDdiaTmvUg' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'iHCMZU2zJ2A' },
-                    { title: 'יום 2', videoId: 'i0dwyo9eQy8' },
-                    { title: 'יום 3', videoId: 'p0e6e2AUyuU' },
-                    { title: 'יום 4', videoId: 'lXUYBzs0Q3w' },
-                    { title: 'יום 5', videoId: '3oxYZo4TM9M' }
+                    { title: 'לזהות את הלקוחות העקשנים והרדוקים', seq: 'יום 1', videoId: 'iHCMZU2zJ2A' },
+                    { title: 'לזהות את החלק שרוצה להצליח', seq: 'יום 2', videoId: 'i0dwyo9eQy8' },
+                    { title: 'לזהות את הפרמטר הלא מדויק בלקוח', seq: 'יום 3', videoId: 'p0e6e2AUyuU' },
+                    { title: 'למפות את ההשלכות של שינוי אמונה', seq: 'יום 4', videoId: 'lXUYBzs0Q3w' },
+                    { title: 'לנסח שאלות שמפצחות אמונות קיימות', seq: 'יום 5', videoId: '3oxYZo4TM9M' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: 'rxncW0-72Vo' },
-                    { title: 'יום 2', videoId: 'c8EZrhI0A1k' },
-                    { title: 'יום 3', videoId: 'krW4Nmi3mjY' },
-                    { title: 'יום 4', videoId: 'VujmXNeg-7Y' },
+                    { title: 'להפוך שיח מנהיגות לתוכן שיווקי', seq: 'יום 1', videoId: 'rxncW0-72Vo' },
+                    { title: 'לכתוב הוק שמפתח לופ חייב לסגור', seq: 'יום 2', videoId: 'c8EZrhI0A1k' },
+                    { title: 'לבדוק אם הטקסט משקף את כל החלקים', seq: 'יום 3', videoId: 'krW4Nmi3mjY' },
+                    { title: 'לתכנן תוכן שמסווה שינוי אמונה', seq: 'יום 4', videoId: 'VujmXNeg-7Y' },
                     { title: 'יום 5 - משימת הטמעה', videoId: 'Y1yaJD6B2bw' }
                 ]
             }
@@ -340,30 +340,30 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'tAREaFEN_Xs' },
+                    { title: 'לזהות את הפרסונה שמעוררת את רגש המטרה', seq: 'יום 1', videoId: 'tAREaFEN_Xs' },
                     { title: 'יום 2', videoId: 'SzR81xK6-w4' },
-                    { title: 'יום 3', videoId: 'JF6T2reo99w' },
-                    { title: 'יום 4', videoId: 'j5xpoc9rxFI' },
-                    { title: 'יום 5', videoId: '8nnpNBWhjC8' }
+                    { title: 'לבחור צעד קדימה משותף לאחר הרגעה', seq: 'יום 3', videoId: 'JF6T2reo99w' },
+                    { title: 'לנעול עסקה באמצעות רגע המרה', seq: 'יום 4', videoId: 'j5xpoc9rxFI' },
+                    { title: 'לכתוב תוכן עם שקיפות', seq: 'יום 5', videoId: '8nnpNBWhjC8' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'nm5LRSBd2xU' },
-                    { title: 'יום 2', videoId: 'rocEFQj0BW8' },
+                    { title: 'לסגור את הלופ המחשבתי בדרך להמרה', seq: 'יום 1', videoId: 'nm5LRSBd2xU' },
+                    { title: 'לכתוב כותרות לדף ההרשמה', seq: 'יום 2', videoId: 'rocEFQj0BW8' },
                     { title: 'יום 3 (צביקה)', videoId: 'r5MEF0ZC6xI' },
-                    { title: 'יום 4', videoId: 'S_5BJjT-Lss' },
-                    { title: 'יום 5', videoId: 'bbf51qGA9Rs' }
+                    { title: 'לכתוב קריאה לפעולה לצעד הבא', seq: 'יום 4', videoId: 'S_5BJjT-Lss' },
+                    { title: 'לכתוב כותרות ובולטים לתוכן הטרנספורמציה', seq: 'יום 5', videoId: 'bbf51qGA9Rs' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: 'W7TxKE0_CmE' },
-                    { title: 'יום 2', videoId: 'NqONCVKUkdY' },
+                    { title: 'להפוך שיחת פתיחה למעמד השפעה', seq: 'יום 1', videoId: 'W7TxKE0_CmE' },
+                    { title: 'לשלב בונוסים קטנים בתהליך המכירה', seq: 'יום 2', videoId: 'NqONCVKUkdY' },
                     { title: 'יום 3 - שיח מנהיגות', videoId: 'I6SXkuFspgc' },
-                    { title: 'יום 4', videoId: '_6IgiSGTyBs' },
+                    { title: 'לנסח שלושה סוגי השלכות ללקוח', seq: 'יום 4', videoId: '_6IgiSGTyBs' },
                     { title: 'יום 5', videoId: null, aiToolUrl: 'https://chatgpt.com/g/g-xmPI79ykE-shykh-mnhygvt-kly-zr', aiToolLabel: 'כלי AI: שיח מנהיגות בזמן אמת' }
                 ]
             }
@@ -380,31 +380,31 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'יום 1', videoId: 'T_F70IIDWlM' },
-                    { title: 'יום 2', videoId: 'GoOd3flvBlw' },
-                    { title: 'יום 3', videoId: 'ywomR2G4UF8' },
-                    { title: 'יום 4', videoId: 'E1pbPim9BVI' },
-                    { title: 'יום 5', videoId: 'SglPX6TLAGY' }
+                    { title: 'לשפר ביצועים בעזרת טסטים מתמשכים', seq: 'יום 1', videoId: 'T_F70IIDWlM' },
+                    { title: 'לזהות חסמים ולמצוא שותפים משלימים', seq: 'יום 2', videoId: 'GoOd3flvBlw' },
+                    { title: 'לזהות התנגדויות אישיות לאופטימיזציה', seq: 'יום 3', videoId: 'ywomR2G4UF8' },
+                    { title: 'לבנות תהליך אופטימיזציה אסטרטגית', seq: 'יום 4', videoId: 'E1pbPim9BVI' },
+                    { title: 'לזהות מודעה מנצחת ולבצע טסט', seq: 'יום 5', videoId: 'SglPX6TLAGY' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'יום 1', videoId: 'u_Ep1exYO14' },
-                    { title: 'יום 2', videoId: 'qCQcM9To_4E' },
-                    { title: 'יום 3', videoId: 'Kf0FkRXN-hk' },
-                    { title: 'יום 4', videoId: 'zEioiTvMpA4' },
-                    { title: 'יום 5', videoId: 'sM_xS8r6ggQ' }
+                    { title: 'לשפר CTR של מודעות קיימות', seq: 'יום 1', videoId: 'u_Ep1exYO14' },
+                    { title: 'לבנות הצעת אופטימיזציה אטומית', seq: 'יום 2', videoId: 'qCQcM9To_4E' },
+                    { title: 'לכתוב שיחת מנהיגות שבועית', seq: 'יום 3', videoId: 'Kf0FkRXN-hk' },
+                    { title: 'לזהות שינויים זמניים באסטרטגיה', seq: 'יום 4', videoId: 'zEioiTvMpA4' },
+                    { title: 'להוסיף השלכות ספציפיות בטסטים', seq: 'יום 5', videoId: 'sM_xS8r6ggQ' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'יום 1', videoId: '1ywXUls5nw8' },
-                    { title: 'יום 2', videoId: 'zT6Gv8xmAYk' },
-                    { title: 'יום 3', videoId: 'M6KvJ_DsQtA' },
-                    { title: 'יום 4', videoId: 'R9tTco5eyis' },
-                    { title: 'יום 5', videoId: 'H2Nrq1p_kgo' }
+                    { title: 'לבנות תוכנית אופטימיזציה רבעונית', seq: 'יום 1', videoId: '1ywXUls5nw8' },
+                    { title: 'ליישם ארבעת ההרגלים ברבעון', seq: 'יום 2', videoId: 'zT6Gv8xmAYk' },
+                    { title: 'לכתוב שיח מנהיגות יומי', seq: 'יום 3', videoId: 'M6KvJ_DsQtA' },
+                    { title: 'לעצב למידה מותאמת אישית בעזרת AI', seq: 'יום 4', videoId: 'R9tTco5eyis' },
+                    { title: 'לאפיין ולשפר תהליכים קיימים', seq: 'יום 5', videoId: 'H2Nrq1p_kgo' }
                 ]
             }
         ]

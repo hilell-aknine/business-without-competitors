@@ -58,7 +58,9 @@
             moduleName: mod.title,
             moduleNum: mi + 1,
             weekTitle: week.title,
-            meta: `מודול ${mi + 1}: ${mod.title} · ${week.title}`,
+            /* The title is now descriptive, so the day number has to live in the
+               meta line or the order of the week disappears from the page. */
+            meta: `מודול ${mi + 1}: ${mod.title} · ${week.title}${day.seq ? ' · ' + day.seq : ''}`,
             videoId: day.videoId,
             isAiTool,
             aiToolUrl: day.aiToolUrl || null,

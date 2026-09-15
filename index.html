@@ -1367,7 +1367,7 @@ function renderSidebar(filter=''){
             <span class="v1-les__thumb" aria-hidden="true">${thumb}${overlay}</span>
             <span class="v1-les__txt">
               <span class="v1-les__title">${day.title}</span>
-              <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${week.title}</span></span>
+              <span class="v1-les__meta"><span class="v1-les__dot" aria-hidden="true"></span><span>${week.title}${day.seq ? ' · ' + day.seq : ''}</span></span>
             </span>
           </button>`;
         }).join('');
