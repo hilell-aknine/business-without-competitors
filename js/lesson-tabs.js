@@ -340,17 +340,18 @@
 
       booted = true;
 
-      /* טאב פתיחה: hash > זיכרון פר-שיעור > זיכרון גלובלי > ברירת מחדל */
+      /* טאב פתיחה: hash > זיכרון פר-שיעור > ברירת מחדל.
+         הזיכרון הגלובלי (LAST_TAB_KEY) הוסר ב-2026-09-22: מספיק שפתחת פעם אחת
+         את המבחן בשיעור כלשהו, וכל שיעור אחר נפתח מאז על המבחן במקום על השיעור
+         עצמו. "מה עשיתי בשיעור הזה" זה זיכרון לגיטימי, "מה עשיתי פעם" לא. */
       var h = parseHash();
-      var start = h.tab
-        || recall(opts.getLessonKey())
-        || null;
-
+      var start = h.tab || null;
       if (!start) {
-        try {
-          var last = localStorage.getItem(LAST_TAB_KEY);
-          if (last && TABS.indexOf(last) >= 0) start = last;
-        } catch (e) { /* ignore */ }
+        var remembered = recall(opts.getLessonKey());
+        /* טעינת דף לא נוחתת לבד בתוך מבחן או תרגול. מי שחוזר לפורטל חוזר
+           ללמוד, וזיכרון של "פעם פתחת פה מבחן" לא מצדיק לפתוח לו אותו שוב
+           בלי שביקש. בתוך הסשן המעבר בין שיעורים עדיין שומר על הרצף. */
+        if (remembered && remembered !== 'quiz' && remembered !== 'practice') start = remembered;
       }
 
       activate(start || DEFAULT_TAB, { push: false, force: true, initial: true });

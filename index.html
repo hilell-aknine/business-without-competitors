@@ -1306,6 +1306,63 @@ function nextUncompleted(){
   return flatLessons[0];
 }
 
+/* ---------------------------------------------------------------------------
+   Where the learner actually is, when there is no saved video position.
+
+   nextUncompleted() walks the course in ORDER and returns the first gap. For
+   anyone who did not learn strictly linearly that is not "where I was" — it is
+   the oldest thing they skipped. Measured on a real account: 21 lessons done,
+   the last one this morning in module 3, and the portal opened on module 1
+   because of a gap left behind months ago. That is the "it sends me back to
+   the beginning" complaint.
+
+   So: continue from the last lesson the learner actually touched, and only
+   fall back to course order when that is unknown.
+   --------------------------------------------------------------------------- */
+const LAST_ACTIVITY_KEY = 'bwc_last_activity';
+let lastActivityKey = (() => {
+  try { return localStorage.getItem(LAST_ACTIVITY_KEY) || null; } catch (_) { return null; }
+})();
+
+function rememberActivity(key){
+  if (!key || key === lastActivityKey) return;
+  lastActivityKey = key;
+  try { localStorage.setItem(LAST_ACTIVITY_KEY, key); } catch (_) {}
+}
+
+function nextAfterLastActivity(){
+  if (!lastActivityKey) return null;
+  const idx = flatLessons.findIndex(l => lessonKey(l) === lastActivityKey);
+  if (idx < 0) return null;
+  for (let i = idx + 1; i < flatLessons.length; i++) {
+    if (!completedLessons.includes(lessonKey(flatLessons[i]))) return flatLessons[i];
+  }
+  return null;   // everything after it is done — course order can have the wheel
+}
+
+// The last activity lives in course_progress with a timestamp, which is the
+// only place that knows the ORDER things were learned in. Read once per login,
+// so a learner on a fresh browser is not thrown back to the oldest gap either.
+let lastActivityPulled = false;
+function pullLastActivity(){
+  if (lastActivityPulled) return;
+  if (!window.bwcSupabase || !window.bwcAuth) return;
+  const user = window.bwcAuth.getUser();
+  if (!user || !user.id) return;
+  lastActivityPulled = true;
+  window.bwcSupabase.from('course_progress')
+    .select('lesson_key, completed_at')
+    .eq('user_id', user.id)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+    .then(res => {
+      const row = res && res.data && res.data[0];
+      if (!row || !row.lesson_key) return;
+      rememberActivity(row.lesson_key);
+      if (typeof renderHero === 'function') renderHero();
+    }, () => {});
+}
+
 // ===== Sidebar render =====
 function renderSidebar(filter=''){
   const list = document.getElementById('sideList');
@@ -1574,7 +1631,7 @@ function renderHero(){
   // marked, those are two different lessons and the label was simply false.
   // The saved position now wins, and nextUncompleted() becomes the fallback
   // for a learner who has no position yet.
-  const upNext = nextUncompleted() || flatLessons[0];
+  const upNext = nextAfterLastActivity() || nextUncompleted() || flatLessons[0];
   // "Completed" is NOT a reason to drop the position. A lesson is auto-marked
   // complete after 45 seconds of playback, so a learner who watched 20 minutes
   // of a 40-minute lesson and left was sent to the NEXT lesson on their return,
@@ -1583,7 +1640,14 @@ function renderHero(){
   // (see persistResumePoint), so a genuinely finished lesson holds no position
   // to come back to and the CTA falls through to the next lesson by itself.
   const resumeRec = window.bwcResume ? window.bwcResume.get() : null;
-  const resumeItem = resumeRec
+  // One exception to the rule above: a position of ~0 seconds inside a lesson
+  // that IS already complete is not a position at all — it is the trace of
+  // opening a finished lesson for a moment. Honouring it would pin the hero to
+  // a lesson the learner is done with, which is its own kind of "it does not
+  // remember where I was".
+  const resumeUsable = !!resumeRec &&
+    ((resumeRec.seconds || 0) >= 30 || !completedLessons.includes(resumeRec.key));
+  const resumeItem = resumeUsable
     ? flatLessons.find(l => lessonKey(l) === resumeRec.key)
     : null;
   const resumeSecs = resumeItem ? (resumeRec.seconds || 0) : 0;
@@ -2487,6 +2551,7 @@ function markCurrentComplete(auto){
   const wasNew = !completedLessons.includes(key);
   if (wasNew) {
     persistCompleted(key, true);
+    rememberActivity(key);   // this, not course order, is where the learner is
     // Pressing "סמן כהושלם" by hand is the learner saying "I am done here" —
     // the one completion signal strong enough to drop the saved position. The
     // 45-second automatic mark is not, which is why it is excluded.
@@ -2712,6 +2777,7 @@ function applyAuthState(user) {
     if (nameEl) nameEl.textContent = handle;
     banner.hidden = false;
     document.body.classList.add('is-member');
+    pullLastActivity();
   } else {
     banner.hidden = true;
     document.body.classList.remove('is-member');
