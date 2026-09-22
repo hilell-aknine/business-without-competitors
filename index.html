@@ -1575,8 +1575,15 @@ function renderHero(){
   // The saved position now wins, and nextUncompleted() becomes the fallback
   // for a learner who has no position yet.
   const upNext = nextUncompleted() || flatLessons[0];
+  // "Completed" is NOT a reason to drop the position. A lesson is auto-marked
+  // complete after 45 seconds of playback, so a learner who watched 20 minutes
+  // of a 40-minute lesson and left was sent to the NEXT lesson on their return,
+  // with the exact minute sitting in storage, unused. That was the whole
+  // complaint. The position is cleared when the video actually reaches its end
+  // (see persistResumePoint), so a genuinely finished lesson holds no position
+  // to come back to and the CTA falls through to the next lesson by itself.
   const resumeRec = window.bwcResume ? window.bwcResume.get() : null;
-  const resumeItem = (resumeRec && !completedLessons.includes(resumeRec.key))
+  const resumeItem = resumeRec
     ? flatLessons.find(l => lessonKey(l) === resumeRec.key)
     : null;
   const resumeSecs = resumeItem ? (resumeRec.seconds || 0) : 0;
@@ -2194,11 +2201,34 @@ let isRestoringResume = false;  // true only while the page restores a position
 // Writes the current lesson + position. Skipped during restore so that reading
 // a saved position never rewrites its own timestamp — that would let a stale
 // local record outrank a newer one arriving from another device.
+// A position is only worth keeping while there is still something left to
+// watch. Reaching the end is the honest moment to forget it — and forgetting
+// is what stops a finished lesson from dragging the learner back into it.
+const RESUME_END_MARGIN = 60;   // seconds from the end that count as "finished"
+
+function reachedTheEnd(seconds){
+  if (!ytPlayer || typeof ytPlayer.getDuration !== 'function') return false;
+  let d = 0;
+  try { d = ytPlayer.getDuration(); } catch (_) { return false; }
+  if (!isFinite(d) || d <= 0) return false;   // duration unknown — never guess
+  return (d - seconds) <= RESUME_END_MARGIN;
+}
+
+// Drop the saved position, but only if it still points at this lesson: the
+// learner may already have moved on elsewhere.
+function forgetResumePoint(key){
+  if (!window.bwcResume) return;
+  const rec = window.bwcResume.get();
+  if (!rec || (key && rec.key !== key)) return;
+  window.bwcResume.clear();
+}
+
 function persistResumePoint(seconds){
   if (isRestoringResume) return;
   if (!window.bwcResume) return;
   const key = currentLessonKey();
   if (!key) return;
+  if (reachedTheEnd(seconds || 0)) { forgetResumePoint(key); return; }
   window.bwcResume.save(key, seconds || 0, currentVariantIdx);
 }
 
@@ -2285,6 +2315,10 @@ function attachYtPlayer(attempt){
           if (e.data === 1) startResumeTicker();
           else {
             stopResumeTicker();
+            // 0 = ended. Watching a lesson to its end leaves nothing to return
+            // to, and keeping a position there is what made "continue" reopen
+            // a lesson the learner had already finished.
+            if (e.data === 0) { forgetResumePoint(currentLessonKey()); return; }
             let t = 0;
             try { t = ytPlayer.getCurrentTime(); } catch (_) {}
             if (isFinite(t) && t > 0) persistResumePoint(Math.floor(t));
@@ -2453,6 +2487,10 @@ function markCurrentComplete(auto){
   const wasNew = !completedLessons.includes(key);
   if (wasNew) {
     persistCompleted(key, true);
+    // Pressing "סמן כהושלם" by hand is the learner saying "I am done here" —
+    // the one completion signal strong enough to drop the saved position. The
+    // 45-second automatic mark is not, which is why it is excluded.
+    if (auto !== 'auto') forgetResumePoint(key);
 
     // Streak. This used to keep its OWN counter in `bwc_streak`, stamped with
     // new Date().toDateString() — the visitor's machine clock. The practice game
@@ -2825,10 +2863,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const rec = ev && ev.detail && ev.detail.record;
     if (typeof renderHero === 'function') renderHero();
     if (!rec || !ev.detail.fromServer) return;
-    if (document.getElementById('videoSection').classList.contains('show')) return;
-    if (completedLessons.includes(rec.key)) return;
     const label = formatResumeTime(rec.seconds || 0);
-    if (label) showToast(`במכשיר אחר עצרת ב${label} — הכפתור בראש הדף ימשיך משם`);
+    const playerOpen = document.getElementById('videoSection').classList.contains('show');
+
+    if (!playerOpen) {
+      if (label) showToast(`במכשיר אחר עצרת ב${label} — הכפתור בראש הדף ימשיך משם`);
+      return;
+    }
+    // The player already opened on the position THIS device remembered, and the
+    // server just said the learner actually moved on somewhere else. Leaving
+    // them inside the stale lesson is the bug they report as "it didn't
+    // remember". Correcting is only allowed while nothing is playing yet —
+    // once a video is running, whatever they chose to watch wins.
+    if (rec.key === currentLessonKey()) return;
+    let playing = false;
+    try { playing = !!(ytPlayer && ytPlayer.getPlayerState && ytPlayer.getPlayerState() === 1); } catch (_) {}
+    if (playing) {
+      if (label) showToast(`במכשיר אחר עצרת בשיעור אחר (${label})`);
+      return;
+    }
+    if (!selectLessonByKey(rec.key)) return;
+    applyVariantIndex(rec.variant);
+    pendingResumeSeconds = rec.seconds || 0;
+    showPlayerNoAutoplay();
+    showToast(label ? `המשכנו מהמקום שעצרת בו במכשיר אחר — ${label}` : 'המשכנו מהשיעור שעצרת בו במכשיר אחר');
   });
   window.addEventListener('bwc:sync-done', (ev) => {
     const merged = ev && ev.detail && ev.detail.merged;
@@ -2905,13 +2963,15 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(showPlayerNoAutoplay, 0);
   } else if (resumeRestored) {
     // THE ACTUAL RESUME. Only when there is a real position to return to:
-    // at least 30 seconds in, and the lesson is not already marked complete.
-    // Below that bar the hero is the better landing — its CTA now points at
-    // the same lesson anyway, so nothing is lost, and we never yank someone
-    // into a video they already finished.
+    // at least 30 seconds in. Below that bar the hero is the better landing —
+    // its CTA points at the same lesson anyway, so nothing is lost.
+    // A completion mark is deliberately NOT a blocker here: 45 seconds of
+    // playback marks a lesson complete, so requiring "not complete" meant
+    // abandoning the learner's real position on every lesson they actually
+    // watched. A lesson watched to its end holds no position at all.
     const secs = pendingResumeSeconds || 0;
     const key  = currentLessonKey();
-    const worthResuming = secs >= 30 && key && !completedLessons.includes(key);
+    const worthResuming = secs >= 30 && !!key;
     if (worthResuming) {
       const label = formatResumeTime(secs);
       setTimeout(() => {

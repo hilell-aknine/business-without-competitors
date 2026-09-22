@@ -71,6 +71,8 @@
   var pushInFlight = false;
   var lastPushedSig = null;
   var serverDead  = false;     // set once the table is confirmed missing
+  var pullSettled = false;     // no push may run before this page pulled once
+  var pushDeferrals = 0;       // safety net: never defer a push forever
 
   /* ---------------------------------------------------------------- utils */
 
@@ -154,6 +156,16 @@
     if (pushInFlight) return Promise.resolve(null);
     if (sig(rec) === lastPushedSig) return Promise.resolve(null);
 
+    // A push before the first pull is how this device's stale position
+    // overwrote a newer one saved elsewhere (measured live 2026-09-22: the
+    // laptop wiped the phone's row). So pull first — chained, not postponed,
+    // because a learner who opens a lesson and closes the tab seconds later
+    // must still be saved.
+    if (!pullSettled && pushDeferrals < 3) {
+      pushDeferrals++;
+      return pull().then(function () { return pushNow(); });
+    }
+
     pushInFlight = true;
     return client.from(TABLE).upsert({
       user_id: user.id,
@@ -188,13 +200,16 @@
   function pull() {
     var client = sb();
     var user = currentUser();
-    if (!client || !user) return Promise.resolve(readLocal());
+    // Nothing to pull (logged out / no Supabase) — local is the only truth,
+    // so pushes must not stay blocked waiting for a server that is not there.
+    if (!client || !user) { pullSettled = true; return Promise.resolve(readLocal()); }
 
     return client.from(TABLE)
       .select('lesson_key, seconds, variant, updated_at')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(function (res) {
+        pullSettled = true;
         if (res && res.error) {
           if (isMissingTable(res.error)) serverDead = true;
           return readLocal();
@@ -221,7 +236,7 @@
         }
         return local;
       })
-      .catch(function () { return readLocal(); });
+      .catch(function () { pullSettled = true; return readLocal(); });
   }
 
   /* ----------------------------------------------------------------- API */
@@ -236,6 +251,27 @@
     // lesson-level resume. The MIN_SECONDS floor only protects an EXISTING
     // position from being reset to ~0 by a stray load event on the same lesson.
     if (prev && prev.key === key && prev.seconds > MIN_SECONDS && secs < MIN_SECONDS) return;
+
+    // Re-writing the exact same position is not movement, so it must not earn
+    // a fresh `at`. openPlayer() saves whatever it just opened, which means a
+    // plain page load re-stamped the restored position as if it had happened
+    // now. `at` is the conflict resolver, so a laptop opened in the evening
+    // outranked — and then overwrote — the position saved on the phone that
+    // afternoon. Measured live on production 2026-09-22: the phone's row was
+    // replaced by the laptop's older one. Keeping the original timestamp is
+    // what lets "newest wins" mean anything.
+    var secsInt = Math.floor(secs);
+    var varNorm = Number(variant);
+    varNorm = (variant === null || variant === undefined || !isFinite(varNorm) || varNorm < 0)
+      ? null : Math.floor(varNorm);
+    if (prev && prev.key === key && prev.seconds === secsInt) {
+      if (prev.variant === varNorm) return;             // nothing changed at all
+      // Only the variant field settled (null -> 0 when a lesson without
+      // instructor cuts is reopened). Record it, but the position did not
+      // move, so the timestamp stays where it was.
+      writeLocal({ key: key, seconds: secsInt, variant: varNorm, at: prev.at });
+      return;
+    }
 
     var rec = writeLocal({
       key: key,
