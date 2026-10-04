@@ -32,7 +32,7 @@
      קבועים
      ================================================================ */
 
-  var TABS = ['about', 'ai', 'resources', 'practice', 'quiz', 'notes'];
+  var TABS = ['about', 'transcript', 'ai', 'resources', 'practice', 'quiz', 'notes'];
   var DEFAULT_TAB = 'about';
   var LAST_TAB_KEY = 'bwc_lesson_tab_last';
 
@@ -209,6 +209,12 @@
     spec.loadedUrl = url;
   }
 
+  /* טאב התמלול (2026-10-04): נבנה ב-js/lesson-transcript.js, שמחזיק מטמון
+     פר-שיעור. נקרא בכניסה לטאב ובהחלפת שיעור כשהטאב פתוח. */
+  function renderTranscript() {
+    if (window.LessonTranscript) window.LessonTranscript.render(panes.transcript, opts.getLessonKey());
+  }
+
   /** מסמן הטמעה כלא-עדכנית. הטעינה בפועל תקרה רק כשנכנסים לטאב. */
   function invalidateEmbeds() {
     Object.keys(embeds).forEach(function (k) {
@@ -265,6 +271,7 @@
     });
 
     if (embeds[name]) mountEmbed(embeds[name]);
+    if (name === 'transcript') renderTranscript();
 
     /* מביאים את הרצועה לראש המסך. בלי זה, בטלפון, סרגל "בדוק תשובה"
        של התרגול (position:fixed בתחתית המסגרת) יכול לנחות מתחת לקצה
@@ -387,6 +394,9 @@
             { ltTab: active, ltLesson: key }, '', buildHash(active)
           );
         } catch (e) { /* ignore */ }
+        /* נשארנו על התמלול → מחליפים לתמלול של השיעור החדש.
+           (במעבר טאב activate() כבר רינדר — לא מושכים פעמיים.) */
+        if (active === 'transcript') renderTranscript();
       }
       invalidateEmbeds();
     },

@@ -1097,6 +1097,7 @@
 
       <div class="lt__tablist" role="tablist" aria-label="תוכן השיעור">
         <button class="lt__tab" type="button" role="tab" data-tab="about"     id="ltTabAbout"     aria-controls="ltPaneAbout"     aria-selected="true"  tabindex="0"><i class="fa-solid fa-circle-info" aria-hidden="true"></i> אודות</button>
+        <button class="lt__tab" type="button" role="tab" data-tab="transcript" id="ltTabTranscript" aria-controls="ltPaneTranscript" aria-selected="false" tabindex="-1"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> תמלול</button>
         <button class="lt__tab" type="button" role="tab" data-tab="ai"        id="ltTabAi"        aria-controls="ltPaneAi"        aria-selected="false" tabindex="-1"><i class="fa-solid fa-robot" aria-hidden="true"></i> מורה AI</button>
         <button class="lt__tab" type="button" role="tab" data-tab="resources" id="ltTabResources" aria-controls="ltPaneResources" aria-selected="false" tabindex="-1"><i class="fa-solid fa-download" aria-hidden="true"></i> חומרים</button>
         <button class="lt__tab" type="button" role="tab" data-tab="practice"  id="ltTabPractice"  aria-controls="ltPanePractice"  aria-selected="false" tabindex="-1"><i class="fa-solid fa-gamepad" aria-hidden="true"></i> תרגול</button>
@@ -1126,6 +1127,10 @@
           <div class="v1-about__meta" id="aboutMeta"></div>
         </div>
       </div>
+
+      <!-- Transcript (2026-10-04) — התמלול המלא + כפתור העתקה. נבנה ע"י js/lesson-transcript.js
+           מתוך /api/lesson-transcript (צד שרת, דורש התחברות). -->
+      <div class="lt__pane" data-pane="transcript" id="ltPaneTranscript" role="tabpanel" aria-labelledby="ltTabTranscript" tabindex="0" hidden></div>
 
       <!-- AI / Protocol — התוכן נבנה ע"י js/protocol.js לתוך #aiContent (לא נגענו בו) -->
       <div class="lt__pane" data-pane="ai" id="ltPaneAi" role="tabpanel" aria-labelledby="ltTabAi" tabindex="0" hidden>
@@ -1248,6 +1253,7 @@
 <script src="js/sidebar-accordion.js"></script>
 <script src="js/api-host.js"></script>
 <script src="js/protocol.js"></script>
+<script src="js/lesson-transcript.js" defer></script>
 <script src="js/lesson-tabs.js" defer></script>
 <script>
 // ===== State =====
