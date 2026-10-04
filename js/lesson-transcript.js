@@ -37,7 +37,24 @@
       '</div>';
   }
 
+  /* הגנה: lesson-tabs.js מופיע בדף לפני ה-CDN של Supabase. היום LessonTabs.init
+     נקרא אחרי שכל סקריפטי ה-defer רצו ולכן הלקוח כבר קיים (אומת חי 2026-10-04,
+     טעינה ישירה לטאב → 200), אבל אם סדר האתחול ישתנה הבקשה תצא בלי JWT
+     והמשתמש המחובר יראה "התחברות". ההמתנה עולה אפס כשהלקוח כבר שם. */
+  function waitForClient(ms) {
+    return new Promise(function (resolve) {
+      var waited = 0;
+      (function tick() {
+        if (window.bwcSupabase) return resolve(window.bwcSupabase);
+        if (waited >= ms) return resolve(null);
+        waited += 100;
+        setTimeout(tick, 100);
+      })();
+    });
+  }
+
   async function authToken() {
+    if (!(await waitForClient(8000))) return null;
     try {
       var r = await window.bwcSupabase.auth.getSession();
       return (r && r.data && r.data.session && r.data.session.access_token) || null;
@@ -193,6 +210,16 @@
     var rb = pane.querySelector('[data-action="retry-transcript"]');
     if (rb) rb.addEventListener('click', function () { render(pane, key); });
   }
+
+  /* מי שהתחבר כשמסך "התחברות" מוצג — מקבל את התמלול בלי לרענן */
+  var lastPane = null;
+  var _render = render;
+  render = function (pane, key) { lastPane = pane; return _render(pane, key); };
+  window.addEventListener('bwc:auth-change', function () {
+    if (lastPane && requested && !lastPane.hidden && lastPane.querySelector('.fa-lock')) {
+      render(lastPane, requested);
+    }
+  });
 
   window.LessonTranscript = { render: render };
 })();
