@@ -29,3 +29,6 @@
 
 # Course transcript source-of-truth (plaintext, paid content) — defense in depth
 /kb-transcripts/
+
+# Frozen experiments (not part of the site)
+/_frozen/

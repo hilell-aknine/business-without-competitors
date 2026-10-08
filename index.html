@@ -32,6 +32,7 @@
 <link rel="stylesheet" href="css/onboarding.css">
 <link rel="stylesheet" href="css/sidebar-accordion.css">
 <link rel="stylesheet" href="css/lesson-tabs.css">
+<link rel="stylesheet" href="css/notes.css">
 <link rel="stylesheet" href="css/empty-state.css">
 <!-- Feature sheet, tokens only — same rule as track.css / admin.css. -->
 <link rel="stylesheet" href="css/home-intro.css">
@@ -724,19 +725,7 @@
   .v1-res__body h4{font-family:'Frank Ruhl Libre',serif;font-weight:700;font-size:1.05rem;color:#fff;margin:0 0 .35rem;}
   .v1-res__body p{font-size:.82rem;color:rgba(232,241,242,.65);line-height:1.5;margin:0 0 .8rem;}
 
-  /* Notes */
-  .v1-notes textarea{
-    width:100%;min-height:240px;padding:1.1rem;border-radius:16px;
-    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
-    color:#fff;font-family:inherit;font-size:.95rem;line-height:1.7;resize:vertical;outline:none;
-    transition:all .2s;
-  }
-  .v1-notes textarea::placeholder{color:rgba(232,241,242,.6);}
-  .v1-notes textarea:focus{background:rgba(255,255,255,.06);border-color:rgba(230,198,90,.35);}
-  .v1-notes__foot{display:flex;align-items:center;justify-content:space-between;gap:.8rem;margin-top:.7rem;}
-  .v1-notes__count{font-size:.72rem;color:rgba(232,241,242,.55);}
-  .v1-notes__saved{font-size:.72rem;color:#10B981;display:none;}
-  .v1-notes__saved.show{display:inline;}
+  /* Notes: styles moved to css/notes.css (2026-10-08) */
 
   /* AI panel */
   .v1-ai{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem;}
@@ -1161,14 +1150,8 @@
 
       <!-- Notes -->
       <div class="lt__pane" data-pane="notes" id="ltPaneNotes" role="tabpanel" aria-labelledby="ltTabNotes" tabindex="0" hidden>
-        <div class="v1-notes">
-          <label for="notesArea" class="visually-hidden">הערות אישיות לשיעור הנוכחי</label>
-          <textarea id="notesArea" placeholder="כתבו כאן את ההערות שלכם לשיעור הנוכחי..." aria-describedby="notesCount notesSaved"></textarea>
-          <div class="v1-notes__foot">
-            <span class="v1-notes__count" id="notesCount" aria-live="polite">0 תווים</span>
-            <span class="v1-notes__saved" id="notesSaved" role="status" aria-live="polite"><i class="fa-solid fa-check" aria-hidden="true"></i> נשמר</span>
-          </div>
-        </div>
+        <!-- 2026-10-08: הערות עם חותמת זמן + מסמכים חיים. נבנה ע"י js/lesson-notes.js -->
+        <div id="lessonNotes"></div>
       </div>
     </div>
 
@@ -1267,7 +1250,6 @@ let currentVideoId = null;
 let currentVariantIdx = null;
 let completedLessons = JSON.parse(localStorage.getItem('bwc_completed') || '[]');
 let activeTab = 'about';
-let notesDebounce = null;
 // Seconds to seek to when the player next opens. Set only by the resume path;
 // consumed once so that clicking a lesson normally always starts at 0.
 let pendingResumeSeconds = 0;
@@ -1603,8 +1585,7 @@ function goHome(){
   renderAboutEmptyState();
   document.getElementById('aiContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-robot"></i><p>בחר שיעור כדי להפעיל את פרוטוקול הלמידה</p></div>`;
   document.getElementById('resourcesContent').innerHTML = `<div class="v1-ai__placeholder"><i class="fa-solid fa-download"></i><p>בחרו שיעור או מודול כדי לראות את החומרים הזמינים</p></div>`;
-  document.getElementById('notesArea').value = '';
-  updateNotesCount();
+  if (window.LessonNotes) window.LessonNotes.render(null);
   document.getElementById('variantsBar').hidden = true;
   renderSidebar(document.getElementById('lessonSearch').value);
   if (window.LessonTabs) window.LessonTabs.onLessonChange();
@@ -2197,32 +2178,49 @@ function updateResourcesTab(){
 }
 
 // ===== Notes =====
+// 2026-10-08: the single textarea per lesson (bwc_notes_<key>, localStorage
+// only) became timestamped notes + living documents. Data: js/notes-store.js,
+// tab UI: js/lesson-notes.js. The old keys are imported once and kept as a
+// local backup, never deleted.
 function loadNotes(){
-  const key = currentLessonKey();
-  const ta = document.getElementById('notesArea');
-  if (!key) { ta.value = ''; updateNotesCount(); return; }
-  ta.value = localStorage.getItem(`bwc_notes_${key}`) || '';
-  updateNotesCount();
-  document.getElementById('notesSaved').classList.remove('show');
-}
-function saveNotes(){
-  const key = currentLessonKey();
-  if (!key) return;
-  const ta = document.getElementById('notesArea');
-  localStorage.setItem(`bwc_notes_${key}`, ta.value);
-  const saved = document.getElementById('notesSaved');
-  saved.classList.add('show');
-  setTimeout(() => saved.classList.remove('show'), 1800);
-}
-function updateNotesCount(){
-  document.getElementById('notesCount').textContent = `${document.getElementById('notesArea').value.length} תווים`;
+  if (window.LessonNotes) window.LessonNotes.render(currentLessonKey());
 }
 
-document.getElementById('notesArea').addEventListener('input', () => {
-  updateNotesCount();
-  if (notesDebounce) clearTimeout(notesDebounce);
-  notesDebounce = setTimeout(saveNotes, 700);
-});
+/* The player surface the notes need: where are we in the video, and jump
+   there. Reads go through the same YT.Player the resume ticker uses; when the
+   IFrame API is blocked the position is honestly unknown (null). */
+window.bwcPlayer = {
+  currentSeconds(){
+    const sec = document.getElementById('videoSection');
+    if (!sec || !sec.classList.contains('show')) return null;
+    if (!ytPlayer || typeof ytPlayer.getCurrentTime !== 'function') return null;
+    let t = null;
+    try { t = ytPlayer.getCurrentTime(); } catch (_) { return null; }
+    return (isFinite(t) && t >= 0) ? Math.floor(t) : null;
+  },
+  variant(){ return currentVariantIdx; },
+  seek(seconds, variant){
+    const secs = Math.max(0, Math.floor(Number(seconds) || 0));
+    // A note written on the other instructor's cut points into a different video.
+    if (variant != null && currentVariantIdx != null && variant !== currentVariantIdx) {
+      const chip = document.querySelectorAll('#variantsBar .v1-variant')[variant];
+      if (chip) chip.click();
+    }
+    const sec = document.getElementById('videoSection');
+    const open = sec && sec.classList.contains('show');
+    if (open && ytPlayer && typeof ytPlayer.seekTo === 'function') {
+      try {
+        ytPlayer.seekTo(secs, true);
+        if (typeof ytPlayer.playVideo === 'function') ytPlayer.playVideo();
+      } catch (_) {}
+    } else {
+      // Player closed, or the API is blocked: reopen the embed at that second.
+      pendingResumeSeconds = secs;
+      openPlayer(true);
+    }
+    if (sec) sec.scrollIntoView({behavior:'smooth', block:'center'});
+  },
+};
 
 // ===== Tabs =====
 // 2026-08-09: האקורדיון הוחלף ברצועת טאבים אמיתית. כל הבקרה — מקלדת, hash,
@@ -2907,7 +2905,24 @@ document.addEventListener('DOMContentLoaded', () => {
   buildFlat();
   // Deep link ב-hash קודם לשיעור השמור: #lesson=m0-1-0&tab=practice
   const hashLesson = window.LessonTabs ? window.LessonTabs.hashLesson() : null;
+  // `&t=<seconds>` (+ optional `&v=<variant>`) come from a note in "המסמכים שלי":
+  // open that lesson at the minute the note was written. Read now, before
+  // LessonTabs rewrites the hash to `#lesson=…&tab=…`.
+  const hashParams = new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
+  const hashSeconds = parseInt(hashParams.get('t'), 10);
+  const hashVariant = hashParams.get('v');
+  // One-shot: a reload later should resume where the learner got to, not
+  // jump back to the note's minute again.
+  if (hashParams.has('t') || hashParams.has('v')) {
+    hashParams.delete('t'); hashParams.delete('v');
+    try { history.replaceState(history.state, '', location.pathname + location.search + '#' + hashParams.toString()); } catch (_) {}
+  }
   const hashLinkApplied = !!(hashLesson && selectLessonByKey(hashLesson));
+  if (hashLinkApplied && hashVariant != null && currentType === 'module') {
+    applyVariantParam(MODULES?.[currentMi]?.weeks?.[currentWi]?.days?.[currentDi], hashVariant);
+  }
+  // Set AFTER the variant: switching instructor resets the pending seek.
+  if (hashLinkApplied && Number.isFinite(hashSeconds) && hashSeconds > 0) pendingResumeSeconds = hashSeconds;
   const resumeRestored = hashLinkApplied ? false : restoreCurrentLesson();
   initLessonTabs();
   renderSidebar();
@@ -2998,7 +3013,9 @@ document.addEventListener('DOMContentLoaded', () => {
     openPlayer(false);
     // אם הקישור ביקש טאב ספציפי (למשל #tab=practice) — הטאב מנצח את
     // הגלילה לנגן, אחרת שתי גלילות מתחרות והלומד נוחת במקום הלא נכון.
-    const wantsTab = window.LessonTabs && window.LessonTabs.current() !== 'about';
+    // A note's time link (`&t=`) is about the video moment, so the player wins.
+    const wantsTab = window.LessonTabs && window.LessonTabs.current() !== 'about' &&
+                     !(Number.isFinite(hashSeconds) && hashSeconds > 0);
     if (!wantsTab && sec) setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'center'}), 80);
   }
 
@@ -3068,6 +3085,11 @@ document.addEventListener('DOMContentLoaded', () => {
      MUST load after auth.js + supabase-config.js — it subscribes to auth
      changes to pull the position saved on another device. -->
 <script src="js/resume.js" defer></script>
+<!-- notes: store (local + cloud, migration 011) -> shared card UI -> lesson tab.
+     After auth.js + supabase-config.js + api-host.js. -->
+<script src="js/notes-store.js" defer></script>
+<script src="js/notes-ui.js" defer></script>
+<script src="js/lesson-notes.js" defer></script>
 <script src="js/global-nav.js?v=2" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used

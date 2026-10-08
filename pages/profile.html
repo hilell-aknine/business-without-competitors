@@ -855,7 +855,8 @@
                 completed:    safeParse(localStorage.getItem('bwc_completed')),
                 quiz_scores:  safeParse(localStorage.getItem('bwc_quiz_scores')),
                 practice:     safeParse(localStorage.getItem('bwc_practice_v1')),
-                notes:        safeParse(localStorage.getItem('bwc_notes'))
+                // 2026-10-08: notes + living documents (js/notes-store.js), per account.
+                lesson_notes: safeParse(localStorage.getItem('bwc_lnotes_v1:' + (user ? user.id : 'anon')))
             };
 
             // 2. Fetch Supabase data (if authenticated)
@@ -863,17 +864,21 @@
             if (user && window.bwcSupabase) {
                 var uid = user.id;
 
-                var [cpRes, qsRes, psRes, unRes] = await Promise.allSettled([
+                var [cpRes, qsRes, psRes, unRes, lnRes, ndRes] = await Promise.allSettled([
                     window.bwcSupabase.from('course_progress').select('*').eq('user_id', uid),
                     window.bwcSupabase.from('quiz_scores').select('*').eq('user_id', uid),
                     window.bwcSupabase.from('practice_stats').select('*').eq('user_id', uid),
-                    window.bwcSupabase.from('user_notes').select('*').eq('user_id', uid)
+                    window.bwcSupabase.from('user_notes').select('*').eq('user_id', uid),
+                    window.bwcSupabase.from('lesson_notes').select('*').eq('user_id', uid),
+                    window.bwcSupabase.from('note_docs').select('*').eq('user_id', uid)
                 ]);
 
                 remote.course_progress = extractData(cpRes);
                 remote.quiz_scores     = extractData(qsRes);
                 remote.practice_stats  = extractData(psRes);
                 remote.user_notes      = extractData(unRes);
+                remote.lesson_notes    = extractData(lnRes);
+                remote.note_docs       = extractData(ndRes);
             }
 
             // 3. Build export object

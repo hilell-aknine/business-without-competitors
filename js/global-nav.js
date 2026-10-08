@@ -37,6 +37,7 @@
       external: true
     },
     { id: 'apply',    label: 'עוזר היישום',  icon: 'fa-seedling',   path: 'pages/apply.html' },
+    { id: 'notes',    label: 'המסמכים שלי',  icon: 'fa-folder-open', path: 'pages/notes.html' },
     { id: 'progress', label: 'ההתקדמות שלי', icon: 'fa-chart-line', path: 'pages/progress.html' },
     { id: 'profile',  label: 'הפרופיל שלי',  icon: 'fa-user-gear',  path: 'pages/profile.html'  }
   ];
