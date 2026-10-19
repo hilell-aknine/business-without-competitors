@@ -1,6 +1,6 @@
 // Multi-provider AI fallback chain: Anthropic -> Gemini -> Groq -> OpenRouter.
 // All accept the same system + user prompt. First success wins.
-// Anthropic (claude-haiku-4-5) was added 2026-08-02 as the default model for
+// Anthropic (claude-haiku-4-5, or ANTHROPIC_MODEL) was added 2026-08-02 as the default model for
 // the learning agents (cheap + strong Hebrew). If ANTHROPIC_API_KEY is not set
 // in the Vercel env, the chain silently falls through to the older providers.
 
@@ -9,7 +9,14 @@ const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
 const GROQ_KEY = process.env.GROQ_API_KEY || '';
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || '';
 
-const ANTHROPIC_MODEL = 'claude-haiku-4-5';
+// Model is overridable from the Vercel env without a code change.
+// Default stays Haiku 4.5 (cheap, good Hebrew). Set ANTHROPIC_MODEL=claude-sonnet-5
+// for stronger answers at ~2x the cost.
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-haiku-4-5';
+// Haiku 4.5 still accepts sampling params. Sonnet 5 / Opus 5+ reject `temperature`
+// with a 400 and run adaptive thinking when `thinking` is omitted, so for those we
+// drop temperature and turn thinking off (plain chat, no tools, short answers).
+const ANTHROPIC_IS_HAIKU = ANTHROPIC_MODEL.startsWith('claude-haiku');
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 const OPENROUTER_MODEL = 'deepseek/deepseek-r1-distill-llama-70b:free';
@@ -53,7 +60,7 @@ async function callAnthropic(system, user) {
       system,
       messages,
       max_tokens: 4096,
-      temperature: 0.7,
+      ...(ANTHROPIC_IS_HAIKU ? { temperature: 0.7 } : { thinking: { type: 'disabled' } }),
     }),
   });
   if (!res.ok) {
