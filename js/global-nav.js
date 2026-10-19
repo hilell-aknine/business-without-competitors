@@ -125,6 +125,7 @@
           '</button>' +
           '<div class="gnav__auth-menu" id="gnavAuthMenu" role="menu" aria-label="פעולות חשבון" hidden>' +
             '<div class="gnav__auth-email" data-gnav-auth-email></div>' +
+            '<div data-gnav-admin hidden></div>' +
             '<button type="button" class="gnav__auth-item" role="menuitem" data-gnav-auth-signout>' +
               '<i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>' +
               '<span>התנתקות</span>' +
@@ -228,6 +229,7 @@
         '<i class="fa-solid fa-user" aria-hidden="true"></i>' +
         '<span class="gnav__auth-label">התחברות</span>';
       if (menu) { menu.hidden = true; menu.classList.remove('is-open'); }
+      hideAdminLinks();
     }
 
     function setSignedInUI(user) {
@@ -239,6 +241,37 @@
       trigger.innerHTML =
         '<span class="gnav__auth-initial" aria-hidden="true">' + escapeHtml(getInitial(user.email)) + '</span>';
       if (emailEl) emailEl.textContent = user.email || '';
+      showAdminLinks(user);
+    }
+
+    /* Admin entry points. The admin pages existed (pages/admin-users.html,
+       pages/admin-stats.html) but no menu anywhere linked to them, so an admin
+       who logged in saw exactly what a learner sees and concluded he had no
+       admin access. The role check is the same is_admin() RPC the admin pages
+       use; the links are only a door. RLS on the data is the real lock. */
+    var adminBox = root.querySelector('[data-gnav-admin]');
+    var adminCheckedFor = null;
+    function showAdminLinks(user) {
+      if (!adminBox || !user || !user.id) return;
+      if (adminCheckedFor === user.id) return;
+      adminCheckedFor = user.id;
+      var sb = window.bwcSupabase;
+      if (!sb || typeof sb.rpc !== 'function') return;
+      sb.rpc('is_admin', { uid: user.id }).then(function (res) {
+        if (adminCheckedFor !== user.id) return;
+        if (!res || res.error || res.data !== true) return;
+        var base = getBasePath();
+        adminBox.innerHTML =
+          '<a class="gnav__auth-item" role="menuitem" href="' + escapeHtml(base + 'pages/admin-users.html') + '">' +
+            '<i class="fa-solid fa-users-gear" aria-hidden="true"></i><span>ניהול משתמשים</span></a>' +
+          '<a class="gnav__auth-item" role="menuitem" href="' + escapeHtml(base + 'pages/admin-stats.html') + '">' +
+            '<i class="fa-solid fa-chart-pie" aria-hidden="true"></i><span>נתוני למידה</span></a>';
+        adminBox.hidden = false;
+      }, function () {});
+    }
+    function hideAdminLinks() {
+      adminCheckedFor = null;
+      if (adminBox) { adminBox.hidden = true; adminBox.innerHTML = ''; }
     }
 
     function openMenu() {

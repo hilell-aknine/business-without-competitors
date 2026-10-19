@@ -361,8 +361,18 @@
           wrap.innerHTML = pasteBlock();
           return;
         }
+        if (status === 0) {
+          wrap.innerHTML = coachBlock(coach) + errorBlock('פרוטוקול ה-10X רץ רק בפורטל המלא: ' + (window.bwcApi ? window.bwcApi.primary : ''));
+          return;
+        }
+        if (status === 429) {
+          wrap.innerHTML = errorBlock('היו הרבה בקשות בדקה האחרונה. חכה דקה ונסה שוב.', 'run');
+          return;
+        }
         if (!data?.ok) {
-          wrap.innerHTML = errorBlock('לא הצלחתי לחלץ את המתודולוגיה כרגע. נסה שוב בעוד דקה — או הדבק תמלול ידנית.', 'run');
+          wrap.innerHTML = errorBlock(status === 504
+            ? 'הזיקוק לקח יותר זמן מהרגיל ונקטע. נסה שוב, בדרך כלל זה עובר בניסיון השני.'
+            : 'לא הצלחתי לחלץ את המתודולוגיה כרגע. נסה שוב בעוד דקה, או הדבק תמלול ידנית.', 'run');
           return;
         }
         cache = { ...cache, methodology: data.methodology, providerUsed: data.providerUsed, transcript: data.transcript };
@@ -380,13 +390,16 @@
       const stage1Html = methodologyBlock(cache.methodology, cache.providerUsed, mode);
       wrap.innerHTML = stage1Html + loadingBlock('בונה תרגיל למידה אקטיבית...');
       try {
-        const { data } = await postJson('/api/protocol-active', {
+        const { status, data } = await postJson('/api/protocol-active', {
           transcript: cache.transcript,
           methodology: cache.methodology,
           mode,
         });
         if (!data?.ok) {
-          wrap.innerHTML = stage1Html + errorBlock('לא הצלחתי לייצר את התרגול כרגע. נסה שוב.', `mode-${mode}`);
+          wrap.innerHTML = stage1Html + errorBlock(status === 429
+            ? 'היו הרבה בקשות בדקה האחרונה. חכה דקה ונסה שוב.'
+            : status === 401 ? 'צריך להתחבר מחדש כדי להמשיך.'
+            : 'לא הצלחתי לייצר את התרגול כרגע. נסה שוב.', `mode-${mode}`);
           return;
         }
         cache.active = cache.active || {};
