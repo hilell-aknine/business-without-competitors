@@ -190,3 +190,222 @@ export function providerStatus() {
     openrouter: !!OPENROUTER_KEY,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Streaming (2026-10-19). 10X answers take 35-39s on Sonnet 5 when sent whole;
+// streamed, the first words arrive in a few seconds. streamAI() walks the same
+// chain as callAI() but reports text as it arrives through onDelta(text).
+//
+// Failure contract (never fail silently):
+//   - a provider that fails BEFORE its first token  -> try the next provider
+//   - a provider that fails AFTER its first token   -> stop, return what we got
+//                                                      with truncated: true
+// Result: { text, providerUsed, truncated, reason }
+//   text === ''  => nothing reached the user, reason says why.
+
+const FIRST_TOKEN_MS = 20000; // no first token by then = provider is stuck
+const IDLE_MS = 20000;        // gap between chunks after the first one
+
+// Reads an SSE body and calls onEvent(dataObject) per `data:` line.
+async function readSse(body, onEvent) {
+  const decoder = new TextDecoder();
+  let buf = '';
+  for await (const chunk of body) {
+    buf += decoder.decode(chunk, { stream: true });
+    let idx;
+    while ((idx = buf.indexOf('\n')) !== -1) {
+      const line = buf.slice(0, idx).replace(/\r$/, '');
+      buf = buf.slice(idx + 1);
+      if (!line.startsWith('data:')) continue;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === '[DONE]') continue;
+      let obj;
+      try { obj = JSON.parse(payload); } catch { continue; }
+      onEvent(obj);
+    }
+  }
+}
+
+// Runs one streaming provider with first-token / idle / hard deadlines.
+// `start(signal)` returns the fetch Response; `pick(evt)` maps one SSE event to
+// { text?, error?, stop? }.
+async function runStream({ name, start, pick, onDelta, timeoutMs, signal }) {
+  const controller = new AbortController();
+  const onOuterAbort = () => { reason = reason || 'client_gone'; controller.abort(); };
+  let text = '';
+  let reason = null;
+  let stopReason = null;
+  let timer = null;
+  if (signal) {
+    if (signal.aborted) return { text: '', reason: 'client_gone' };
+    signal.addEventListener('abort', onOuterAbort, { once: true });
+  }
+  const arm = (ms, why) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { reason = reason || why; controller.abort(); }, ms);
+  };
+  const hard = setTimeout(() => { reason = reason || 'deadline'; controller.abort(); }, timeoutMs);
+  arm(Math.min(FIRST_TOKEN_MS, timeoutMs), 'first_token_timeout');
+  try {
+    const res = await start(controller.signal);
+    if (!res.ok) {
+      reason = `http_${res.status}`;
+      console.error(`[${name}:stream] ${res.status}: ${(await res.text()).slice(0, 200)}`);
+      return { text: '', reason };
+    }
+    await readSse(res.body, (evt) => {
+      const p = pick(evt) || {};
+      if (p.error) { reason = reason || p.error; controller.abort(); return; }
+      if (p.stop) stopReason = p.stop;
+      if (p.text) {
+        text += p.text;
+        arm(IDLE_MS, 'idle_timeout');
+        onDelta(p.text);
+      }
+    });
+  } catch (err) {
+    if (!reason) reason = `error: ${err.message}`;
+  } finally {
+    clearTimeout(timer);
+    clearTimeout(hard);
+    if (signal) signal.removeEventListener('abort', onOuterAbort);
+  }
+  if (!text) return { text: '', reason: reason || 'empty' };
+  // A cut by max_tokens is also an incomplete answer; say so.
+  if (!reason && (stopReason === 'max_tokens' || stopReason === 'MAX_TOKENS')) reason = 'max_tokens';
+  if (reason) console.error(`[${name}:stream] cut after ${text.length} chars: ${reason}`);
+  return { text, truncated: !!reason, reason };
+}
+
+function streamAnthropic(system, user, onDelta, timeoutMs, signal) {
+  if (!ANTHROPIC_KEY) return null;
+  const messages = Array.isArray(user)
+    ? user.map(m => ({ role: m.role, content: m.content }))
+    : [{ role: 'user', content: user }];
+  return runStream({
+    name: 'Anthropic', onDelta, timeoutMs, signal,
+    start: (sig) => fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: sig,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        system,
+        messages,
+        max_tokens: 4096,
+        stream: true,
+        ...(ANTHROPIC_IS_HAIKU ? { temperature: 0.7 } : { thinking: { type: 'disabled' } }),
+      }),
+    }),
+    pick: (evt) => {
+      if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') return { text: evt.delta.text };
+      if (evt.type === 'message_delta' && evt.delta?.stop_reason) return { stop: evt.delta.stop_reason };
+      if (evt.type === 'error') return { error: `api_error: ${evt.error?.type || 'unknown'}` };
+      return null;
+    },
+  });
+}
+
+function streamGemini(system, user, onDelta, timeoutMs, signal) {
+  if (!GEMINI_KEY) return null;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent?alt=sse&key=${GEMINI_KEY}`;
+  return runStream({
+    name: 'Gemini', onDelta, timeoutMs, signal,
+    start: (sig) => fetch(url, {
+      method: 'POST',
+      signal: sig,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: Array.isArray(user)
+          ? user.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] }))
+          : [{ role: 'user', parts: [{ text: user }] }],
+        generationConfig: { temperature: 0.7, maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } },
+      }),
+    }),
+    pick: (evt) => {
+      if (evt.error) return { error: `api_error: ${evt.error.status || evt.error.code || 'unknown'}` };
+      const c = evt.candidates?.[0];
+      const t = (c?.content?.parts || []).map(p => p.text || '').join('');
+      return { text: t, stop: c?.finishReason && c.finishReason !== 'STOP' ? c.finishReason : null };
+    },
+  });
+}
+
+export async function streamAI(systemPrompt, userPrompt, onDelta, { budgetMs = DEFAULT_BUDGET_MS, signal } = {}) {
+  const deadline = Date.now() + budgetMs;
+  const reasons = [];
+  const chain = [
+    ['anthropic', streamAnthropic, true],
+    ['gemini', streamGemini, true],
+    ['groq', callGroq, false],
+    ['openrouter', callOpenRouter, false],
+  ];
+  for (const [name, fn, streams] of chain) {
+    if (signal && signal.aborted) { reasons.push('client_gone'); break; }
+    const left = deadline - Date.now();
+    if (left < MIN_PROVIDER_MS) { reasons.push('budget_exhausted'); break; }
+    const timeoutMs = Math.min(PROVIDER_CAP_MS[name], left);
+    try {
+      if (streams) {
+        const r = await fn(systemPrompt, userPrompt, onDelta, timeoutMs, signal);
+        if (!r) continue; // provider not configured
+        if (r.text) return { text: r.text, providerUsed: name, truncated: !!r.truncated, reason: r.reason };
+        reasons.push(`${name}:${r.reason}`);
+      } else {
+        // Non-streaming fallbacks: deliver the whole answer as one chunk.
+        const r = await fn(systemPrompt, userPrompt, timeoutMs);
+        if (r && r.text) {
+          onDelta(r.text);
+          return { text: r.text, providerUsed: name, truncated: false, reason: null };
+        }
+      }
+    } catch (err) {
+      reasons.push(`${name}:${err.message}`);
+    }
+  }
+  return { text: '', providerUsed: null, truncated: false, reason: reasons.join(' | ') || 'all_providers_failed' };
+}
+
+// Server-Sent Events writer for a Node/Vercel response. Events:
+//   delta {t}                              : next piece of the answer
+//   done  {providerUsed, truncated, ...}   : finished (truncated => partial)
+//   error {reason}                         : nothing usable was produced
+export function openSse(res) {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('X-Accel-Buffering', 'no');
+  if (typeof res.flushHeaders === 'function') res.flushHeaders();
+  res.write(': open\n\n');
+  const controller = new AbortController();
+  // The learner closed the tab or navigated away: stop paying for tokens.
+  res.on('close', () => { if (!res.writableEnded) controller.abort(); });
+  const send = (event, data) => {
+    if (res.writableEnded || res.destroyed) return;
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+  return {
+    signal: controller.signal,
+    delta: (t) => send('delta', { t }),
+    done: (data) => { send('done', data); if (!res.writableEnded) res.end(); },
+    error: (data) => { send('error', data); if (!res.writableEnded) res.end(); },
+  };
+}
+
+// One call for both protocol endpoints: stream the answer, finish honestly.
+// `extra` is merged into the done event (e.g. the transcript for stage 2).
+export async function streamToClient(res, systemPrompt, userPrompt, extra = {}) {
+  const sse = openSse(res);
+  const r = await streamAI(systemPrompt, userPrompt, sse.delta, { signal: sse.signal });
+  if (!r.text) {
+    console.error(`[stream] no answer: ${r.reason}`);
+    sse.error({ reason: 'all_providers_failed' });
+    return;
+  }
+  sse.done({ providerUsed: r.providerUsed, truncated: !!r.truncated, ...extra });
+}

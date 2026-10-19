@@ -2,7 +2,7 @@
 // Input: POST { transcript, methodology, mode: 'habit' | 'sim' | 'investigate' }
 // Output: { ok, content, providerUsed }
 
-import { callAI } from './_lib/providers.js';
+import { callAI, streamToClient } from './_lib/providers.js';
 import { STAGE2_PROMPTS } from './_lib/prompts.js';
 import { passesGuard, requireAuth } from './_lib/guard.js';
 
@@ -61,6 +61,11 @@ export default async function handler(req, res) {
   ]
     .filter(Boolean)
     .join('\n');
+
+  if (body.stream === true) {
+    await streamToClient(res, systemPrompt, userPrompt);
+    return;
+  }
 
   const result = await callAI(systemPrompt, userPrompt);
   if (!result.text) {

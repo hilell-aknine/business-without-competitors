@@ -196,3 +196,20 @@
   background:rgba(230,198,90,.2);border-color:rgba(230,198,90,.5);
 }
 .proto__source i{font-size:.62rem;opacity:.8;}
+
+/* Streaming answer (2026-10-19): the card builds up while the text arrives. */
+.proto__card{overflow-wrap:anywhere;min-width:0;}
+.proto__card--live{border-color:rgba(229,181,71,.28);}
+.proto__writing{
+  display:inline-flex;align-items:center;gap:.45rem;margin-top:.6rem;
+  font-size:.8rem;color:rgba(232,241,242,.7);
+}
+.proto__dots{display:inline-flex;gap:3px;}
+.proto__dots i{
+  width:5px;height:5px;border-radius:50%;background:var(--lg-gold,#D4AF37);
+  animation:protoDot 1.2s ease-in-out infinite;
+}
+.proto__dots i:nth-child(2){animation-delay:.2s;}
+.proto__dots i:nth-child(3){animation-delay:.4s;}
+@keyframes protoDot{0%,80%,100%{opacity:.25;transform:translateY(0);}40%{opacity:1;transform:translateY(-3px);}}
+@media (prefers-reduced-motion: reduce){.proto__dots i{animation:none;opacity:.7;}}

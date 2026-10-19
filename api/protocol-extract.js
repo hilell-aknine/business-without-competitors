@@ -7,7 +7,7 @@
 // server-side caption scraping months ago, which left this feature dead.
 // The YouTube path remains as a last-resort fallback. Auth is now required.
 
-import { callAI } from './_lib/providers.js';
+import { callAI, streamToClient } from './_lib/providers.js';
 import { STAGE1_SYSTEM } from './_lib/prompts.js';
 import { fetchTranscript } from './transcript.js';
 import { passesGuard, requireAuth } from './_lib/guard.js';
@@ -69,6 +69,13 @@ export default async function handler(req, res) {
   }
 
   const userPrompt = `הנה התמלול של השיעור. זקק ממנו את המתודולוגיה לפי הפורמט שהוגדר:\n\n---\n${transcript}\n---`;
+
+  // Streaming (2026-10-19): the client asks for it with { stream: true }.
+  // Old clients (and any cached copy of protocol.js) still get one JSON answer.
+  if (body.stream === true) {
+    await streamToClient(res, STAGE1_SYSTEM, userPrompt, { transcript });
+    return;
+  }
 
   const result = await callAI(STAGE1_SYSTEM, userPrompt);
   if (!result.text) {
