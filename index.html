@@ -28,6 +28,7 @@
 <link rel="stylesheet" href="assets/css/design-tokens.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="css/protocol.css">
+<link rel="stylesheet" href="css/chat-composer.css">
 <link rel="stylesheet" href="css/button-hierarchy.css">
 <link rel="stylesheet" href="css/onboarding.css">
 <link rel="stylesheet" href="css/sidebar-accordion.css">
@@ -1235,6 +1236,7 @@
 <script src="js/quiz-data.js"></script>
 <script src="js/sidebar-accordion.js"></script>
 <script src="js/api-host.js"></script>
+<script src="js/chat-composer.js"></script>
 <script src="js/protocol.js"></script>
 <script src="js/lesson-transcript.js" defer></script>
 <script src="js/lesson-tabs.js" defer></script>
@@ -2984,6 +2986,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchEl = document.getElementById('lessonSearch');
     if (typeof renderSidebar === 'function')   renderSidebar(searchEl ? searchEl.value : '');
     if (typeof updateLessonNav === 'function') updateLessonNav();
+  });
+  // Quiz scores / practice pulled from the server (new device, or progress
+  // made elsewhere): refresh what reads them.
+  window.addEventListener('bwc:sync-tables', () => {
+    if (typeof renderStats === 'function')     renderStats();
+    if (typeof renderQuizStats === 'function') renderQuizStats();
   });
   // Also check current state (auth may have resolved before this handler attached).
   // Cap retries at ~5s; the bwc:auth-change event above will catch any later changes.

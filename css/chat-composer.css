@@ -1,0 +1,129 @@
+/* chat-composer.css — writing box + full-screen mode for the AI chats.
+   Pairs with js/chat-composer.js. Added 2026-10-22. RTL via logical props. */
+
+/* ---- Writing box ---- */
+textarea.bwc-composer{
+  font-size:1rem;            /* 16px+ stops iOS from zooming on focus */
+  line-height:1.65;
+  min-block-size:3.2rem;
+  max-block-size:min(40vh,18rem);
+  overflow-y:auto;
+  resize:none;
+  overflow-wrap:anywhere;
+  text-align:start;
+  box-sizing:border-box;
+}
+.bwc-composer__foot{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  gap:.25rem .8rem;margin-block-start:.35rem;
+  font-size:.74rem;line-height:1.4;color:rgba(232,241,242,.55);
+}
+.bwc-composer__count{font-variant-numeric:tabular-nums;color:rgba(232,241,242,.75);}
+.bwc-fs-open{
+  display:inline-flex;align-items:center;gap:.35rem;margin-inline-start:auto;
+  min-block-size:32px;padding:.2rem .55rem;border-radius:8px;
+  background:transparent;border:1px solid rgba(212,175,55,.35);
+  color:var(--lg-gold,#D4AF37);font:inherit;font-size:.76rem;cursor:pointer;white-space:nowrap;
+}
+.bwc-fs-open:hover,.bwc-fs-open:focus-visible{background:rgba(212,175,55,.12);color:#fff;}
+.bwc-fs-open:focus-visible{outline:2px solid var(--lg-gold,#D4AF37);outline-offset:2px;}
+.bwc-composer__count.is-near{color:#ffb4a8;font-weight:600;}
+
+/* ---- Full-screen toggle button ---- */
+.bwc-fs-btn{
+  display:inline-flex;align-items:center;gap:.4rem;flex-shrink:0;
+  min-block-size:36px;padding:.35rem .75rem;border-radius:10px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);
+  color:rgba(232,241,242,.9);font:inherit;font-size:.8rem;cursor:pointer;
+  white-space:nowrap;
+}
+.bwc-fs-btn:hover,.bwc-fs-btn:focus-visible{
+  border-color:var(--lg-gold,#D4AF37);color:#fff;background:rgba(212,175,55,.12);
+}
+.bwc-fs-btn:focus-visible{outline:2px solid var(--lg-gold,#D4AF37);outline-offset:2px;}
+.bwc-fs-btn i{font-size:.85em;}
+@media (max-width:420px){
+  /* Small phones, inline mode: icon only, the label lives in aria-label. */
+  .bwc-fs-btn[aria-pressed="false"] span{display:none;}
+}
+
+/* ---- Full-screen layer ---- */
+html.bwc-chat-fs-open,
+html.bwc-chat-fs-open body{overflow:hidden !important;}
+
+.bwc-chat-fs{
+  position:fixed !important;
+  inset-inline:0 !important;
+  top:var(--bwc-fs-top,0px) !important;
+  bottom:auto !important;
+  block-size:var(--bwc-fs-h,100vh) !important;
+  inline-size:100% !important;
+  max-inline-size:none !important;
+  max-block-size:none !important;
+  margin:0 !important;
+  z-index:90 !important;     /* above nav (60) + dropdowns (80), below login modal (100) */
+  border-radius:0 !important;
+  border:0 !important;
+  box-shadow:none !important;
+  display:flex !important;
+  flex-direction:column;
+  gap:.6rem;
+  padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom)) !important;
+  background:#04262d !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  overflow:hidden !important;
+  box-sizing:border-box;
+}
+@supports (height:100dvh){
+  .bwc-chat-fs{block-size:var(--bwc-fs-h,100dvh) !important;}
+}
+/* Keep a comfortable reading width on wide screens. */
+.bwc-chat-fs > *{
+  inline-size:100%;
+  max-inline-size:900px;
+  margin-inline:auto !important;
+  box-sizing:border-box;
+  min-inline-size:0;
+}
+.bwc-chat-fs [data-fs-hide]{display:none !important;}
+.bwc-chat-fs [data-fs-log]{
+  flex:1 1 auto;
+  min-block-size:0;
+  max-block-size:none !important;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  margin-block:0 !important;
+  padding-block:.4rem;
+  display:flex !important;  /* even when the log is still empty */
+}
+.bwc-chat-fs [data-fs-log]:empty::before{
+  content:"כאן תופיע השיחה. כתוב למטה את השאלה או התשובה שלך.";
+  margin:auto;text-align:center;max-inline-size:26rem;
+  color:rgba(232,241,242,.5);font-size:.9rem;line-height:1.6;
+}
+.bwc-chat-fs [data-fs-input]{flex:0 0 auto;margin-block-start:0 !important;}
+.bwc-chat-fs textarea.bwc-composer{
+  max-block-size:min(38vh,22rem);
+  min-block-size:4.5rem;
+  font-size:1.05rem;
+}
+.bwc-chat-fs .bwc-composer__foot{flex:0 0 auto;margin-block-start:0;}
+@media (max-height:520px){
+  /* Phone with the keyboard open: give the conversation the room. */
+  .bwc-chat-fs textarea.bwc-composer{max-block-size:28vh;min-block-size:3rem;}
+  .bwc-chat-fs .bwc-composer__hint{display:none;}
+}
+
+/* Full-screen header row (title + exit button). */
+.bwc-chat-fs [data-fs-head]{
+  flex:0 0 auto;
+  display:flex !important;align-items:center;justify-content:space-between;gap:.5rem .6rem;
+  flex-wrap:wrap;
+  margin-block:0 !important;padding-block-end:.5rem;
+  border-block-end:1px solid rgba(255,255,255,.08);
+}
+.bwc-chat-fs [data-fs-head] > :first-child{flex:1 1 12rem;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bwc-chat-fs .bwc-fs-btn{
+  background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.45);color:#fff;
+}

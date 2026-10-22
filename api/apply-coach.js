@@ -20,7 +20,11 @@ import { passesGuard, requireAuth } from './_lib/guard.js';
 import { loadKb } from './_lib/kb.js';
 
 const MAX_TURNS = 40;
-const MAX_TURN_CHARS = 3000;
+// 2026-10-22: 3,000 -> 10,000 per answer (the old cap silently cut long
+// answers). The whole conversation is still bounded so one call can't grow
+// without limit; the guard (origin + rate limit) and the JWT stay in front.
+const MAX_TURN_CHARS = 10000;
+const MAX_HISTORY_TOTAL_CHARS = 60000; // newest messages kept
 
 function buildSystem(mod, finalize) {
   const base = [
@@ -66,6 +70,18 @@ async function readJsonBody(req) {
   try { return JSON.parse(raw); } catch { return {}; }
 }
 
+// Keep the newest messages that fit in `budget` characters.
+function trimHistory(msgs, budget) {
+  const out = [];
+  let used = 0;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    used += msgs[i].content.length;
+    if (used > budget) break;
+    out.unshift(msgs[i]);
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, reason: 'method_not_allowed' });
@@ -88,12 +104,19 @@ export default async function handler(req, res) {
   }
 
   const finalize = body.finalize === true;
-  const history = Array.isArray(body.history)
-    ? body.history
-        .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-        .slice(-MAX_TURNS)
-        .map(m => ({ role: m.role, content: m.content.slice(0, MAX_TURN_CHARS) }))
+  const raw = Array.isArray(body.history)
+    ? body.history.filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
     : [];
+  // The newest answer is never cut silently: too long is a clear 400.
+  const newest = raw[raw.length - 1];
+  if (!finalize && newest && newest.role === 'user' && newest.content.length > MAX_TURN_CHARS) {
+    res.status(400).json({ ok: false, reason: 'answer_too_long', max: MAX_TURN_CHARS });
+    return;
+  }
+  const history = trimHistory(
+    raw.slice(-MAX_TURNS).map(m => ({ role: m.role, content: m.content.slice(0, MAX_TURN_CHARS) })),
+    MAX_HISTORY_TOTAL_CHARS
+  );
 
   // The model expects the last message to be from the user.
   const messages = history.length ? [...history] : [{ role: 'user', content: 'שלום, אני מוכן להתחיל.' }];

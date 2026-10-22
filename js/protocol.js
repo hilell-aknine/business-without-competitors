@@ -229,21 +229,35 @@
     return `<div class="proto__sources"><span>הנושא הזה מופיע גם כאן:</span>${chips}</div>`;
   }
 
-  function coachBlock(coach) {
-    const msgs = coach.messages.map(m => `
-      <div class="proto__chat-msg proto__chat-msg--${m.role === 'user' ? 'user' : 'ai'}">
-        ${m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content) + sourcesBlock(m.sources)}
-      </div>`).join('');
+  // Max length of one question / answer. Mirrors MAX_QUESTION_CHARS in
+  // api/lesson-coach.js (raised 600 -> 10,000 on 2026-10-22).
+  const COACH_MAX_CHARS = 10000;
+
+  function coachMessagesHtml(coach) {
+    // No whitespace around the user text: user bubbles keep line breaks
+    // (white-space: pre-line), so template indentation would show.
+    return coach.messages.map(m => m.role === 'user'
+      ? `<div class="proto__chat-msg proto__chat-msg--user">${escapeHtml(String(m.content).trim())}</div>`
+      : `<div class="proto__chat-msg proto__chat-msg--ai">${renderMarkdown(m.content) + sourcesBlock(m.sources)}</div>`).join('');
+  }
+
+  // The coach card is built ONCE per lesson and only its log is repainted,
+  // so a half-written answer, the full-screen state and the focus survive
+  // every 10X repaint (2026-10-22).
+  function coachShell() {
     return `
       <div class="proto__card proto__coach" data-role="coach">
-        <div class="proto__section-title" style="margin-top:0;">
-          <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-          שאל את השיעור
+        <div class="proto__coach-head" data-fs-head>
+          <div class="proto__section-title" style="margin:0;">
+            <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+            שאל את השיעור
+          </div>
+          <button type="button" class="bwc-fs-btn" data-role="coach-fs"></button>
         </div>
-        <p class="proto__section-sub">עוזר הלמידה מכיר את התמלול המלא של השיעור הזה, ואם התשובה נמצאת במקום אחר בקורס — הוא ימצא אותה שם ויפנה אותך לשיעור. עונה רק מהחומר, בלי המצאות.</p>
-        <div class="proto__chat-log" data-role="coach-log">${msgs || ''}</div>
-        <div class="proto__chat-inputrow">
-          <textarea data-role="coach-input" rows="2" maxlength="600"
+        <p class="proto__section-sub" data-fs-hide>עוזר הלמידה מכיר את התמלול המלא של השיעור הזה, ואם התשובה נמצאת במקום אחר בקורס, הוא ימצא אותה שם ויפנה אותך לשיעור. עונה רק מהחומר, בלי המצאות.</p>
+        <div class="proto__chat-log" data-role="coach-log" data-fs-log></div>
+        <div class="proto__chat-inputrow" data-fs-input>
+          <textarea data-role="coach-input" rows="2" maxlength="${COACH_MAX_CHARS}" aria-label="השאלה שלך לעוזר הלמידה"
             placeholder="לדוגמה: מה הרעיון המרכזי כאן? איזו דוגמה רם נתן?"></textarea>
           <button class="proto__cta" data-action="coach-ask" style="white-space:nowrap;">שאל</button>
         </div>
@@ -341,15 +355,48 @@
     let cache = loadCache(lessonKey);
     let coach = loadCoach(lessonKey);
 
+    // A new lesson while the old coach is full-screen: close it first.
+    const fsApi = window.bwcComposer && window.bwcComposer.fullscreen;
+    if (fsApi && fsApi.isOpen() && fsApi.panel().classList.contains('proto__coach')) fsApi.exit();
+
     const wrap = document.createElement('div');
     wrap.className = 'proto';
     panelEl.innerHTML = '';
     panelEl.appendChild(wrap);
 
-    function paint() {
+    wrap.innerHTML = coachShell();
+    const coachEl = wrap.querySelector('[data-role="coach"]');
+    // Everything below the coach (10X intro / methodology / modes / live
+    // answer) lives here and is repainted freely.
+    const protoHost = document.createElement('div');
+    protoHost.className = 'proto__body';
+    wrap.appendChild(protoHost);
+
+    const coachInput = coachEl.querySelector('[data-role="coach-input"]');
+    const composer = window.bwcComposer
+      ? window.bwcComposer.enhance(coachInput, {
+          max: COACH_MAX_CHARS,
+          onSend: () => askCoach(),
+          draftKey: 'bwc_coach_draft_v1_' + lessonKey,
+        })
+      : null;
+    const fsBtn = coachEl.querySelector('[data-role="coach-fs"]');
+    if (fsApi) fsApi.bind(fsBtn, coachEl, { opener: composer && composer.foot });
+    else if (fsBtn) fsBtn.remove();
+
+    function coachLog() { return coachEl.querySelector('[data-role="coach-log"]'); }
+
+    function paintCoach() {
+      const log = coachLog();
+      if (!log) return;
+      log.innerHTML = coachMessagesHtml(coach);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function paintProto() {
       const has = cache.methodology;
       const hasActiveMode = cache.lastMode || (cache.active && Object.keys(cache.active)[0]);
-      let html = coachBlock(coach);
+      let html = '';
       if (!has) {
         html += intro(externalGptUrl);
       } else {
@@ -359,39 +406,72 @@
           html += activeBlock(a.content, a.providerUsed, hasActiveMode);
         }
       }
-      wrap.innerHTML = html;
-      const log = wrap.querySelector('[data-role="coach-log"]');
-      if (log) log.scrollTop = log.scrollHeight;
+      protoHost.innerHTML = html;
+    }
+
+    function paint() {
+      paintCoach();
+      paintProto();
+    }
+
+    let asking = false;
+
+    // Failed send: the learner's text goes back into the box, never lost.
+    function giveBack(question) {
+      if (!coachInput.value.trim()) {
+        coachInput.value = question;
+        if (composer) composer.refresh();
+      }
+    }
+
+    function coachFail(question, html) {
+      coach.messages.pop();
+      saveCoach(lessonKey, coach);
+      paintCoach();
+      giveBack(question);
+      const l = coachLog();
+      if (l) { l.insertAdjacentHTML('beforeend', html); l.scrollTop = l.scrollHeight; }
     }
 
     async function askCoach() {
-      const input = wrap.querySelector('[data-role="coach-input"]');
+      if (asking) return;
+      const input = coachInput;
       const question = (input?.value || '').trim();
       if (!question) { input?.focus(); return; }
-
-      const token = await authToken();
-      if (!token) {
-        const log = wrap.querySelector('[data-role="coach-log"]');
-        if (log) log.insertAdjacentHTML('beforeend', loginRequiredBlock());
+      if (question.length > COACH_MAX_CHARS) {
+        coachLog()?.insertAdjacentHTML('beforeend', errorBlock('השאלה ארוכה מ-' + COACH_MAX_CHARS.toLocaleString('he-IL') + ' תווים. קצר אותה מעט ונסה שוב.'));
         return;
       }
 
+      const token = await authToken();
+      if (!token) {
+        const log = coachLog();
+        if (log) { log.insertAdjacentHTML('beforeend', loginRequiredBlock()); log.scrollTop = log.scrollHeight; }
+        return;
+      }
+
+      asking = true;
       const history = coach.messages.slice(-6);
       coach.messages.push({ role: 'user', content: question });
       saveCoach(lessonKey, coach);
       input.value = '';
-      paint();
-      const log = wrap.querySelector('[data-role="coach-log"]');
-      if (log) log.insertAdjacentHTML('beforeend', loadingBlock('קורא את השיעור...'));
+      if (composer) { composer.clearDraft(); composer.refresh(); }
+      paintCoach();
+      const log = coachLog();
+      if (log) { log.insertAdjacentHTML('beforeend', loadingBlock('קורא את השיעור...')); log.scrollTop = log.scrollHeight; }
 
       try {
         const { status, data } = await postJson('/api/lesson-coach', { lessonKey, question, history });
         if (status === 401) {
-          coach.messages.pop();
-          saveCoach(lessonKey, coach);
-          paint();
-          const l = wrap.querySelector('[data-role="coach-log"]');
-          if (l) l.insertAdjacentHTML('beforeend', loginRequiredBlock());
+          coachFail(question, loginRequiredBlock());
+          return;
+        }
+        if (status === 400 && data?.reason === 'question_too_long') {
+          coachFail(question, errorBlock('השאלה ארוכה מדי. קצר אותה מעט ונסה שוב.'));
+          return;
+        }
+        if (status === 429) {
+          coachFail(question, errorBlock(MSG_BUSY));
           return;
         }
         if (status === 0) {
@@ -399,24 +479,18 @@
         } else if (status === 404) {
           coach.messages.push({ role: 'assistant', content: 'לשיעור הזה אין תמלול במערכת, וגם בשאר הקורס לא מצאתי חומר שעונה על השאלה הזאת. נסה לנסח אותה אחרת, או לשאול אותה בשיעור אחר.' });
         } else if (!data?.ok) {
-          coach.messages.pop();
-          saveCoach(lessonKey, coach);
-          paint();
-          const l = wrap.querySelector('[data-role="coach-log"]');
-          if (l) l.insertAdjacentHTML('beforeend', errorBlock('לא הצלחתי לענות כרגע. נסה שוב בעוד רגע.'));
+          coachFail(question, errorBlock('לא הצלחתי לענות כרגע. השאלה שלך חזרה לתיבה, נסה שוב בעוד רגע.'));
           return;
         } else {
           coach.messages.push({ role: 'assistant', content: data.answer, sources: data.sources || [] });
         }
         saveCoach(lessonKey, coach);
-        paint();
+        paintCoach();
       } catch (err) {
         console.error('[Coach] ask failed', err);
-        coach.messages.pop();
-        saveCoach(lessonKey, coach);
-        paint();
-        const l = wrap.querySelector('[data-role="coach-log"]');
-        if (l) l.insertAdjacentHTML('beforeend', errorBlock('שגיאה ברשת. בדוק את החיבור ונסה שוב.'));
+        coachFail(question, errorBlock('נראה שהחיבור לאינטרנט נפל. השאלה שלך חזרה לתיבה, נסה שוב.'));
+      } finally {
+        asking = false;
       }
     }
 
@@ -424,12 +498,12 @@
     // Before the first words arrive: a warm rotating line, no technical words.
     // Once text arrives: the answer builds up in place with a "כותב..." marker.
     function startWaiting(prefixHtml, lines) {
-      wrap.innerHTML = prefixHtml + loadingBlock(lines[0]);
+      protoHost.innerHTML = prefixHtml + loadingBlock(lines[0]);
       let i = 0;
       const timer = setInterval(() => {
         if (i >= lines.length - 1) { clearInterval(timer); return; }
         i += 1;
-        const span = wrap.querySelector('.proto__loading span');
+        const span = protoHost.querySelector('.proto__loading span');
         if (span) span.textContent = lines[i];
       }, 3500);
       return () => clearInterval(timer);
@@ -449,26 +523,26 @@
         text += t;
         if (!body) {
           stopWaiting();
-          wrap.innerHTML = prefixHtml + `
+          protoHost.innerHTML = prefixHtml + `
             <div class="proto__card proto__card--live" data-role="live" aria-live="polite" aria-busy="true">
               ${headerHtml || ''}
               <div data-role="live-body"></div>
               <div class="proto__writing"><span>כותב</span><span class="proto__dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
             </div>`;
-          body = wrap.querySelector('[data-role="live-body"]');
+          body = protoHost.querySelector('[data-role="live-body"]');
         }
         if (!queued) { queued = true; requestAnimationFrame(flush); }
       };
       // Final paint for a cut answer: keep what arrived, say clearly it is partial.
       const showPartial = (message, retryAction) => {
         flush();
-        const live = wrap.querySelector('[data-role="live"]');
+        const live = protoHost.querySelector('[data-role="live"]');
         if (live) {
           live.removeAttribute('aria-busy');
           live.querySelector('.proto__writing')?.remove();
           live.insertAdjacentHTML('afterend', errorBlock(message, retryAction));
         } else {
-          wrap.innerHTML = prefixHtml + errorBlock(message, retryAction);
+          protoHost.innerHTML = prefixHtml + errorBlock(message, retryAction);
         }
       };
       return { onDelta, showPartial, started: () => !!body };
@@ -494,25 +568,25 @@
         const { status, data } = await postStream('/api/protocol-extract', body, writer.onDelta);
         stopWaiting();
         if (status === 401) {
-          wrap.innerHTML = coachBlock(coach) + loginRequiredBlock();
+          protoHost.innerHTML = loginRequiredBlock();
           return;
         }
         if (status === 424) {
-          wrap.innerHTML = pasteBlock();
+          protoHost.innerHTML = pasteBlock();
           return;
         }
         if (status === 0) {
-          wrap.innerHTML = coachBlock(coach) + errorBlock('את התרגיל הזה אפשר להפעיל רק בפורטל המלא: ' + (window.bwcApi ? window.bwcApi.primary : ''));
+          protoHost.innerHTML = errorBlock('את התרגיל הזה אפשר להפעיל רק בפורטל המלא: ' + (window.bwcApi ? window.bwcApi.primary : ''));
           return;
         }
         if (status === 429) {
-          wrap.innerHTML = errorBlock(MSG_BUSY, 'run');
+          protoHost.innerHTML = errorBlock(MSG_BUSY, 'run');
           return;
         }
         const text = data?.methodology || data?.text;
         if (!data?.ok || !text) {
           if (writer.started()) writer.showPartial(MSG_CUT, 'run');
-          else wrap.innerHTML = errorBlock(status === 504 ? MSG_SLOW : MSG_FAILED, 'run');
+          else protoHost.innerHTML = errorBlock(status === 504 ? MSG_SLOW : MSG_FAILED, 'run');
           return;
         }
         if (data.truncated) {
@@ -522,12 +596,12 @@
         }
         cache = { ...cache, methodology: text, providerUsed: data.providerUsed, transcript: data.transcript };
         saveCache(lessonKey, cache);
-        paint();
+        paintProto();
       } catch (err) {
         stopWaiting();
         console.error('[Protocol] extract failed', err);
         if (writer.started()) writer.showPartial(MSG_CUT, 'run');
-        else wrap.innerHTML = errorBlock(MSG_NETWORK, 'run');
+        else protoHost.innerHTML = errorBlock(MSG_NETWORK, 'run');
       }
     }
 
@@ -556,7 +630,7 @@
         const text = data?.content || data?.text;
         if (!data?.ok || !text || data.truncated) {
           if (writer.started()) { writer.showPartial(MSG_CUT, `mode-${mode}`); return; }
-          wrap.innerHTML = stage1Html + errorBlock(status === 429 ? MSG_BUSY
+          protoHost.innerHTML = stage1Html + errorBlock(status === 429 ? MSG_BUSY
             : status === 401 ? 'צריך להתחבר מחדש כדי להמשיך.'
             : status === 0 ? 'את התרגיל הזה אפשר להפעיל רק בפורטל המלא: ' + (window.bwcApi ? window.bwcApi.primary : '')
             : status === 504 ? MSG_SLOW : MSG_FAILED, `mode-${mode}`);
@@ -566,21 +640,49 @@
         cache.active[mode] = { content: text, providerUsed: data.providerUsed };
         cache.lastMode = mode;
         saveCache(lessonKey, cache);
-        paint();
+        paintProto();
       } catch (err) {
         stopWaiting();
         console.error('[Protocol] active failed', err);
         if (writer.started()) writer.showPartial(MSG_CUT, `mode-${mode}`);
-        else wrap.innerHTML = stage1Html + errorBlock(MSG_NETWORK, `mode-${mode}`);
+        else protoHost.innerHTML = stage1Html + errorBlock(MSG_NETWORK, `mode-${mode}`);
       }
     }
 
-    wrap.addEventListener('click', (e) => {
+    // The coach card has its own listener: in full-screen it is moved to
+    // <body>, outside `wrap`, and its clicks no longer bubble through here.
+    coachEl.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-action]');
       if (!btn) return;
       const action = btn.dataset.action;
       if (action === 'coach-ask') askCoach();
       else if (action === 'open-login') {
+        if (fsApi && fsApi.isOpen()) fsApi.exit();
+        if (typeof window.openLoginModal === 'function') window.openLoginModal();
+      }
+      else if (action === 'goto-lesson') {
+        if (fsApi && fsApi.isOpen()) fsApi.exit();
+        gotoLesson(btn.dataset.lesson);
+      }
+    });
+
+    function gotoLesson(key) {
+      // index.html owns lesson selection; inside the tabs iframe there is no
+      // such global, so fall back to a top-level navigation.
+      if (typeof window.selectLessonByKey === 'function' && window.selectLessonByKey(key)) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const base = (window.bwcApi && window.bwcApi.primary) ? window.bwcApi.primary : '';
+        window.top.location.href = `${base}/index.html#lesson=${encodeURIComponent(key)}`;
+      }
+    }
+
+    wrap.addEventListener('click', (e) => {
+      if (coachEl.contains(e.target)) return;
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const action = btn.dataset.action;
+      if (action === 'open-login') {
         if (typeof window.openLoginModal === 'function') window.openLoginModal();
       }
       else if (action === 'run') runStage1();
@@ -593,18 +695,7 @@
       else if (action === 'reset') {
         clearCache(lessonKey);
         cache = {};
-        paint();
-      }
-      else if (action === 'goto-lesson') {
-        const key = btn.dataset.lesson;
-        // index.html owns lesson selection; inside the tabs iframe there is no
-        // such global, so fall back to a top-level navigation.
-        if (typeof window.selectLessonByKey === 'function' && window.selectLessonByKey(key)) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        } else {
-          const base = (window.bwcApi && window.bwcApi.primary) ? window.bwcApi.primary : '';
-          window.top.location.href = `${base}/index.html#lesson=${encodeURIComponent(key)}`;
-        }
+        paintProto();
       }
       else if (action === 'mode') runStage2(btn.dataset.mode);
       else if (action === 'regen-active') {

@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="../css/theme.css">
     <link rel="stylesheet" href="../css/global-nav.css">
     <link rel="stylesheet" href="../css/auth-modal.css">
+    <link rel="stylesheet" href="../css/chat-composer.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body {
@@ -85,7 +86,8 @@
         }
         .chat-btn--gold { background: linear-gradient(135deg, #D4AF37, #b8952e); border: none; color: #06232a; font-weight: 700; }
         #chatLog { display: flex; flex-direction: column; gap: .6rem; max-height: 55vh; overflow-y: auto; padding-block: .4rem; }
-        .chat-msg { padding: .7rem .95rem; border-radius: 13px; font-size: .9rem; line-height: 1.6; max-inline-size: 90%; }
+        .chat-msg { padding: .7rem .95rem; border-radius: 13px; font-size: .9rem; line-height: 1.6; max-inline-size: 90%; overflow-wrap: anywhere; }
+        .chat-msg--user { white-space: pre-line; }
         .chat-msg--user { align-self: flex-start; background: rgba(212,175,55,.13); border: 1px solid rgba(212,175,55,.25); }
         .chat-msg--ai { align-self: flex-end; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
         .chat-msg--ai h4, .chat-msg--ai h5, .chat-msg--ai h6 { margin-block: .5rem .2rem; }
@@ -93,10 +95,11 @@
         .chat-msg--ai p { margin-block: .3rem; }
         .chat-inputrow { display: flex; gap: .55rem; margin-top: .8rem; align-items: flex-end; }
         .chat-inputrow textarea {
-            flex: 1; resize: vertical; min-height: 2.8rem; max-height: 10rem;
+            flex: 1; min-width: 0; resize: none; min-height: 3.2rem;
             background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14);
-            border-radius: 12px; color: inherit; font: inherit; font-size: .9rem; padding: .6rem .8rem;
+            border-radius: 12px; color: inherit; font: inherit; font-size: 1rem; line-height: 1.65; padding: .6rem .8rem;
         }
+        .chat-head .chat-actions { flex-wrap: wrap; }
         .chat-inputrow textarea:focus { outline: 1px solid #D4AF37; }
         .chat-loading { color: rgba(232,241,242,.6); font-size: .82rem; padding: .4rem; }
         .chat-error { color: #ff9c9c; font-size: .84rem; padding: .5rem .2rem; }
@@ -142,17 +145,18 @@
 
         <!-- Chat -->
         <section id="chatWrap" class="g hidden">
-            <div class="chat-head">
+            <div class="chat-head" data-fs-head>
                 <h2 id="chatTitle"></h2>
                 <div class="chat-actions">
-                    <button class="chat-btn" data-action="back">החלף מודול</button>
-                    <button class="chat-btn" data-action="restart">התחל מחדש</button>
+                    <button class="chat-btn" data-action="back" data-fs-hide>החלף מודול</button>
+                    <button class="chat-btn" data-action="restart" data-fs-hide>התחל מחדש</button>
                     <button class="chat-btn chat-btn--gold" data-action="finalize">הפק מסמך יישום</button>
+                    <button type="button" class="bwc-fs-btn" id="chatFsBtn"></button>
                 </div>
             </div>
-            <div id="chatLog"></div>
-            <div class="chat-inputrow">
-                <textarea id="chatInput" rows="2" maxlength="2500" placeholder="כתוב את התשובה שלך..."></textarea>
+            <div id="chatLog" data-fs-log></div>
+            <div class="chat-inputrow" data-fs-input>
+                <textarea id="chatInput" rows="2" maxlength="10000" aria-label="התשובה שלך" placeholder="כתוב את התשובה שלך..."></textarea>
                 <button class="chat-btn chat-btn--gold" data-action="send" style="white-space:nowrap;">שלח</button>
             </div>
         </section>
@@ -177,6 +181,7 @@
     <script src="../js/course-data.js" defer></script>
     <script src="../js/global-nav.js" defer></script>
     <script src="../js/api-host.js" defer></script>
+    <script src="../js/chat-composer.js" defer></script>
     <script src="../js/apply-coach.js" defer></script>
     <script src="../js/credit-stamp.js" defer></script>
 </body>

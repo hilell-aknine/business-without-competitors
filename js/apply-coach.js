@@ -7,9 +7,14 @@
   'use strict';
 
   const STORE_PREFIX = 'bwc_apply_v1_m'; // + moduleIdx
+  const DRAFT_PREFIX = 'bwc_apply_draft_v1_m'; // + moduleIdx — unsent answer
+  // Max length of one answer. Mirrors MAX_TURN_CHARS in api/apply-coach.js
+  // (raised 2,500 -> 10,000 on 2026-10-22).
+  const MAX_ANSWER_CHARS = 10000;
 
   let currentModule = null;
   let sending = false;
+  let composer = null;
 
   const $ = id => document.getElementById(id);
 
@@ -75,6 +80,9 @@
 
   // ---- views ----
   function show(id) {
+    // Leaving the chat while it is full-screen: close that first.
+    const fsApi = window.bwcComposer && window.bwcComposer.fullscreen;
+    if (id !== 'chatWrap' && fsApi && fsApi.isOpen() && fsApi.panel() === $('chatWrap')) fsApi.exit();
     ['modulePicker', 'chatWrap', 'docView'].forEach(v => $(v).classList.toggle('hidden', v !== id));
   }
 
@@ -134,10 +142,11 @@
 
   function paintChat(convo) {
     const log = $('chatLog');
-    log.innerHTML = convo.messages.map(m => `
-      <div class="chat-msg chat-msg--${m.role === 'user' ? 'user' : 'ai'}">
-        ${m.role === 'user' ? esc(m.content) : md(m.content)}
-      </div>`).join('');
+    // No whitespace around the user text: user bubbles keep line breaks
+    // (white-space: pre-line), so template indentation would show.
+    log.innerHTML = convo.messages.map(m => m.role === 'user'
+      ? `<div class="chat-msg chat-msg--user">${esc(String(m.content).trim())}</div>`
+      : `<div class="chat-msg chat-msg--ai">${md(m.content)}</div>`).join('');
     log.scrollTop = log.scrollHeight;
   }
 
@@ -146,6 +155,7 @@
     $('chatTitle').textContent = `מודול ${mi + 1} · ${mod ? mod.title : ''}`;
     const convo = loadConvo(mi);
     show('chatWrap');
+    if (composer) composer.loadDraft();   // this module's unsent answer, if any
     paintChat(convo);
     if (convo.messages.length === 0) await requestReply(mi, false); // opening turn
   }
@@ -183,8 +193,10 @@
         chatError('עוזר היישום לא זמין בכתובת הזו — הוא רץ על שרת שקיים רק בפורטל המלא. פתח את ' + (window.bwcApi ? window.bwcApi.primary : '') + ' כדי להשתמש בו.');
         return;
       }
-      if (status === 401) { chatError('נדרשת התחברות מחדש. רענן את הדף והתחבר.'); return; }
-      if (!data?.ok) { chatError('לא הצלחתי לקבל תשובה כרגע. נסה שוב בעוד רגע.'); return; }
+      if (status === 401) { giveBack(mi, finalize); chatError('נדרשת התחברות מחדש. רענן את הדף והתחבר.'); return; }
+      if (status === 429) { giveBack(mi, finalize); chatError('היו הרבה בקשות בדקה האחרונה. חכה דקה ונסה שוב, התשובה שלך חזרה לתיבה.'); return; }
+      if (status === 400 && data?.reason === 'answer_too_long') { giveBack(mi, finalize); chatError('התשובה ארוכה מדי. קצר אותה מעט ונסה שוב.'); return; }
+      if (!data?.ok) { giveBack(mi, finalize); chatError('לא הצלחתי לקבל תשובה כרגע. התשובה שלך חזרה לתיבה, נסה שוב בעוד רגע.'); return; }
       if (finalize) {
         await saveDoc(mi, data.reply);
         await renderDoc(mi);
@@ -196,7 +208,8 @@
     } catch (err) {
       console.error('[apply-coach]', err);
       setLoading(false);
-      chatError('שגיאת רשת. בדוק את החיבור ונסה שוב.');
+      giveBack(mi, finalize);
+      chatError('נראה שהחיבור לאינטרנט נפל. התשובה שלך חזרה לתיבה, נסה שוב.');
     } finally {
       sending = false;
     }
@@ -220,14 +233,36 @@
     }
   }
 
+  // A failed send must never eat a long answer: take the user's last
+  // message back out of the conversation and put it in the box again.
+  function giveBack(mi, finalize) {
+    if (finalize) return;
+    const convo = loadConvo(mi);
+    const last = convo.messages[convo.messages.length - 1];
+    if (!last || last.role !== 'user') return;
+    convo.messages.pop();
+    saveConvo(mi, convo);
+    paintChat(convo);
+    const input = $('chatInput');
+    if (!input.value.trim()) {
+      input.value = last.content;
+      if (composer) composer.refresh();
+    }
+  }
+
   function sendUserMessage() {
     const input = $('chatInput');
     const text = (input.value || '').trim();
     if (!text || sending || currentModule === null) return;
+    if (text.length > MAX_ANSWER_CHARS) {
+      chatError('התשובה ארוכה מ-' + MAX_ANSWER_CHARS.toLocaleString('he-IL') + ' תווים. קצר אותה מעט ונסה שוב.');
+      return;
+    }
     const convo = loadConvo(currentModule);
     convo.messages.push({ role: 'user', content: text });
     saveConvo(currentModule, convo);
     input.value = '';
+    if (composer) { composer.clearDraft(); composer.refresh(); }
     paintChat(convo);
     requestReply(currentModule, false);
   }
@@ -254,9 +289,18 @@
         navigator.clipboard?.writeText(raw).then(() => { btn.textContent = 'הועתק ✓'; setTimeout(() => btn.textContent = 'העתק', 1500); });
       }
     });
-    $('chatInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendUserMessage(); }
-    });
+    // 2026-10-22: Enter is a new line (long answers were sent by accident);
+    // Ctrl/Cmd+Enter or the button sends. Box grows with the text.
+    if (window.bwcComposer) {
+      composer = window.bwcComposer.enhance($('chatInput'), {
+        max: MAX_ANSWER_CHARS,
+        onSend: sendUserMessage,
+        draftKey: () => (currentModule === null ? '' : DRAFT_PREFIX + currentModule),
+      });
+      window.bwcComposer.fullscreen.bind($('chatFsBtn'), $('chatWrap'), { opener: composer && composer.foot });
+    } else {
+      $('chatFsBtn')?.remove();
+    }
   }
 
   function applyAuthState() {

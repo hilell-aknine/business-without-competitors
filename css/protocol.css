@@ -155,8 +155,9 @@
 .proto__chat-log:empty{display:none;}
 .proto__chat-msg{
   padding:.6rem .85rem;border-radius:12px;font-size:.86rem;line-height:1.55;
-  max-inline-size:92%;
+  max-inline-size:92%;overflow-wrap:anywhere;
 }
+.proto__chat-msg--user{white-space:pre-line;}
 .proto__chat-msg--user{
   align-self:flex-start;background:rgba(230,198,90,.12);
   border:1px solid rgba(230,198,90,.25);
@@ -168,11 +169,17 @@
 .proto__chat-msg--ai p{margin:.3rem 0;}
 .proto__chat-inputrow{display:flex;gap:.5rem;align-items:flex-end;}
 .proto__chat-inputrow textarea{
-  flex:1;resize:vertical;min-height:2.6rem;
+  flex:1;min-width:0;resize:none;min-height:3.2rem;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);
-  border-radius:10px;color:inherit;font:inherit;font-size:.85rem;
-  padding:.55rem .75rem;
+  border-radius:10px;color:inherit;font:inherit;font-size:1rem;line-height:1.65;
+  padding:.6rem .8rem;
 }
+/* Coach header: title + full-screen button (2026-10-22). */
+.proto__coach-head{
+  display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+  margin-block-end:.3rem;
+}
+.proto__coach-head .proto__section-title{min-width:0;}
 .proto__chat-inputrow textarea:focus{outline:1px solid var(--lg-gold,#D4AF37);}
 
 /* Cross-lesson sources under a coach answer (2026-08-10).

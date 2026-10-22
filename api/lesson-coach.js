@@ -29,8 +29,13 @@ import { selectPassages, rankLessons } from './_lib/retrieval.js';
 const CURRENT_LESSON_CHARS = 22000;   // budget for the lesson being watched
 const OTHER_LESSON_CHARS = 3600;      // budget per supporting lesson
 const MAX_OTHER_LESSONS = 3;
-const MAX_QUESTION_CHARS = 600;
+// 2026-10-22: 600 -> 10,000. Learners write long, real answers and felt cut
+// off. Abuse stays bounded by the guard (origin + 12 req/min/IP), the JWT,
+// and the history budget below, so one call can't grow without limit.
+const MAX_QUESTION_CHARS = 10000;
 const MAX_HISTORY_TURNS = 6;
+const MAX_HISTORY_MSG_CHARS = 10000;   // per earlier message
+const MAX_HISTORY_TOTAL_CHARS = 24000; // all earlier messages together, newest kept
 
 const LESSON_KEY_RE = /^(m[0-7]-\d{1,2}-\d{1,2}|s[0-6]-\d{1,2})$/;
 // The model marks which other lessons it actually leaned on; we strip the
@@ -125,6 +130,18 @@ async function readJsonBody(req) {
   try { return JSON.parse(raw); } catch { return {}; }
 }
 
+// Keep the newest messages that fit in `budget` characters.
+function trimHistory(msgs, budget) {
+  const out = [];
+  let used = 0;
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    used += msgs[i].content.length;
+    if (used > budget) break;
+    out.unshift(msgs[i]);
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ ok: false, reason: 'method_not_allowed' });
@@ -142,8 +159,12 @@ export default async function handler(req, res) {
     res.status(400).json({ ok: false, reason: 'bad_lesson_key' });
     return;
   }
-  if (!question || question.length > MAX_QUESTION_CHARS) {
+  if (!question) {
     res.status(400).json({ ok: false, reason: 'bad_question' });
+    return;
+  }
+  if (question.length > MAX_QUESTION_CHARS) {
+    res.status(400).json({ ok: false, reason: 'question_too_long', max: MAX_QUESTION_CHARS });
     return;
   }
 
@@ -172,12 +193,12 @@ export default async function handler(req, res) {
 
   // Short rolling history keeps follow-up questions coherent without
   // resending the transcript (it lives in the system prompt).
-  const history = Array.isArray(body.history)
+  const history = trimHistory(Array.isArray(body.history)
     ? body.history
         .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
         .slice(-MAX_HISTORY_TURNS)
-        .map(m => ({ role: m.role, content: m.content.slice(0, 2000) }))
-    : [];
+        .map(m => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_MSG_CHARS) }))
+    : [], MAX_HISTORY_TOTAL_CHARS);
   const messages = [...history, { role: 'user', content: question }];
 
   const result = await callAI(system, messages);
