@@ -853,69 +853,47 @@
         try { return JSON.parse(localStorage.getItem(SCORES_KEY) || '{}'); }
         catch { return {}; }
     }
+    // Pass mark (80%). This lived in js/quiz-data.js until the 2026-08-02
+    // regeneration (tools/assemble-game-data.mjs) dropped it. Since then every
+    // finished quiz threw "getPassThreshold is not defined" inside saveScore,
+    // so no score was ever stored, locally or in the cloud (quiz_scores had
+    // 0 rows on 2026-10-22). It lives here now, next to its only callers,
+    // so regenerating the data file can't delete it again.
+    function getPassThreshold() {
+        return 0.8;
+    }
+
     function saveScore(quizIdx, score, total) {
         const scores = loadScores();
         const prev = scores[quizIdx] || { best: 0, attempts: 0, passed: false };
         const passed = (score / total) >= getPassThreshold();
         scores[quizIdx] = {
-            best: Math.max(prev.best, score),
-            attempts: prev.attempts + 1,
-            passed: prev.passed || passed,
+            best: Math.max(prev.best || 0, score),
+            attempts: (prev.attempts || 0) + 1,
+            passed: !!prev.passed || passed,
             lastScore: score,
-            total: total
+            total: total,
+            updatedAt: new Date().toISOString()
         };
         localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
-        // Fire-and-forget: sync this module's updated score to Supabase
-        _syncModuleToSupabase(quizIdx, scores[quizIdx]);
+        _syncToSupabase(quizIdx, scores[quizIdx]);
     }
 
     // ===== Supabase sync =====
-
-    // Merge a Supabase rows array into the current localStorage scores.
-    // For each module: take higher best_score, sum attempts, OR passed flags.
-    function _mergeSupabaseScores(rows) {
-        if (!rows || rows.length === 0) return;
-        const scores = loadScores();
-        rows.forEach(row => {
-            const idx = row.module_idx;
-            const prev = scores[idx] || { best: 0, attempts: 0, passed: false, lastScore: 0, total: 5 };
-            scores[idx] = {
-                best:      Math.max(prev.best,     row.best_score),
-                attempts:  prev.attempts + row.attempts,
-                passed:    prev.passed || row.passed,
-                lastScore: row.last_score,          // remote is authoritative for display
-                total:     row.total
-            };
-        });
-        localStorage.setItem(SCORES_KEY, JSON.stringify(scores));
-    }
-
-    // Fetch all quiz_scores rows for the current user and merge into localStorage.
-    // Non-blocking — called in the background.
-    function _fetchAndMergeFromSupabase() {
+    // 2026-10-22: the sync engine (js/sync-localstorage.js) owns quiz_scores.
+    // A finished quiz only marks the table dirty; the engine pushes the whole
+    // local state with retry, and pulls + merges on every load / login.
+    // The old merge summed attempts (local + remote) on every visit, so the
+    // count doubled each time, and never wrote the merge back.
+    function _syncToSupabase(quizIdx, entry) {
+        if (window.bwcSync && typeof window.bwcSync.markDirty === 'function') {
+            window.bwcSync.markDirty('quiz');
+            return;
+        }
+        // Fallback (sync engine failed to load): single fire-and-forget upsert.
         if (!window.bwcAuth || !window.bwcSupabase) return;
         const user = bwcAuth.getUser();
         if (!user) return;
-
-        bwcSupabase
-            .from('quiz_scores')
-            .select('module_idx, best_score, attempts, passed, last_score, total')
-            .eq('user_id', user.id)
-            .then(({ data, error }) => {
-                if (error) { console.warn('[quiz] Supabase fetch error:', error.message); return; }
-                _mergeSupabaseScores(data);
-                // Refresh the UI with the merged data
-                renderModuleGrid();
-                renderOverallStats();
-            });
-    }
-
-    // Upsert a single module's score to Supabase. Fire-and-forget.
-    function _syncModuleToSupabase(quizIdx, entry) {
-        if (!window.bwcAuth || !window.bwcSupabase) return;
-        const user = bwcAuth.getUser();
-        if (!user) return;
-
         bwcSupabase
             .from('quiz_scores')
             .upsert({
@@ -926,11 +904,16 @@
                 passed:     entry.passed,
                 last_score: entry.lastScore,
                 total:      entry.total,
-                updated_at: new Date().toISOString()
+                updated_at: entry.updatedAt
             }, { onConflict: 'user_id,module_idx' })
             .then(({ error }) => {
                 if (error) console.warn('[quiz] Supabase upsert error:', error.message);
             });
+    }
+
+    function _refreshFromSync() {
+        renderModuleGrid();
+        renderOverallStats();
     }
 
     // ===== Init =====
@@ -938,17 +921,9 @@
         renderModuleGrid();
         renderOverallStats();
 
-        // After auth is ready: fetch from Supabase and merge (non-blocking)
-        if (window.bwcAuth) {
-            bwcAuth.ready().then(() => {
-                _fetchAndMergeFromSupabase();
-            });
-
-            // If user logs in while on this page, re-fetch
-            bwcAuth.onChange(() => {
-                _fetchAndMergeFromSupabase();
-            });
-        }
+        // The sync engine pulls + merges quiz_scores on load / login and
+        // announces it; just re-render when it does.
+        window.addEventListener('bwc:sync-tables', _refreshFromSync);
 
         // Deep link: ?quiz=N
         const params = new URLSearchParams(window.location.search);

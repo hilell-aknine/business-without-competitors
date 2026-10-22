@@ -104,6 +104,15 @@ function mergeData(local, remote) {
  * back to localStorage, and push the merge up. Non-blocking; errors logged.
  */
 async function syncFromSupabase() {
+  // 2026-10-22: the sync engine (js/sync-localstorage.js) owns practice_stats:
+  // pull + merge + push with retry. The code below is only a fallback for a
+  // page where the engine failed to load.
+  if (window.bwcSync && typeof window.bwcSync.pullTables === 'function') {
+    try { await window.bwcSync.pullTables(); } catch (err) {
+      console.warn('[practice] pullTables error:', err);
+    }
+    return;
+  }
   try {
     const user = window.bwcAuth && window.bwcAuth.getUser();
     if (!user) return; // guest — nothing to sync
@@ -256,6 +265,12 @@ function saveDataLocal(data) {
  */
 function saveData(data) {
   saveDataLocal(data);
+  // Debounced, serialized push with retry (sync engine). Overlapping direct
+  // upserts could land out of order and overwrite newer XP.
+  if (window.bwcSync && typeof window.bwcSync.markDirty === 'function') {
+    window.bwcSync.markDirty('practice');
+    return;
+  }
   const user = window.bwcAuth && window.bwcAuth.getUser();
   if (user) upsertToSupabase(user.id, data);
 }

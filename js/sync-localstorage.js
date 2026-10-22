@@ -19,19 +19,20 @@
      * un-marking propagates as a DELETE (was a known gap), and a pending
        delete acts as a tombstone so the pull can't resurrect it.
 
-   quiz_scores + practice_stats already have their own live upserts
-   (pages/quiz.html, js/practice.js). Their one-time bulk push for legacy
-   localStorage-only users is kept here, still guarded by the old flag.
+   2026-10-22: quiz_scores + practice_stats now use the same model (see the
+   QUIZ + PRACTICE section below). The old one-time bulk push guarded by
+   `bwc_synced_at_<userId>` is gone: every page load / login does a real
+   pull + merge, and every change is pushed with retry.
 
    Sources -> tables:
      bwc_completed       (string[] of lesson keys)       <-> course_progress
-     bwc_quiz_scores     ({ [moduleIdx]: scoreObj })      -> quiz_scores   (bulk, once)
-     bwc_practice_v1     ({ xp, streak, lastDate, ... })  -> practice_stats (bulk, once)
+     bwc_quiz_scores     ({ [moduleIdx]: scoreObj })      <-> quiz_scores
+     bwc_practice_v1     ({ xp, streak, lastDate, ... })  <-> practice_stats
 
    localStorage keys owned here:
      bwc_completed            string[]  — canonical local lesson list
      bwc_sync_queue_v1        { [lessonKey]: 'add' | 'del' } — pending server ops
-     bwc_synced_at_<userId>   ISO string — legacy one-time bulk-push flag
+     bwc_sync_dirty_v1        { quiz?, practice? } — tables with unpushed changes
 
    Public API (window.bwcSync):
      markLesson(key, done)  -> string[]   local write + queue + debounced push
@@ -39,12 +40,15 @@
      pullMerge()            -> Promise<string[]>  two-way merge with the server
      flush()                -> Promise<{ok}>      drain the pending queue now
      pendingCount()         -> number
-     runOnce(userId)        -> Promise            legacy quiz/practice bulk push
-     isSynced(userId)       -> boolean
+     markDirty('quiz'|'practice')  local state changed, push it (debounced)
+     pullTables()           -> Promise  pull + merge quiz/practice, then push
+     flushTables()          -> Promise  push dirty quiz/practice now
+     dirtyCount()           -> number
 
    Events:
-     'bwc:sync-done'  detail { merged, allOk, results }  — after a pull+merge
-     'bwc:sync-push'  detail { ok, pending }             — after a queue flush
+     'bwc:sync-done'   detail { merged, allOk, results }  — after a lesson pull+merge
+     'bwc:sync-push'   detail { ok, pending }             — after a queue flush
+     'bwc:sync-tables' detail { quiz, practice, ok }      — after a quiz/practice pull
 
    Loading order: must come AFTER auth.js (uses bwcAuth.onChange).
    ========================================================================== */
@@ -60,7 +64,6 @@
 
   var sb = window.bwcSupabase;
 
-  var FLAG_PREFIX   = 'bwc_synced_at_';
   var COMPLETED_KEY = 'bwc_completed';
   var QUEUE_KEY     = 'bwc_sync_queue_v1';
 
@@ -68,7 +71,6 @@
   var RETRY_MIN     = 8000;     // first retry after a failed push
   var RETRY_MAX     = 300000;   // cap the backoff at 5 minutes
 
-  var bulkInFlight  = false;
   var flushInFlight = false;
   var pullInFlight  = false;
   var flushTimer    = null;
@@ -368,11 +370,86 @@
   }
 
   /* ============================================================
-     LEGACY ONE-TIME BULK PUSH — quiz_scores + practice_stats only.
-     Both tables now have their own live upserts (pages/quiz.html,
-     js/practice.js); this only rescues data that was collected
-     before the learner ever signed in on this device.
+     QUIZ + PRACTICE — continuous two-way sync (2026-10-22).
+
+     Before: quiz.html and practice.js each fired one upsert per change,
+     with no retry and no ordering, and the only bulk push was a ONE-TIME
+     rescue guarded by `bwc_synced_at_<uid>`. Three measured problems:
+       1. A failed write (offline, expired token, tab closed mid-request)
+          was simply lost. Nothing ever tried again.
+       2. quiz.html's merge did `attempts = local + remote` on every page
+          load, so attempts doubled each visit, and the merged result was
+          never written back to the server.
+       3. practice.js fired overlapping upserts; an older one could land
+          last and overwrite newer XP.
+     Now both tables work like lessons: every change marks the table dirty
+     (persisted in localStorage), a debounced, serialized flush pushes the
+     CURRENT local state, failures stay dirty and are retried with backoff,
+     and on load / login we pull + merge so a new device gets everything
+     without overwriting newer progress on either side.
+
+     Merge rules (never lose progress, newest wins only for "last" values):
+       quiz:     best=max · attempts=max · passed=OR · lastScore/total from
+                 the newer entry (local.updatedAt vs row.updated_at)
+       practice: xp=max · completed=union(max accuracy) · lastDate=newer ·
+                 streak from the side with the newer lastDate (max on tie) ·
+                 longest=max of everything
      ============================================================ */
+
+  var QUIZ_KEY     = 'bwc_quiz_scores';
+  var PRACTICE_KEY = 'bwc_practice_v1';
+  var DIRTY_KEY    = 'bwc_sync_dirty_v1';   // { quiz?: stamp, practice?: stamp }
+  var TABLE_DELAY  = 1200;
+
+  var tableTimer = null;
+  var tableRetryTimer = null;
+  var tableRetryDelay = RETRY_MIN;
+  var tableInFlight = false;
+  var tableAgain = false;
+  var tablesPullInFlight = null;
+
+  function readDirty() {
+    var d = parseJSON(lsGet(DIRTY_KEY), {});
+    return (d && typeof d === 'object' && !Array.isArray(d)) ? d : {};
+  }
+  function writeDirty(d) { lsSet(DIRTY_KEY, JSON.stringify(d)); }
+
+  var dirtySeq = 0;
+  function markDirty(name) {
+    if (name !== 'quiz' && name !== 'practice') return;
+    var d = readDirty();
+    d[name] = Date.now() + '.' + (++dirtySeq);   // unique stamp per change
+    writeDirty(d);
+    resetTableRetry();
+    scheduleTableFlush();
+  }
+  // Clear only if nothing changed since we read the stamp we just pushed.
+  function clearDirty(name, stamp) {
+    var d = readDirty();
+    if (d[name] === stamp) { delete d[name]; writeDirty(d); }
+  }
+  function dirtyCount() { return Object.keys(readDirty()).length; }
+
+  function scheduleTableFlush(delay) {
+    if (tableTimer) clearTimeout(tableTimer);
+    tableTimer = setTimeout(function () {
+      tableTimer = null;
+      flushTables();
+    }, typeof delay === 'number' ? delay : TABLE_DELAY);
+  }
+  function scheduleTableRetry() {
+    if (tableRetryTimer) return;
+    var delay = tableRetryDelay;
+    tableRetryDelay = Math.min(tableRetryDelay * 2, RETRY_MAX);
+    tableRetryTimer = setTimeout(function () {
+      tableRetryTimer = null;
+      flushTables();
+    }, delay);
+  }
+  function resetTableRetry() {
+    tableRetryDelay = RETRY_MIN;
+    if (tableRetryTimer) { clearTimeout(tableRetryTimer); tableRetryTimer = null; }
+  }
 
   function clampSmallInt(v, fallback) {
     var n = parseInt(v, 10);
@@ -381,99 +458,260 @@
     if (n > 32767) return 32767;
     return n;
   }
-
-  function isAlreadySynced(userId) {
-    return !!lsGet(FLAG_PREFIX + userId);
+  function clampInt(v) {
+    var n = parseInt(v, 10);
+    return (Number.isFinite(n) && n > 0) ? Math.min(n, 2000000000) : 0;
+  }
+  function ts(v) {
+    var t = v ? Date.parse(v) : NaN;
+    return Number.isFinite(t) ? t : 0;
+  }
+  function validDate(s) {
+    return (typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s)) ? s : null;
   }
 
-  function markSynced(userId) {
-    lsSet(FLAG_PREFIX + userId, new Date().toISOString());
+  /* ---- quiz ---- */
+
+  function readQuiz() {
+    var obj = parseJSON(lsGet(QUIZ_KEY), {});
+    return (obj && typeof obj === 'object' && !Array.isArray(obj)) ? obj : {};
   }
 
-  async function syncQuizScores(userId) {
-    var obj = parseJSON(lsGet('bwc_quiz_scores'), {});
-    if (!obj || typeof obj !== 'object') return { ok: true, label: 'quiz_scores', skipped: true };
-    var rows = Object.keys(obj).reduce(function (acc, k) {
+  function quizRows(userId) {
+    var obj = readQuiz();
+    var rows = [];
+    Object.keys(obj).forEach(function (k) {
       var idx = parseInt(k, 10);
       var s = obj[k];
-      if (!Number.isFinite(idx) || idx < 0 || idx > 7 || !s || typeof s !== 'object') return acc;
-      acc.push({
+      if (!Number.isFinite(idx) || idx < 0 || idx > 7 || !s || typeof s !== 'object') return;
+      rows.push({
         user_id: userId,
         module_idx: idx,
         best_score: clampSmallInt(s.best),
         attempts: clampSmallInt(s.attempts),
         passed: !!s.passed,
         last_score: clampSmallInt(s.lastScore),
-        total: clampSmallInt(s.total, 5)
+        total: clampSmallInt(s.total, 5) || 5,
+        updated_at: s.updatedAt || new Date().toISOString()
       });
-      return acc;
-    }, []);
-    if (rows.length === 0) return { ok: true, label: 'quiz_scores', skipped: true };
-    try {
-      var res = await sb.from('quiz_scores').upsert(rows, { onConflict: 'user_id,module_idx' });
-      if (res.error) throw res.error;
-      return { ok: true, label: 'quiz_scores', count: rows.length };
-    } catch (e) {
-      return { ok: false, label: 'quiz_scores', error: e };
-    }
+    });
+    return rows;
   }
 
-  async function syncPractice(userId) {
-    var p = parseJSON(lsGet('bwc_practice_v1'), null);
-    if (!p || typeof p !== 'object') return { ok: true, label: 'practice', skipped: true };
-    var hasData = (parseInt(p.xp, 10) > 0) || (parseInt(p.streak, 10) > 0) ||
-      (p.completed && Object.keys(p.completed).length > 0);
-    if (!hasData) return { ok: true, label: 'practice', skipped: true };
-    var row = {
-      user_id: userId,
-      total_xp: Math.max(0, parseInt(p.xp, 10) || 0),
-      current_streak: Math.max(0, parseInt(p.streak, 10) || 0),
-      longest_streak: Math.max(0, parseInt(p.streak, 10) || 0),
-      last_practice_date: typeof p.lastDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.lastDate) ? p.lastDate : null,
-      challenges_completed: (p.completed && typeof p.completed === 'object') ? p.completed : {}
-    };
-    try {
-      var res = await sb.from('practice_stats').upsert(row, { onConflict: 'user_id' });
-      if (res.error) throw res.error;
-      return { ok: true, label: 'practice', count: 1 };
-    } catch (e) {
-      return { ok: false, label: 'practice', error: e };
-    }
-  }
+  // Returns { merged, localChanged, needsPush }.
+  function mergeQuiz(local, rows) {
+    var merged = {};
+    var byIdx = {};
+    var needsPush = false;
+    (rows || []).forEach(function (r) {
+      if (r && Number.isFinite(r.module_idx)) byIdx[r.module_idx] = r;
+    });
+    var keys = {};
+    Object.keys(local).forEach(function (k) { keys[k] = true; });
+    Object.keys(byIdx).forEach(function (k) { keys[k] = true; });
 
-  function logFailures(results) {
-    results.forEach(function (r) {
-      if (r && !r.ok && r.error) {
-        var e = r.error;
-        console.error('[sync] FAILED table "' + r.label + '" ->', {
-          code: e.code, message: e.message, details: e.details, hint: e.hint
-        });
+    Object.keys(keys).forEach(function (k) {
+      var L = local[k];
+      var R = byIdx[k];
+      if (L && typeof L !== 'object') L = null;
+      if (!R) { if (L) { merged[k] = L; needsPush = true; } return; }
+      var Rl = {
+        best: R.best_score || 0, attempts: R.attempts || 0, passed: !!R.passed,
+        lastScore: R.last_score || 0, total: R.total || 5, updatedAt: R.updated_at || null
+      };
+      if (!L) { merged[k] = Rl; return; }
+      var localNewer = ts(L.updatedAt) > ts(Rl.updatedAt);
+      var newer = localNewer ? L : Rl;
+      var m = {
+        best: Math.max(L.best || 0, Rl.best),
+        attempts: Math.max(L.attempts || 0, Rl.attempts),
+        passed: !!(L.passed || Rl.passed),
+        lastScore: (newer.lastScore != null) ? newer.lastScore : 0,
+        total: newer.total || L.total || Rl.total || 5,
+        updatedAt: newer.updatedAt || null
+      };
+      merged[k] = m;
+      if (m.best > Rl.best || m.attempts > Rl.attempts || (m.passed && !Rl.passed) || localNewer) {
+        needsPush = true;
       }
     });
+
+    var localChanged = JSON.stringify(merged) !== JSON.stringify(local);
+    return { merged: merged, localChanged: localChanged, needsPush: needsPush };
   }
 
-  async function runOnce(userId) {
-    if (!userId || bulkInFlight) return null;
-    if (isAlreadySynced(userId)) return { skipped: true };
-    bulkInFlight = true;
+  /* ---- practice ---- */
+
+  function readPractice() {
+    var p = parseJSON(lsGet(PRACTICE_KEY), null);
+    return (p && typeof p === 'object' && !Array.isArray(p)) ? p : null;
+  }
+
+  function practiceRow(userId) {
+    var p = readPractice();
+    if (!p) return null;
+    var streak = clampInt(p.streak);
+    return {
+      user_id: userId,
+      total_xp: clampInt(p.xp),
+      current_streak: streak,
+      longest_streak: Math.max(streak, clampInt(p.longest)),
+      last_practice_date: validDate(p.lastDate),
+      challenges_completed: (p.completed && typeof p.completed === 'object' && !Array.isArray(p.completed)) ? p.completed : {},
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  function mergePractice(local, row) {
+    local = local || {};
+    if (!row) {
+      var has = clampInt(local.xp) > 0 || clampInt(local.streak) > 0 ||
+        !!(local.completed && Object.keys(local.completed).length > 0);
+      return { merged: local, localChanged: false, needsPush: has };
+    }
+    var R = {
+      xp: row.total_xp || 0,
+      streak: row.current_streak || 0,
+      longest: row.longest_streak || 0,
+      lastDate: validDate(row.last_practice_date),
+      completed: (row.challenges_completed && typeof row.challenges_completed === 'object') ? row.challenges_completed : {}
+    };
+    var L = {
+      xp: clampInt(local.xp),
+      streak: clampInt(local.streak),
+      longest: clampInt(local.longest),
+      lastDate: validDate(local.lastDate),
+      completed: (local.completed && typeof local.completed === 'object') ? local.completed : {}
+    };
+
+    var lastDate, streak;
+    if (L.lastDate && R.lastDate && L.lastDate !== R.lastDate) {
+      var localNewer = L.lastDate > R.lastDate;
+      lastDate = localNewer ? L.lastDate : R.lastDate;
+      streak = localNewer ? L.streak : R.streak;
+    } else {
+      lastDate = L.lastDate || R.lastDate || null;
+      streak = Math.max(L.streak, R.streak);
+    }
+
+    var completed = {};
+    var changedCompleted = false;
+    Object.keys(R.completed).forEach(function (k) { completed[k] = R.completed[k]; });
+    Object.keys(L.completed).forEach(function (k) {
+      var lv = Number(L.completed[k]) || 0;
+      var rv = (k in R.completed) ? (Number(R.completed[k]) || 0) : -1;
+      if (lv > rv) { completed[k] = L.completed[k]; changedCompleted = true; }
+    });
+
+    var xp = Math.max(L.xp, R.xp);
+    var longest = Math.max(L.longest, R.longest, streak);
+
+    // Spread local first so local-only fields (dailyPlay, weekly...) survive.
+    var merged = Object.assign({}, local, {
+      xp: xp, streak: streak, lastDate: lastDate, completed: completed, longest: longest
+    });
+
+    var needsPush = xp > R.xp || streak !== R.streak || lastDate !== R.lastDate ||
+      longest > R.longest || changedCompleted;
+    var localChanged = JSON.stringify(merged) !== JSON.stringify(local);
+    return { merged: merged, localChanged: localChanged, needsPush: needsPush };
+  }
+
+  /* ---- push ---- */
+
+  async function flushTables() {
+    if (tableInFlight) { tableAgain = true; return { ok: false, reason: 'busy' }; }
+    var user = currentUser();
+    if (!user) return { ok: false, reason: 'guest', pending: dirtyCount() };
+    var d = readDirty();
+    if (!d.quiz && !d.practice) return { ok: true, empty: true, pending: 0 };
+
+    tableInFlight = true;
+    var failed = false;
     try {
       await ensureProfile();
-      var results = await Promise.all([
-        syncQuizScores(userId),
-        syncPractice(userId)
-      ]);
-      var allOk = results.every(function (r) { return r && r.ok; });
-      if (allOk) {
-        markSynced(userId);
-        console.info('[sync] one-time quiz/practice push OK', results);
-      } else {
-        console.warn('[sync] one-time push partial failure, will retry next sign-in', results);
-        logFailures(results);
+
+      if (d.quiz) {
+        var stampQ = d.quiz;
+        var rows = quizRows(user.id);
+        try {
+          if (rows.length) {
+            var qr = await sb.from('quiz_scores').upsert(rows, { onConflict: 'user_id,module_idx' });
+            if (qr && qr.error) throw qr.error;
+          }
+          clearDirty('quiz', stampQ);
+        } catch (e) { failed = true; logError('quiz_scores upsert', e); }
       }
-      return { allOk: allOk, results: results };
+
+      if (d.practice) {
+        var stampP = d.practice;
+        var prow = practiceRow(user.id);
+        try {
+          if (prow) {
+            var pr = await sb.from('practice_stats').upsert(prow, { onConflict: 'user_id' });
+            if (pr && pr.error) throw pr.error;
+          }
+          clearDirty('practice', stampP);
+        } catch (e2) { failed = true; logError('practice_stats upsert', e2); }
+      }
     } finally {
-      bulkInFlight = false;
+      tableInFlight = false;
     }
+
+    var left = dirtyCount();
+    if (tableAgain) { tableAgain = false; scheduleTableFlush(0); }
+    else if (failed || left > 0) scheduleTableRetry();
+    else resetTableRetry();
+    emit('bwc:sync-push', { ok: !failed, pending: left + pendingCount(), tables: true });
+    return { ok: !failed, pending: left };
+  }
+
+  /* ---- pull + merge ---- */
+
+  async function pullQuiz() {
+    var user = currentUser();
+    if (!user) return { changed: false };
+    var res = await sb.from('quiz_scores')
+      .select('module_idx, best_score, attempts, passed, last_score, total, updated_at')
+      .eq('user_id', user.id);
+    if (res && res.error) throw res.error;
+    var r = mergeQuiz(readQuiz(), res.data || []);
+    if (r.localChanged) lsSet(QUIZ_KEY, JSON.stringify(r.merged));
+    if (r.needsPush) { var dd = readDirty(); dd.quiz = dd.quiz || ('pull.' + Date.now()); writeDirty(dd); }
+    return { changed: r.localChanged };
+  }
+
+  async function pullPractice() {
+    var user = currentUser();
+    if (!user) return { changed: false };
+    var res = await sb.from('practice_stats').select('*').eq('user_id', user.id).maybeSingle();
+    if (res && res.error) throw res.error;
+    var local = readPractice();
+    var r = mergePractice(local, res.data || null);
+    if (r.localChanged) lsSet(PRACTICE_KEY, JSON.stringify(r.merged));
+    if (r.needsPush) { var dd = readDirty(); dd.practice = dd.practice || ('pull.' + Date.now()); writeDirty(dd); }
+    return { changed: r.localChanged };
+  }
+
+  // Pull + merge both tables, then push whatever the server is missing.
+  // Concurrent callers share one run.
+  function pullTables() {
+    if (tablesPullInFlight) return tablesPullInFlight;
+    tablesPullInFlight = (async function () {
+      var out = { quiz: false, practice: false, ok: true };
+      if (!currentUser()) return out;
+      await ensureProfile();
+      try { out.quiz = (await pullQuiz()).changed; }
+      catch (e) { out.ok = false; logError('quiz_scores select', e); }
+      try { out.practice = (await pullPractice()).changed; }
+      catch (e2) { out.ok = false; logError('practice_stats select', e2); }
+      await flushTables();
+      emit('bwc:sync-tables', out);
+      return out;
+    })();
+    tablesPullInFlight.then(function () { tablesPullInFlight = null; },
+                            function () { tablesPullInFlight = null; });
+    return tablesPullInFlight;
   }
 
   /* ------------------------------------------------------------ triggers */
@@ -483,32 +721,33 @@
     if (!user || !user.id) return;
     profileEnsured = false;   // new identity — re-verify the profiles row
     resetRetry();
-    runOnce(user.id);         // legacy quiz/practice rescue (one time)
+    resetTableRetry();
     pullMerge();              // lessons: real two-way merge, every time
+    pullTables();             // quiz + practice: same, every time
   });
 
+  function flushAll() {
+    resetRetry();
+    resetTableRetry();
+    if (pendingCount() > 0) flush();
+    if (dirtyCount() > 0) flushTables();
+  }
+
   // Back online after a dropped connection — push whatever is queued.
-  try {
-    window.addEventListener('online', function () {
-      resetRetry();
-      flush();
-    });
-  } catch (_) {}
+  try { window.addEventListener('online', flushAll); } catch (_) {}
 
   // Tab became visible again (mobile users background the browser mid-lesson).
   try {
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'visible' && pendingCount() > 0) {
-        resetRetry();
-        flush();
-      }
+      if (document.visibilityState === 'visible') flushAll();
     });
   } catch (_) {}
 
-  // Last-chance push when the page is being closed. keepalive-style best effort.
+  // Last-chance push when the page is being closed. Best effort.
   try {
     window.addEventListener('pagehide', function () {
       if (pendingCount() > 0) flush();
+      if (dirtyCount() > 0) flushTables();
     });
   } catch (_) {}
 
@@ -518,7 +757,12 @@
     pullMerge: pullMerge,
     flush: flush,
     pendingCount: pendingCount,
-    runOnce: runOnce,
-    isSynced: isAlreadySynced
+    markDirty: markDirty,
+    flushTables: flushTables,
+    pullTables: pullTables,
+    dirtyCount: dirtyCount,
+    // Kept for older callers: the one-time rescue is now a full pull+merge.
+    runOnce: function () { return pullTables(); },
+    isSynced: function () { return dirtyCount() === 0 && pendingCount() === 0; }
   });
 })();
