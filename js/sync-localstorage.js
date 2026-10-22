@@ -407,6 +407,11 @@
   var tableInFlight = false;
   var tableAgain = false;
   var tablesPullInFlight = null;
+  // Pull-before-push guard. Quiz/practice pushes send the WHOLE local state,
+  // so a fresh device that saves before its first pull (practice.js writes
+  // on load) would overwrite the server with an empty slate. A table is only
+  // pushed after it was pulled + merged for this user in this page session.
+  var pulledOk = { quiz: null, practice: null };   // -> user id
 
   function readDirty() {
     var d = parseJSON(lsGet(DIRTY_KEY), {});
@@ -625,6 +630,16 @@
     if (!user) return { ok: false, reason: 'guest', pending: dirtyCount() };
     var d = readDirty();
     if (!d.quiz && !d.practice) return { ok: true, empty: true, pending: 0 };
+    if ((d.quiz && pulledOk.quiz !== user.id) || (d.practice && pulledOk.practice !== user.id)) {
+      // Not merged with the server yet: merge first (pullTables flushes after).
+      if (!tablesPullInFlight) pullTables();
+      if (pulledOk.quiz !== user.id) d = Object.assign({}, d, { quiz: undefined });
+      if (pulledOk.practice !== user.id) d = Object.assign({}, d, { practice: undefined });
+      if (!d.quiz && !d.practice) {
+        scheduleTableRetry();   // a failed pull gets another go later
+        return { ok: false, reason: 'awaiting_pull', pending: dirtyCount() };
+      }
+    }
 
     tableInFlight = true;
     var failed = false;
@@ -701,9 +716,10 @@
       var out = { quiz: false, practice: false, ok: true };
       if (!currentUser()) return out;
       await ensureProfile();
-      try { out.quiz = (await pullQuiz()).changed; }
+      var uid = currentUser().id;
+      try { out.quiz = (await pullQuiz()).changed; pulledOk.quiz = uid; }
       catch (e) { out.ok = false; logError('quiz_scores select', e); }
-      try { out.practice = (await pullPractice()).changed; }
+      try { out.practice = (await pullPractice()).changed; pulledOk.practice = uid; }
       catch (e2) { out.ok = false; logError('practice_stats select', e2); }
       await flushTables();
       emit('bwc:sync-tables', out);
@@ -720,6 +736,7 @@
   window.bwcAuth.onChange(function (user) {
     if (!user || !user.id) return;
     profileEnsured = false;   // new identity — re-verify the profiles row
+    if (pulledOk.quiz !== user.id) pulledOk = { quiz: null, practice: null };
     resetRetry();
     resetTableRetry();
     pullMerge();              // lessons: real two-way merge, every time
