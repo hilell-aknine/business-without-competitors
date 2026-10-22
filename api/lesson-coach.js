@@ -25,6 +25,7 @@ import { callAI } from './_lib/providers.js';
 import { passesGuard, requireAuth } from './_lib/guard.js';
 import { loadKb } from './_lib/kb.js';
 import { selectPassages, rankLessons } from './_lib/retrieval.js';
+import { lecturerOf } from './_lib/lecturers.js';
 
 const CURRENT_LESSON_CHARS = 22000;   // budget for the lesson being watched
 const OTHER_LESSON_CHARS = 3600;      // budget per supporting lesson
@@ -42,12 +43,35 @@ const LESSON_KEY_RE = /^(m[0-7]-\d{1,2}-\d{1,2}|s[0-6]-\d{1,2})$/;
 // marker from the visible answer and turn it into links.
 const SOURCE_TAG_RE = /\[\[\s*מקורות\s*:([^\]]*)\]\]/g;
 
-function buildSystem(lessonTitle, transcript, others) {
+// Who is speaking, in words the model can't misread (2026-10-22).
+// The old prompt said "the course of Ram, Tzvika and Tamar" and the model
+// answered "כמו שרם אמר" everywhere. Ram doesn't lecture in any lesson
+// (0 mentions in all 8 module transcripts); the map comes from
+// tools/derive-lecturers.mjs and says null when it isn't sure.
+function speakerLine(info) {
+  const verb = (name) => (name === 'תמר' ? 'אמרה' : 'אמר');
+  if (!info || !info.lecturer) {
+    return 'לא ידוע בוודאות מי המרצה בשיעור הזה. אל תציין שם של מרצה ואל תנחש גם את המין שלו או שלה. כשאתה מצטט או מסביר, כתוב "בשיעור" או "בשיעור נאמר".';
+  }
+  const L = info.lecturer;
+  if (!info.with) {
+    return `המרצה בשיעור הזה: ${L}. כשאתה מייחס דברים למרצה, ייחס אותם ל${L} בלבד (למשל "כמו ש${L} ${verb(L)} בשיעור").`;
+  }
+  if (info.with === 'other') {
+    return `המרצה שמוביל את השיעור הזה: ${L}. נשמעים בו גם קולות נוספים (משתתפים או מרצה נוסף). ייחס ל${L} רק דברים שברור מהתמלול שהם שלו או שלה, ובכל מקרה אחר כתוב "בשיעור".`;
+  }
+  return `בשיעור הזה מדברים ${L} (מוביל/ה את השיעור) ו${info.with}. ייחס בשם רק כשברור מהתמלול מי אמר את הדברים, ובכל מקרה אחר כתוב "בשיעור".`;
+}
+
+function buildSystem(lessonKey, lessonTitle, transcript, others) {
   const lines = [
-    'אתה עוזר הלמידה של הקורס "עסק ללא מתחרים" של רם, צביקה ותמר.',
+    'אתה עוזר הלמידה של הקורס "עסק ללא מתחרים". המרצים בשיעורים הם צביקה (המנחה הראשי) ותמר רוזנברג (המטפלת הרגשית, מפגשי יום שלישי).',
     lessonTitle
       ? `הלומד צופה כרגע בשיעור: "${lessonTitle}".`
       : 'הלומד צופה בשיעור שאין לו תמלול במערכת.',
+    speakerLine(lecturerOf(lessonKey)),
+    'אל תייחס אף פעם דברים לרם: הוא לא מרצה באף שיעור בקורס. ואל תמציא שם של מרצה.',
+    'אם הלומד מייחס משהו לרם או לשם אחר שלא מתאים לשיעור, אל תאשר את השיוך: ענה על השאלה עצמה מתוך השיעור, וציין בעדינות במשפט אחד מי המרצה בשיעור הזה (או "בשיעור", אם לא ידוע מי).',
     '',
     'חוקים מחייבים:',
     '1. ענה אך ורק מתוך החומר המצורף למטה. אסור להוסיף ידע חיצוני, גם אם אתה מכיר את הנושא.',
@@ -75,7 +99,9 @@ function buildSystem(lessonTitle, transcript, others) {
   if (others.length) {
     lines.push('', '--- חומר משיעורים אחרים בקורס (משני, השתמש רק אם השיעור הנוכחי לא עונה) ---');
     for (const o of others) {
-      lines.push(`### שיעור ${o.key} — ${o.title}`, o.text, '');
+      const ol = lecturerOf(o.key);
+      const who = ol.lecturer && !ol.with ? ` (מרצה: ${ol.lecturer})` : ' (מרצה: לא לציין שם)';
+      lines.push(`### שיעור ${o.key} — ${o.title}${who}`, o.text, '');
     }
     lines.push('--- סוף החומר מהשיעורים האחרים ---');
   }
@@ -189,7 +215,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const system = buildSystem(lesson ? (lesson.title || lessonKey) : '', current.text, others);
+  const system = buildSystem(lessonKey, lesson ? (lesson.title || lessonKey) : '', current.text, others);
 
   // Short rolling history keeps follow-up questions coherent without
   // resending the transcript (it lives in the system prompt).

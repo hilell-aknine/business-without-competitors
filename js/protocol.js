@@ -258,7 +258,7 @@
         <div class="proto__chat-log" data-role="coach-log" data-fs-log></div>
         <div class="proto__chat-inputrow" data-fs-input>
           <textarea data-role="coach-input" rows="2" maxlength="${COACH_MAX_CHARS}" aria-label="השאלה שלך לעוזר הלמידה"
-            placeholder="לדוגמה: מה הרעיון המרכזי כאן? איזו דוגמה רם נתן?"></textarea>
+            placeholder="לדוגמה: מה הרעיון המרכזי כאן? איזו דוגמה ניתנה בשיעור?"></textarea>
           <button class="proto__cta" data-action="coach-ask" style="white-space:nowrap;">שאל</button>
         </div>
       </div>`;
