@@ -470,6 +470,49 @@ body > header.gnav {
   }
 }
 
+/* Admin-only "פאנל ניהול" button in the bar (2026-10-22). Rendered only
+   after is_admin() returns true; the data itself stays behind RLS. */
+.gnav__admin-slot[hidden] { display: none !important; }
+.gnav__admin-slot { display: inline-flex; }
+.gnav__admin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--lg-gold, #E5B547);
+  text-decoration: none;
+  white-space: nowrap;
+  background: rgba(229, 181, 71, 0.12);
+  border: 1px solid rgba(229, 181, 71, 0.55);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.gnav__admin:hover,
+.gnav__admin.is-active {
+  background: rgba(229, 181, 71, 0.24);
+  color: #fff;
+}
+.gnav__admin:focus-visible {
+  outline: 2px solid var(--lg-gold, #E5B547);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .gnav__admin { padding: 0 0.6rem; gap: 0.3rem; font-size: 0.78rem; }
+  .gnav__admin-label { display: none; }
+  .gnav__admin::after { content: "ניהול"; }
+}
+/* Phones: the bar is full (brand + 4 nav icons + account + more). Icon only,
+   gold ring keeps it distinct; the name is in aria-label/title. */
+@media (max-width: 480px) {
+  .gnav__admin::after { content: none; }
+  .gnav__admin { width: 36px; padding: 0; justify-content: center; }
+  .gnav__admin i { font-size: 1rem; }
+}
+
 /* Auth dropdown menu (when signed in) */
 .gnav__auth-menu {
   position: absolute;

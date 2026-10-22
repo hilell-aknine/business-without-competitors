@@ -37,7 +37,7 @@
 <link rel="stylesheet" href="css/empty-state.css">
 <!-- Feature sheet, tokens only — same rule as track.css / admin.css. -->
 <link rel="stylesheet" href="css/home-intro.css">
-<link rel="stylesheet" href="css/global-nav.css">
+<link rel="stylesheet" href="css/global-nav.css?v=3">
 <link rel="stylesheet" href="css/a11y.css">
 <style>
   /* ==================== TOKENS ==================== */
@@ -542,7 +542,11 @@
   }
   .gnav__center .v1-welcome[hidden]{display:none;}
   .gnav__center .v1-welcome .v1-welcome__stats{flex-wrap:nowrap;}
-  @media(max-width:1100px){.gnav__center .v1-welcome{display:none;}}
+  /* 2026-10-22: the hide rule lost to `.gnav__center .v1-welcome.g{display:flex}`
+     above (3 classes beat 2), so on phones the stats strip stayed in the bar
+     and pushed the account button, the ⋮ menu (and the admin door) off-screen.
+     Same selectors here, so the media query wins again. */
+  @media(max-width:1100px){.gnav__center .v1-welcome, .gnav__center .v1-welcome.g{display:none;}}
   @media (max-width:560px){
     .v1-welcome{flex-direction:column;align-items:stretch;}
     .v1-welcome__link{justify-content:center;}
@@ -3098,7 +3102,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="js/notes-store.js" defer></script>
 <script src="js/notes-ui.js" defer></script>
 <script src="js/lesson-notes.js" defer></script>
-<script src="js/global-nav.js?v=2" defer></script>
+<script src="js/global-nav.js?v=3" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used
      to load before the Supabase chain, back when it was localStorage-only. -->

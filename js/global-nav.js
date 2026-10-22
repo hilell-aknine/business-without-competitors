@@ -118,6 +118,8 @@
         '<ul class="gnav__nav" role="list">' + primary + '</ul>' +
       '</nav>' +
       '<div class="gnav__end">' +
+        // Admin-only door, filled in by showAdminLinks() once is_admin() says so.
+        '<span class="gnav__admin-slot" data-gnav-admin-slot hidden></span>' +
         '<div class="gnav__auth-wrap" data-gnav-auth>' +
           '<button type="button" class="gnav__auth gnav__auth--guest" data-gnav-auth-trigger aria-label="התחברות" aria-haspopup="dialog">' +
             '<i class="fa-solid fa-user" aria-hidden="true"></i>' +
@@ -249,29 +251,87 @@
        who logged in saw exactly what a learner sees and concluded he had no
        admin access. The role check is the same is_admin() RPC the admin pages
        use; the links are only a door. RLS on the data is the real lock. */
+    /* 2026-10-22: Hillel still "saw no admin button". Measured on production
+       with his own session: the links WERE there on every page, but only
+       inside the account menu, which opens from the small initial-letter
+       circle. Nothing on screen said "admin". Now an admin also gets a
+       visible "פאנל ניהול" button in the bar itself, on every page, desktop
+       and phone. Two smaller holes closed on the way:
+         * a failed is_admin() call (session still restoring, network blip)
+           was memoized as "checked", so the links never came for the rest
+           of the page's life. Now a failure is retried.
+         * the answer is remembered for this tab (sessionStorage), so after a
+           refresh the button is there at once instead of after a round trip.
+           It is only a hint: is_admin() still runs and can take it away. */
     var adminBox = root.querySelector('[data-gnav-admin]');
+    var adminSlot = root.querySelector('[data-gnav-admin-slot]');
     var adminCheckedFor = null;
-    function showAdminLinks(user) {
-      if (!adminBox || !user || !user.id) return;
-      if (adminCheckedFor === user.id) return;
-      adminCheckedFor = user.id;
-      var sb = window.bwcSupabase;
-      if (!sb || typeof sb.rpc !== 'function') return;
-      sb.rpc('is_admin', { uid: user.id }).then(function (res) {
-        if (adminCheckedFor !== user.id) return;
-        if (!res || res.error || res.data !== true) return;
-        var base = getBasePath();
+    var adminRetry = null;
+    var ADMIN_HINT = 'bwc_is_admin_';
+
+    function adminHint(uid, val) {
+      try {
+        if (val === undefined) return sessionStorage.getItem(ADMIN_HINT + uid) === '1';
+        if (val) sessionStorage.setItem(ADMIN_HINT + uid, '1');
+        else sessionStorage.removeItem(ADMIN_HINT + uid);
+      } catch (e) { return false; }
+    }
+
+    function renderAdmin() {
+      var base = getBasePath();
+      var here = (location.pathname.split('/').pop() || '').toLowerCase();
+      if (adminBox) {
         adminBox.innerHTML =
           '<a class="gnav__auth-item" role="menuitem" href="' + escapeHtml(base + 'pages/admin-users.html') + '">' +
             '<i class="fa-solid fa-users-gear" aria-hidden="true"></i><span>ניהול משתמשים</span></a>' +
           '<a class="gnav__auth-item" role="menuitem" href="' + escapeHtml(base + 'pages/admin-stats.html') + '">' +
             '<i class="fa-solid fa-chart-pie" aria-hidden="true"></i><span>נתוני למידה</span></a>';
         adminBox.hidden = false;
-      }, function () {});
+      }
+      if (adminSlot) {
+        var active = here === 'admin-users.html' || here === 'admin-stats.html';
+        adminSlot.innerHTML =
+          '<a class="gnav__admin' + (active ? ' is-active' : '') + '" data-gnav-admin-top' +
+          ' href="' + escapeHtml(base + 'pages/admin-users.html') + '"' +
+          (active ? ' aria-current="page"' : '') + ' aria-label="פאנל ניהול" title="פאנל ניהול">' +
+            '<i class="fa-solid fa-user-shield" aria-hidden="true"></i>' +
+            '<span class="gnav__admin-label">פאנל ניהול</span>' +
+          '</a>';
+        adminSlot.hidden = false;
+      }
+    }
+
+    function clearAdmin() {
+      if (adminBox) { adminBox.hidden = true; adminBox.innerHTML = ''; }
+      if (adminSlot) { adminSlot.hidden = true; adminSlot.innerHTML = ''; }
+    }
+
+    function showAdminLinks(user, attempt) {
+      if (!user || !user.id) return;
+      attempt = attempt || 0;
+      if (!attempt && adminCheckedFor === user.id) return;
+      adminCheckedFor = user.id;
+      if (adminRetry) { clearTimeout(adminRetry); adminRetry = null; }
+      if (adminHint(user.id)) renderAdmin();   // instant after a refresh
+
+      function retry() {
+        if (adminCheckedFor !== user.id || attempt >= 4) return;
+        adminRetry = setTimeout(function () { showAdminLinks(user, attempt + 1); }, 1500 * (attempt + 1));
+      }
+
+      var sb = window.bwcSupabase;
+      if (!sb || typeof sb.rpc !== 'function') { retry(); return; }
+      sb.rpc('is_admin', { uid: user.id }).then(function (res) {
+        if (adminCheckedFor !== user.id) return;
+        if (!res || res.error) { retry(); return; }
+        if (res.data === true) { adminHint(user.id, true); renderAdmin(); }
+        else { adminHint(user.id, false); clearAdmin(); }
+      }, retry);
     }
     function hideAdminLinks() {
       adminCheckedFor = null;
-      if (adminBox) { adminBox.hidden = true; adminBox.innerHTML = ''; }
+      if (adminRetry) { clearTimeout(adminRetry); adminRetry = null; }
+      clearAdmin();
     }
 
     function openMenu() {
