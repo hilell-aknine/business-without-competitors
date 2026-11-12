@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../css/brand.css?v=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003B46">
     <title>עוזר היישום - עסק ללא מתחרים</title>
@@ -17,7 +19,7 @@
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
     </script>
     <link rel="stylesheet" href="../css/theme.css">
-    <link rel="stylesheet" href="../css/global-nav.css?v=3">
+    <link rel="stylesheet" href="../css/global-nav.css?v=4">
     <link rel="stylesheet" href="../css/auth-modal.css">
     <link rel="stylesheet" href="../css/chat-composer.css">
     <style>
@@ -26,26 +28,26 @@
             min-height: 100vh;
             font-family: 'Heebo', sans-serif;
             direction: rtl;
-            background: #001e24;
-            color: #e8f1f2;
+            background: rgb(var(--bg2-rgb));
+            color: rgb(var(--fg-rgb));
             -webkit-text-size-adjust: 100%;
         }
         body::before, body::after {
             content: ''; position: fixed; border-radius: 50%;
             filter: blur(80px); pointer-events: none; z-index: 0;
         }
-        body::before { width: 420px; height: 420px; background: rgba(0,96,107,.35); top: -120px; inset-inline-start: -100px; }
-        body::after  { width: 380px; height: 380px; background: rgba(212,175,55,.12); bottom: -120px; inset-inline-end: -80px; }
+        body::before { width: 420px; height: 420px; background: rgba(var(--brand2-rgb),.35); top: -120px; inset-inline-start: -100px; }
+        body::after  { width: 380px; height: 380px; background: rgba(var(--brand-rgb),.12); bottom: -120px; inset-inline-end: -80px; }
 
         main { position: relative; z-index: 1; max-inline-size: 860px; margin-inline: auto; padding: 1.5rem 1.2rem 4rem; }
         .apply-hero { text-align: center; padding-block: 1.6rem .8rem; }
         .apply-hero h1 { font-family: 'Frank Ruhl Libre', serif; font-size: clamp(1.6rem, 4vw, 2.3rem); }
-        .apply-hero h1 i { color: #D4AF37; margin-inline-end: .4rem; }
-        .apply-hero p { color: rgba(232,241,242,.72); max-inline-size: 40rem; margin: .6rem auto 0; line-height: 1.65; font-size: .95rem; }
+        .apply-hero h1 i { color: rgb(var(--brand-rgb)); margin-inline-end: .4rem; }
+        .apply-hero p { color: rgba(var(--fg-rgb), calc(.72 * var(--ink-k))); max-inline-size: 40rem; margin: .6rem auto 0; line-height: 1.65; font-size: .95rem; }
 
         .g {
-            background: rgba(255,255,255,.045);
-            border: 1px solid rgba(255,255,255,.09);
+            background: rgba(var(--glass-rgb), calc(.045 * var(--glass-k)));
+            border: 1px solid rgba(var(--fg-rgb),.09);
             border-radius: 18px;
             backdrop-filter: blur(14px);
         }
@@ -55,7 +57,7 @@
         #authGate.hidden { display: none; }
         .gate-btn {
             margin-top: 1rem; padding: .7rem 1.6rem; border-radius: 12px; border: none;
-            background: linear-gradient(135deg, #D4AF37, #b8952e); color: #06232a;
+            background: linear-gradient(135deg, rgb(var(--brand-rgb)), rgb(var(--brand-rgb))); color: rgb(var(--on-brand-rgb));
             font: inherit; font-weight: 700; cursor: pointer;
         }
 
@@ -65,12 +67,12 @@
         .mod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: .8rem; margin-top: .9rem; }
         .mod-card {
             text-align: start; padding: .95rem 1rem; border-radius: 14px; cursor: pointer;
-            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.11);
+            background: rgba(var(--glass-rgb), calc(.04 * var(--glass-k))); border: 1px solid rgba(var(--fg-rgb),.11);
             color: inherit; font: inherit; transition: border-color .15s;
             display: flex; flex-direction: column; gap: .3rem;
         }
-        .mod-card:hover { border-color: rgba(212,175,55,.5); }
-        .mod-card__num { font-size: .72rem; color: #D4AF37; font-weight: 700; }
+        .mod-card:hover { border-color: rgba(var(--brand-rgb),.5); }
+        .mod-card__num { font-size: .72rem; color: rgb(var(--brand-rgb)); font-weight: 700; }
         .mod-card__title { font-weight: 600; font-size: .95rem; }
         .mod-card__badge { font-size: .72rem; color: rgba(120,220,160,.9); }
 
@@ -82,26 +84,26 @@
         .chat-head .chat-actions { display: flex; gap: .5rem; }
         .chat-btn {
             padding: .45rem .9rem; border-radius: 10px; font: inherit; font-size: .8rem; cursor: pointer;
-            background: transparent; border: 1px solid rgba(255,255,255,.18); color: rgba(232,241,242,.85);
+            background: transparent; border: 1px solid rgba(var(--fg-rgb),.18); color: rgba(var(--fg-rgb), calc(.85 * var(--ink-k)));
         }
-        .chat-btn--gold { background: linear-gradient(135deg, #D4AF37, #b8952e); border: none; color: #06232a; font-weight: 700; }
+        .chat-btn--gold { background: linear-gradient(135deg, rgb(var(--brand-rgb)), rgb(var(--brand-rgb))); border: none; color: rgb(var(--on-brand-rgb)); font-weight: 700; }
         #chatLog { display: flex; flex-direction: column; gap: .6rem; max-height: 55vh; overflow-y: auto; padding-block: .4rem; }
         .chat-msg { padding: .7rem .95rem; border-radius: 13px; font-size: .9rem; line-height: 1.6; max-inline-size: 90%; overflow-wrap: anywhere; }
         .chat-msg--user { white-space: pre-line; }
-        .chat-msg--user { align-self: flex-start; background: rgba(212,175,55,.13); border: 1px solid rgba(212,175,55,.25); }
-        .chat-msg--ai { align-self: flex-end; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); }
+        .chat-msg--user { align-self: flex-start; background: rgba(var(--brand-rgb),.13); border: 1px solid rgba(var(--brand-rgb),.25); }
+        .chat-msg--ai { align-self: flex-end; background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k))); border: 1px solid rgba(var(--fg-rgb),.1); }
         .chat-msg--ai h4, .chat-msg--ai h5, .chat-msg--ai h6 { margin-block: .5rem .2rem; }
         .chat-msg--ai ul, .chat-msg--ai ol { padding-inline-start: 1.2rem; margin-block: .3rem; }
         .chat-msg--ai p { margin-block: .3rem; }
         .chat-inputrow { display: flex; gap: .55rem; margin-top: .8rem; align-items: flex-end; }
         .chat-inputrow textarea {
             flex: 1; min-width: 0; resize: none; min-height: 3.2rem;
-            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.14);
+            background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k))); border: 1px solid rgba(var(--fg-rgb),.14);
             border-radius: 12px; color: inherit; font: inherit; font-size: 1rem; line-height: 1.65; padding: .6rem .8rem;
         }
         .chat-head .chat-actions { flex-wrap: wrap; }
-        .chat-inputrow textarea:focus { outline: 1px solid #D4AF37; }
-        .chat-loading { color: rgba(232,241,242,.6); font-size: .82rem; padding: .4rem; }
+        .chat-inputrow textarea:focus { outline: 1px solid rgb(var(--brand-rgb)); }
+        .chat-loading { color: rgba(var(--fg-rgb), calc(.6 * var(--ink-k))); font-size: .82rem; padding: .4rem; }
         .chat-error { color: #ff9c9c; font-size: .84rem; padding: .5rem .2rem; }
 
         /* Saved doc */
@@ -111,7 +113,7 @@
         #docView .doc-body h1, #docView .doc-body h2, #docView .doc-body h3,
         #docView .doc-body h4 { margin-block: .8rem .3rem; font-family: 'Frank Ruhl Libre', serif; }
         #docView .doc-body ul, #docView .doc-body ol { padding-inline-start: 1.3rem; }
-        .doc-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; color: rgba(232,241,242,.6); font-size: .78rem; }
+        .doc-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: .7rem; color: rgba(var(--fg-rgb), calc(.6 * var(--ink-k))); font-size: .78rem; }
 
         @media (max-width: 560px) {
             .chat-msg { max-inline-size: 100%; }
@@ -130,16 +132,16 @@
 
         <!-- Auth gate -->
         <div id="authGate" class="g">
-            <div style="font-size:2rem;color:#D4AF37;"><i class="fa-solid fa-lock" aria-hidden="true"></i></div>
+            <div style="font-size:2rem;color:rgb(var(--brand-rgb));"><i class="fa-solid fa-lock" aria-hidden="true"></i></div>
             <h2 style="margin-top:.6rem;">נדרשת התחברות</h2>
-            <p style="color:rgba(232,241,242,.7);margin-top:.4rem;">עוזר היישום שומר את המסמכים שלך בענן, ולכן דורש חשבון (חינמי).</p>
+            <p style="color:rgba(var(--fg-rgb), calc(.7 * var(--ink-k)));margin-top:.4rem;">עוזר היישום שומר את המסמכים שלך בענן, ולכן דורש חשבון (חינמי).</p>
             <button class="gate-btn" onclick="window.openLoginModal && window.openLoginModal()">התחברות / הרשמה</button>
         </div>
 
         <!-- Module picker -->
         <section id="modulePicker" class="g hidden">
             <h2 style="font-size:1.05rem;">באיזה מודול נעבוד היום?</h2>
-            <p style="color:rgba(232,241,242,.65);font-size:.85rem;margin-top:.3rem;">מומלץ לבחור מודול שסיימת לצפות בו. מסמך שכבר הפקת מסומן ✓.</p>
+            <p style="color:rgba(var(--fg-rgb), calc(.65 * var(--ink-k)));font-size:.85rem;margin-top:.3rem;">מומלץ לבחור מודול שסיימת לצפות בו. מסמך שכבר הפקת מסומן ✓.</p>
             <div class="mod-grid" id="modGrid"></div>
         </section>
 
@@ -179,7 +181,7 @@
     <script src="../js/auth-modal.js" defer></script>
     <script src="../js/sync-localstorage.js" defer></script>
     <script src="../js/course-data.js" defer></script>
-    <script src="../js/global-nav.js?v=3" defer></script>
+    <script src="../js/global-nav.js?v=4" defer></script>
     <script src="../js/api-host.js" defer></script>
     <script src="../js/chat-composer.js" defer></script>
     <script src="../js/apply-coach.js" defer></script>

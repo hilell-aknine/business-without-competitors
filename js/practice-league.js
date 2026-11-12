@@ -35,9 +35,9 @@
   const LEAGUE_SIZE = 20;  // learners per weekly league
 
   const AXES = {
-    learning:    { key: 'learning',    label: 'למידה',  icon: 'fa-graduation-cap', color: '#3fa9c2' },
-    persistence: { key: 'persistence', label: 'התמדה',  icon: 'fa-fire',           color: '#f0932f' },
-    application: { key: 'application', label: 'יישום',  icon: 'fa-hammer',         color: '#d4af37' }
+    learning:    { key: 'learning',    label: 'למידה',  icon: 'fa-graduation-cap', color: 'rgb(var(--brand2-rgb))' },
+    persistence: { key: 'persistence', label: 'התמדה',  icon: 'fa-fire',           color: 'rgb(var(--brand-rgb))' },
+    application: { key: 'application', label: 'יישום',  icon: 'fa-hammer',         color: 'rgb(var(--brand-rgb))' }
   };
 
   let cache = { standing: null, board: null, fetchedAt: 0 };

@@ -43,7 +43,7 @@
     align-items: center;
     gap: 0.55rem;
     text-decoration: none;
-    color: var(--text-primary, #fff);
+    color: var(--text-primary, rgb(var(--fg-rgb)));
     font-family: var(--font-display, 'Frank Ruhl Libre', serif);
     font-weight: 700;
     font-size: 0.98rem;
@@ -56,21 +56,21 @@
     width: 32px;
     height: 32px;
     border-radius: var(--radius-md, 8px);
-    background: linear-gradient(135deg, var(--accent-gold-hover, #E5B547), var(--accent-gold-deep, #D4A03B));
+    background: linear-gradient(135deg, var(--accent-gold-hover, rgb(var(--brand-rgb))), var(--accent-gold-deep, rgb(var(--brand-rgb))));
     display: grid;
     place-items: center;
-    color: var(--text-inverse, #1A2E2E);
+    color: var(--text-inverse, rgb(var(--on-brand-rgb)));
     font-size: 0.95rem;
-    box-shadow: 0 4px 14px rgba(229, 181, 71, 0.30), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 14px rgba(var(--brand-rgb), 0.30), inset 0 1px 0 rgba(var(--fg-rgb), 0.4);
     flex-shrink: 0;
 }
 
 .app-header__brand-text { color: inherit; }
-.app-header__brand-text b { color: var(--accent-gold-hover, #E5B547); font-weight: 900; }
+.app-header__brand-text b { color: var(--accent-gold-hover, rgb(var(--brand-rgb))); font-weight: 900; }
 
-.app-header__brand:hover { color: var(--text-primary, #fff); }
+.app-header__brand:hover { color: var(--text-primary, rgb(var(--fg-rgb))); }
 .app-header__brand:focus-visible {
-    outline: 3px solid var(--accent-gold-hover, #E5B547);
+    outline: 3px solid var(--accent-gold-hover, rgb(var(--brand-rgb)));
     outline-offset: 3px;
     border-radius: var(--radius-md, 8px);
 }
@@ -87,9 +87,9 @@
     gap: 0.4rem;
     min-height: 36px;
     padding: 0.4rem 0.85rem;
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary, #fff);
-    border: 1px solid var(--border-default, rgba(255, 255, 255, 0.18));
+    background: rgba(var(--glass-rgb), calc(0.08 * var(--glass-k)));
+    color: var(--text-primary, rgb(var(--fg-rgb)));
+    border: 1px solid var(--border-default, rgba(var(--fg-rgb), 0.18));
     border-radius: var(--radius-md, 8px);
     font-size: 0.85rem;
     font-weight: 500;
@@ -101,13 +101,13 @@
 }
 
 .app-header__back:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: var(--border-strong, rgba(255, 255, 255, 0.28));
-    color: var(--text-primary, #fff);
+    background: rgba(var(--glass-rgb), calc(0.15 * var(--glass-k)));
+    border-color: var(--border-strong, rgba(var(--fg-rgb), 0.28));
+    color: var(--text-primary, rgb(var(--fg-rgb)));
 }
 
 .app-header__back:focus-visible {
-    outline: 3px solid var(--accent-gold-hover, #E5B547);
+    outline: 3px solid var(--accent-gold-hover, rgb(var(--brand-rgb)));
     outline-offset: 2px;
 }
 
@@ -130,8 +130,8 @@
     top: -100px;
     z-index: 200;
     padding: 0.6rem 1rem;
-    background: var(--accent-gold, #D4AF37);
-    color: var(--text-inverse, #1A2E2E);
+    background: var(--accent-gold, rgb(var(--brand-rgb)));
+    color: var(--text-inverse, rgb(var(--on-brand-rgb)));
     border-radius: var(--radius-md, 8px);
     font-weight: 700;
     text-decoration: none;
@@ -139,7 +139,7 @@
 }
 .app-skip-link:focus {
     top: 0.5rem;
-    outline: 3px solid #fff;
+    outline: 3px solid rgb(var(--fg-rgb));
     outline-offset: 2px;
 }
 

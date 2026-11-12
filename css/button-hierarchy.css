@@ -27,7 +27,7 @@
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  color: var(--accent-teal-bright, #3FAABB);
+  color: var(--accent-teal-bright, rgb(var(--brand2-rgb)));
   font-weight: 500;
   font-size: 0.85rem;
   padding: 0.4rem 0.55rem;
@@ -49,7 +49,7 @@
 .v1-hero__actions .v1-hero__skip:focus-visible {
   background: transparent;
   transform: none;
-  color: var(--accent-teal-bright, #3FAABB);
+  color: var(--accent-teal-bright, rgb(var(--brand2-rgb)));
   text-decoration: underline;
   text-decoration-color: currentColor;
   filter: brightness(1.12);

@@ -181,7 +181,7 @@
 
   function loginRequiredBlock() {
     return `
-      <div class="proto__error" style="border-color:rgba(230,198,90,.4);">
+      <div class="proto__error" style="border-color:rgba(var(--brand-hi-rgb),.4);">
         <strong>הכלים האישיים פתוחים למי שמחובר.</strong><br>
         ההתחברות חינמית ולוקחת חצי דקה, והיא גם שומרת לך את ההתקדמות.
         <br><button data-action="open-login" style="margin-top:.6rem;">התחברות / הרשמה</button>
@@ -328,7 +328,7 @@
     const m = MODES.find(x => x.id === mode);
     return `
       <div class="proto__card" data-role="active">
-        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;color:var(--lg-gold,#D4AF37);font-weight:600;">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;color:var(--lg-gold,rgb(var(--brand-rgb)));font-weight:600;">
           <span style="font-size:1.3rem;">${m ? m.emoji : '✨'}</span>
           <span>${escapeHtml(m ? m.title : 'תרגול')}</span>
         </div>
@@ -610,7 +610,7 @@
       const m = MODES.find(x => x.id === mode);
       const stage1Html = methodologyBlock(cache.methodology, cache.providerUsed, mode);
       const header = `
-        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;color:var(--lg-gold,#D4AF37);font-weight:600;">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;color:var(--lg-gold,rgb(var(--brand-rgb)));font-weight:600;">
           <span style="font-size:1.3rem;">${m ? m.emoji : '✨'}</span>
           <span>${escapeHtml(m ? m.title : 'תרגול')}</span>
         </div>`;

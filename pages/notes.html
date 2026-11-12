@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../css/brand.css?v=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003B46">
     <title>המסמכים שלי - עסק ללא מתחרים</title>
@@ -13,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="../assets/css/design-tokens.css">
-    <link rel="stylesheet" href="../css/global-nav.css?v=3">
+    <link rel="stylesheet" href="../css/global-nav.css?v=4">
     <link rel="stylesheet" href="../css/auth-modal.css">
     <link rel="stylesheet" href="../css/notes.css">
     <style>
@@ -22,8 +24,8 @@
             min-height: 100vh;
             font-family: var(--font-body);
             direction: rtl;
-            background: #001e24;
-            color: #e8f1f2;
+            background: rgb(var(--bg2-rgb));
+            color: rgb(var(--fg-rgb));
             -webkit-text-size-adjust: 100%;
             overflow-x: clip;
         }
@@ -31,8 +33,8 @@
             content: ''; position: fixed; border-radius: 50%;
             filter: blur(80px); pointer-events: none; z-index: 0;
         }
-        body::before { width: 420px; height: 420px; background: rgba(0,96,107,.35); top: -120px; inset-inline-start: -100px; }
-        body::after  { width: 380px; height: 380px; background: rgba(212,175,55,.12); bottom: -120px; inset-inline-end: -80px; }
+        body::before { width: 420px; height: 420px; background: rgba(var(--brand2-rgb),.35); top: -120px; inset-inline-start: -100px; }
+        body::after  { width: 380px; height: 380px; background: rgba(var(--brand-rgb),.12); bottom: -120px; inset-inline-end: -80px; }
         .visually-hidden {
             position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
             overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -56,7 +58,7 @@
     <script src="../js/auth-modal.js" defer></script>
     <script src="../js/sync-localstorage.js" defer></script>
     <script src="../js/course-data.js" defer></script>
-    <script src="../js/global-nav.js?v=3" defer></script>
+    <script src="../js/global-nav.js?v=4" defer></script>
     <script src="../js/api-host.js" defer></script>
     <script src="../js/notes-store.js" defer></script>
     <script src="../js/notes-ui.js" defer></script>

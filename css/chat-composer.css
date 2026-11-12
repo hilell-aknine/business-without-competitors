@@ -16,31 +16,31 @@ textarea.bwc-composer{
 .bwc-composer__foot{
   display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
   gap:.25rem .8rem;margin-block-start:.35rem;
-  font-size:.74rem;line-height:1.4;color:rgba(232,241,242,.55);
+  font-size:.74rem;line-height:1.4;color:rgba(var(--fg-rgb), calc(.55 * var(--ink-k)));
 }
-.bwc-composer__count{font-variant-numeric:tabular-nums;color:rgba(232,241,242,.75);}
+.bwc-composer__count{font-variant-numeric:tabular-nums;color:rgba(var(--fg-rgb), calc(.75 * var(--ink-k)));}
 .bwc-fs-open{
   display:inline-flex;align-items:center;gap:.35rem;margin-inline-start:auto;
   min-block-size:32px;padding:.2rem .55rem;border-radius:8px;
-  background:transparent;border:1px solid rgba(212,175,55,.35);
-  color:var(--lg-gold,#D4AF37);font:inherit;font-size:.76rem;cursor:pointer;white-space:nowrap;
+  background:transparent;border:1px solid rgba(var(--brand-rgb),.35);
+  color:var(--lg-gold,rgb(var(--brand-rgb)));font:inherit;font-size:.76rem;cursor:pointer;white-space:nowrap;
 }
-.bwc-fs-open:hover,.bwc-fs-open:focus-visible{background:rgba(212,175,55,.12);color:#fff;}
-.bwc-fs-open:focus-visible{outline:2px solid var(--lg-gold,#D4AF37);outline-offset:2px;}
+.bwc-fs-open:hover,.bwc-fs-open:focus-visible{background:rgba(var(--brand-rgb),.12);color:rgb(var(--fg-rgb));}
+.bwc-fs-open:focus-visible{outline:2px solid var(--lg-gold,rgb(var(--brand-rgb)));outline-offset:2px;}
 .bwc-composer__count.is-near{color:#ffb4a8;font-weight:600;}
 
 /* ---- Full-screen toggle button ---- */
 .bwc-fs-btn{
   display:inline-flex;align-items:center;gap:.4rem;flex-shrink:0;
   min-block-size:36px;padding:.35rem .75rem;border-radius:10px;
-  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);
-  color:rgba(232,241,242,.9);font:inherit;font-size:.8rem;cursor:pointer;
+  background:rgba(var(--glass-rgb), calc(.06 * var(--glass-k)));border:1px solid rgba(var(--fg-rgb),.16);
+  color:rgba(var(--fg-rgb), calc(.9 * var(--ink-k)));font:inherit;font-size:.8rem;cursor:pointer;
   white-space:nowrap;
 }
 .bwc-fs-btn:hover,.bwc-fs-btn:focus-visible{
-  border-color:var(--lg-gold,#D4AF37);color:#fff;background:rgba(212,175,55,.12);
+  border-color:var(--lg-gold,rgb(var(--brand-rgb)));color:rgb(var(--fg-rgb));background:rgba(var(--brand-rgb),.12);
 }
-.bwc-fs-btn:focus-visible{outline:2px solid var(--lg-gold,#D4AF37);outline-offset:2px;}
+.bwc-fs-btn:focus-visible{outline:2px solid var(--lg-gold,rgb(var(--brand-rgb)));outline-offset:2px;}
 .bwc-fs-btn i{font-size:.85em;}
 @media (max-width:420px){
   /* Small phones, inline mode: icon only, the label lives in aria-label. */
@@ -69,7 +69,7 @@ html.bwc-chat-fs-open body{overflow:hidden !important;}
   flex-direction:column;
   gap:.6rem;
   padding:max(12px,env(safe-area-inset-top)) 16px max(12px,env(safe-area-inset-bottom)) !important;
-  background:#04262d !important;
+  background:rgb(var(--bg2-rgb)) !important;
   backdrop-filter:none !important;
   -webkit-backdrop-filter:none !important;
   overflow:hidden !important;
@@ -100,7 +100,7 @@ html.bwc-chat-fs-open body{overflow:hidden !important;}
 .bwc-chat-fs [data-fs-log]:empty::before{
   content:"כאן תופיע השיחה. כתוב למטה את השאלה או התשובה שלך.";
   margin:auto;text-align:center;max-inline-size:26rem;
-  color:rgba(232,241,242,.5);font-size:.9rem;line-height:1.6;
+  color:rgba(var(--fg-rgb), calc(.5 * var(--ink-k)));font-size:.9rem;line-height:1.6;
 }
 .bwc-chat-fs [data-fs-input]{flex:0 0 auto;margin-block-start:0 !important;}
 .bwc-chat-fs textarea.bwc-composer{
@@ -121,9 +121,9 @@ html.bwc-chat-fs-open body{overflow:hidden !important;}
   display:flex !important;align-items:center;justify-content:space-between;gap:.5rem .6rem;
   flex-wrap:wrap;
   margin-block:0 !important;padding-block-end:.5rem;
-  border-block-end:1px solid rgba(255,255,255,.08);
+  border-block-end:1px solid rgba(var(--fg-rgb),.08);
 }
 .bwc-chat-fs [data-fs-head] > :first-child{flex:1 1 12rem;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .bwc-chat-fs .bwc-fs-btn{
-  background:rgba(212,175,55,.14);border-color:rgba(212,175,55,.45);color:#fff;
+  background:rgba(var(--brand-rgb),.14);border-color:rgba(var(--brand-rgb),.45);color:rgb(var(--fg-rgb));
 }

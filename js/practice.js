@@ -685,14 +685,14 @@ function showView(name) {
 /* Per-unit jewel tones — keeps the Duolingo "each unit has a colour"
    read while staying inside the petrol/gold/aqua brand family. */
 const UNIT_COLORS = [
-  ['#2f8592', '#0e3b43', 'rgba(0,0,0,.4)'],
-  ['#c9922f', '#7c5817', 'rgba(0,0,0,.4)'],
-  ['#3d9070', '#12442f', 'rgba(0,0,0,.4)'],
-  ['#7f6ac4', '#332a5e', 'rgba(0,0,0,.4)'],
-  ['#c07044', '#63301a', 'rgba(0,0,0,.4)'],
-  ['#3179a8', '#123a55', 'rgba(0,0,0,.4)'],
-  ['#ab5273', '#4f2033', 'rgba(0,0,0,.4)'],
-  ['#6d963a', '#324715', 'rgba(0,0,0,.4)']
+  ['rgb(var(--brand2-rgb))', 'rgb(var(--bg3-rgb))', 'rgba(var(--shadow-rgb),.4)'],
+  ['rgb(var(--brand-rgb))', 'rgb(var(--brand-deep-rgb))', 'rgba(var(--shadow-rgb),.4)'],
+  ['#3d9070', '#12442f', 'rgba(var(--shadow-rgb),.4)'],
+  ['#7f6ac4', '#332a5e', 'rgba(var(--shadow-rgb),.4)'],
+  ['#c07044', '#63301a', 'rgba(var(--shadow-rgb),.4)'],
+  ['rgb(var(--brand2-rgb))', 'rgb(var(--brand2-rgb))', 'rgba(var(--shadow-rgb),.4)'],
+  ['#ab5273', '#4f2033', 'rgba(var(--shadow-rgb),.4)'],
+  ['#6d963a', '#324715', 'rgba(var(--shadow-rgb),.4)']
 ];
 
 /* Zig-zag offsets, continuing across unit boundaries. */
@@ -1803,7 +1803,7 @@ function triggerParticleBurst() {
   if (reducedMotion()) return;
 
   container.innerHTML = '';
-  const colors = ['#D4AF37', '#E6C65A', '#4ade80', '#2F8592', '#fff'];
+  const colors = ['rgb(var(--brand-rgb))', 'rgb(var(--brand-hi-rgb))', '#4ade80', 'rgb(var(--brand2-rgb))', 'rgb(var(--fg-rgb))'];
 
   for (let i = 0; i < 26; i++) {
     const dot = document.createElement('span');

@@ -56,9 +56,9 @@
   gap: .3rem;
   padding: .15rem .55rem;
   border-radius: 999px;
-  background: rgba(63, 170, 187, .12);
-  border: 1px solid rgba(63, 170, 187, .22);
-  color: rgba(232, 241, 242, .82);
+  background: rgba(var(--brand2-rgb), .12);
+  border: 1px solid rgba(var(--brand2-rgb), .22);
+  color: rgba(var(--fg-rgb), calc(.82 * var(--ink-k)));
   font-size: .7rem;
   font-weight: 600;
   letter-spacing: .01em;
@@ -70,7 +70,7 @@
   flex-basis: 100%;
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .06);
+  background: rgba(var(--fg-rgb), .06);
   overflow: hidden;
   position: relative;
   margin-top: .1rem;
@@ -83,10 +83,10 @@
   border-radius: inherit;
   background: linear-gradient(
     90deg,
-    rgba(212, 175, 55, .55),
-    var(--lg-gold, #D4AF37)
+    rgba(var(--brand-rgb), .55),
+    var(--lg-gold, rgb(var(--brand-rgb)))
   );
-  box-shadow: 0 0 6px rgba(212, 175, 55, .35);
+  box-shadow: 0 0 6px rgba(var(--brand-rgb), .35);
   transition: width .4s ease;
 }
 
@@ -94,8 +94,8 @@
 .v1-mod__progress.is-complete .v1-mod__progress-fill {
   background: linear-gradient(
     90deg,
-    var(--lg-gold, #D4AF37),
-    #F2D26A
+    var(--lg-gold, rgb(var(--brand-rgb))),
+    rgb(var(--brand-hi-rgb))
   );
 }
 
@@ -111,7 +111,7 @@
   inset-inline-end: 0;
   top: -1.05rem;
   font-size: .65rem;
-  color: rgba(232, 241, 242, .55);
+  color: rgba(var(--fg-rgb), calc(.55 * var(--ink-k)));
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
@@ -120,12 +120,12 @@
 .v1-mod.open > .v1-mod__hd {
   background: linear-gradient(
     180deg,
-    rgba(63, 170, 187, .07),
-    rgba(255, 255, 255, 0)
+    rgba(var(--brand2-rgb), .07),
+    rgba(var(--glass-rgb), calc(0 * var(--glass-k)))
   );
 }
 
 /* Hover on closed accordion gives subtle feedback */
 .v1-mod:not(.open) > .v1-mod__hd:hover {
-  background: rgba(255, 255, 255, .03);
+  background: rgba(var(--glass-rgb), calc(.03 * var(--glass-k)));
 }

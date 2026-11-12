@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="css/brand.css?v=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003B46">
     <title>השיטה האטומית — עסק ללא מתחרים</title>
@@ -26,7 +28,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/shared.css">
-    <link rel="stylesheet" href="css/global-nav.css?v=3">
+    <link rel="stylesheet" href="css/global-nav.css?v=4">
     <style>
         /* ===== Home Page Specific Styles ===== */
 
@@ -76,7 +78,7 @@
 
         .problem-card p {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.55);
+            color: rgba(var(--fg-rgb), calc(0.55 * var(--ink-k)));
             line-height: 1.7;
         }
 
@@ -91,8 +93,8 @@
 
         .pillar-card {
             padding: 2rem;
-            background: rgba(212, 175, 55, 0.04);
-            border: 1px solid rgba(212, 175, 55, 0.15);
+            background: rgba(var(--brand-rgb), 0.04);
+            border: 1px solid rgba(var(--brand-rgb), 0.15);
             border-radius: var(--radius-xl);
             text-align: center;
             position: relative;
@@ -111,15 +113,15 @@
         }
 
         .pillar-card:hover {
-            background: rgba(212, 175, 55, 0.08);
+            background: rgba(var(--brand-rgb), 0.08);
             transform: translateY(-2px);
         }
 
         .pillar-card .pillar-icon {
             width: 60px;
             height: 60px;
-            background: rgba(212, 175, 55, 0.12);
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: rgba(var(--brand-rgb), 0.12);
+            border: 1px solid rgba(var(--brand-rgb), 0.25);
             border-radius: var(--radius-lg);
             display: flex;
             align-items: center;
@@ -139,13 +141,13 @@
 
         .pillar-card .pillar-modules {
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(var(--fg-rgb), calc(0.4 * var(--ink-k)));
             margin-bottom: 0.8rem;
         }
 
         .pillar-card p {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(var(--fg-rgb), calc(0.6 * var(--ink-k)));
             line-height: 1.7;
         }
 
@@ -196,7 +198,7 @@
 
         .step-card p {
             font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(var(--fg-rgb), calc(0.5 * var(--ink-k)));
             line-height: 1.7;
         }
 
@@ -244,12 +246,12 @@
         .agent-card.accelerator .agent-icon {
             background: rgba(59, 130, 246, 0.12);
             border: 1px solid rgba(59, 130, 246, 0.25);
-            color: #60a5fa;
+            color: rgb(var(--brand2-hi-rgb));
         }
 
         .agent-card.arsenal .agent-icon {
-            background: rgba(212, 175, 55, 0.12);
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: rgba(var(--brand-rgb), 0.12);
+            border: 1px solid rgba(var(--brand-rgb), 0.25);
             color: var(--gold);
         }
 
@@ -262,13 +264,13 @@
 
         .agent-card .agent-role {
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(var(--fg-rgb), calc(0.4 * var(--ink-k)));
             margin-bottom: 0.8rem;
         }
 
         .agent-card p {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.6);
+            color: rgba(var(--fg-rgb), calc(0.6 * var(--ink-k)));
             line-height: 1.7;
         }
 
@@ -311,7 +313,7 @@
 
         .outcome-card p {
             font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(var(--fg-rgb), calc(0.5 * var(--ink-k)));
             line-height: 1.6;
         }
 
@@ -583,7 +585,7 @@
     <script src="js/auth.js" defer></script>
     <script src="js/auth-modal.js" defer></script>
     <script src="js/sync-localstorage.js" defer></script>
-    <script src="js/global-nav.js?v=3" defer></script>
+    <script src="js/global-nav.js?v=4" defer></script>
 <script src="js/credit-stamp.js" defer></script>
     <script src="js/course-data.js"></script>
     <script>

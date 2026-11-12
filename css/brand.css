@@ -1,0 +1,96 @@
+/* ==========================================================================
+   brand.css — the palette of the whole portal, in one place.
+
+   2026-11-12: rebrand from petrol + gold to Zvika's colours, sampled from
+   his own slides (orange triangle, violet-to-blue circle, ice background,
+   black headline). Two themes, switched by <html data-theme="light|dark">.
+   Light is the default because that is what his slides look like.
+
+   Every colour in the site is written as rgb(var(--x-rgb)) or
+   rgba(var(--x-rgb), a), so a component never needs to know which theme it
+   is in. A container that is ALWAYS dark (video player, a scrim over a
+   photo) can simply set --fg-rgb:255,255,255 on itself.
+
+   Loaded first on every page, before any other stylesheet.
+   ========================================================================== */
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* surfaces */
+  --bg-rgb: 234, 247, 252;        /* page: the ice of the slide (#EAF7FC) */
+  --bg2-rgb: 244, 251, 254;       /* section lift */
+  --bg3-rgb: 218, 240, 250;       /* hover / well (#DAF0FA) */
+  --surface-rgb: 255, 255, 255;   /* solid card */
+
+  /* ink */
+  --fg-rgb: 22, 29, 33;           /* the black of the headline (#161D21) */
+  --on-brand-rgb: 255, 255, 255;  /* text on an orange fill */
+
+  /* Zvika's orange */
+  --brand-rgb: 196, 82, 31;       /* #C4521F: deep enough for text on ice */
+  --brand-hi-rgb: 232, 105, 42;   /* #E8692A: the triangle */
+  --brand-deep-rgb: 160, 62, 20;
+
+  /* Zvika's violet -> blue */
+  --brand2-rgb: 106, 78, 190;     /* #6A4EBE */
+  --brand2-hi-rgb: 72, 92, 210;   /* #485CD2 */
+  --accent-rgb: 122, 92, 240;     /* the bright band (#7A5CF0) */
+
+  --shadow-rgb: 60, 72, 120;
+
+  /* translucent layers: on ice a 6% white film is invisible, so light mode
+     multiplies the alpha of glass fills and of faded text. */
+  --glass-rgb: 255, 255, 255;
+  --glass-k: 9;
+  --well-rgb: 255, 255, 255;
+  --ink-k: 1.4;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-rgb: 13, 14, 28;           /* #0D0E1C */
+  --bg2-rgb: 20, 22, 42;
+  --bg3-rgb: 30, 33, 62;
+  --surface-rgb: 26, 28, 52;
+
+  --fg-rgb: 255, 255, 255;
+  --on-brand-rgb: 27, 18, 8;      /* dark ink on the bright orange */
+
+  --brand-rgb: 232, 105, 42;      /* #E8692A */
+  --brand-hi-rgb: 255, 150, 92;   /* #FF965C */
+  --brand-deep-rgb: 196, 82, 31;
+
+  --brand2-rgb: 150, 118, 226;    /* #9676E2 */
+  --brand2-hi-rgb: 124, 140, 255; /* #7C8CFF */
+  --accent-rgb: 167, 112, 255;    /* #A770FF */
+
+  --shadow-rgb: 0, 0, 0;
+
+  --glass-rgb: 255, 255, 255;
+  --glass-k: 1;
+  --well-rgb: 0, 0, 0;
+  --ink-k: 1;
+}
+
+:root {
+  --brand: rgb(var(--brand-rgb));
+  --brand-hi: rgb(var(--brand-hi-rgb));
+  --brand2: rgb(var(--brand2-rgb));
+  --brand2-hi: rgb(var(--brand2-hi-rgb));
+  --ink: rgb(var(--fg-rgb));
+  --page: rgb(var(--bg-rgb));
+  --grad-brand: linear-gradient(135deg, rgb(var(--brand-hi-rgb)), rgb(var(--brand-rgb)));
+  --grad-brand2: linear-gradient(135deg, rgb(var(--brand2-rgb)), rgb(var(--brand2-hi-rgb)));
+}
+
+/* Containers that sit on imagery or video stay white-on-dark in both themes. */
+.is-always-dark {
+  --fg-rgb: 255, 255, 255;
+  --shadow-rgb: 0, 0, 0;
+  --glass-k: 1;
+  --well-rgb: 0, 0, 0;
+  --ink-k: 1;
+}

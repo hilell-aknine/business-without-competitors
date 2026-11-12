@@ -85,8 +85,8 @@ body.prac-lesson-mode #view-menu.prac-view--active {
   place-items: center;
   font-size: 1.6rem;
   color: var(--accent-gold-light);
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(229, 181, 71, 0.25);
+  background: rgba(var(--brand-rgb), 0.1);
+  border: 1px solid rgba(var(--brand-rgb), 0.25);
 }
 
 .lp-intro__title {
@@ -122,9 +122,9 @@ body.prac-lesson-mode #view-menu.prac-view--active {
   gap: 0.4rem;
   padding: 0.4rem 0.8rem;
   border-radius: var(--radius-full);
-  background: rgba(47, 133, 146, 0.18);
-  border: 1px solid rgba(63, 170, 187, 0.3);
-  color: #9FDBE5;
+  background: rgba(var(--brand2-rgb), 0.18);
+  border: 1px solid rgba(var(--brand2-rgb), 0.3);
+  color: rgb(var(--brand2-hi-rgb));
   font-size: 0.78rem;
   font-weight: 500;
 }

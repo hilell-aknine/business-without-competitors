@@ -4,7 +4,7 @@
 
    WHY THIS FILE EXISTS
    Both admin pages used to carry a private <style> block full of hardcoded
-   hex values (#001e24, #e8f1f2, #D4AF37, rgba(232,241,242,.65)...) and they
+   hex values (rgb(var(--bg2-rgb)), rgb(var(--fg-rgb)), rgb(var(--brand-rgb)), rgba(var(--fg-rgb),.65)...) and they
    loaded css/theme.css — the LEGACY theme layer. Everything else current
    (index.html, pages/practice.html, pages/library.html) had already moved to
    assets/css/design-tokens.css + assets/css/components.css, so the admin
@@ -61,23 +61,23 @@ button:focus-visible,
 .atmos__base {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 90% 12%, rgba(26, 79, 79, .7), transparent 60%),
-    radial-gradient(ellipse 55% 50% at 12% 88%, rgba(45, 107, 95, .6), transparent 60%),
-    radial-gradient(circle 480px at 70% 55%, rgba(212, 165, 116, .22), transparent 60%),
-    radial-gradient(circle 360px at 18% 18%, rgba(232, 213, 183, .13), transparent 60%),
-    linear-gradient(160deg, #0F2D2D 0%, #0a2528 55%, #0F2D2D 100%);
+    radial-gradient(ellipse 60% 50% at 90% 12%, rgba(var(--brand2-rgb), .7), transparent 60%),
+    radial-gradient(ellipse 55% 50% at 12% 88%, rgba(var(--brand2-rgb), .6), transparent 60%),
+    radial-gradient(circle 480px at 70% 55%, rgba(var(--brand-hi-rgb), .22), transparent 60%),
+    radial-gradient(circle 360px at 18% 18%, rgba(var(--brand-hi-rgb), .13), transparent 60%),
+    linear-gradient(160deg, rgb(var(--bg2-rgb)) 0%, rgb(var(--bg2-rgb)) 55%, rgb(var(--bg2-rgb)) 100%);
 }
 .atmos__blob {
   position: absolute; border-radius: var(--radius-full);
   filter: blur(120px); mix-blend-mode: screen; will-change: transform;
 }
 .atmos__blob--a {
-  inline-size: 600px; block-size: 600px; background: #D4A574; opacity: .18;
+  inline-size: 600px; block-size: 600px; background: rgb(var(--brand-hi-rgb)); opacity: .18;
   top: -220px; inset-inline-end: -180px;
   animation: adFloatA 60s ease-in-out infinite;
 }
 .atmos__blob--b {
-  inline-size: 520px; block-size: 520px; background: #2D6B5F; opacity: .22;
+  inline-size: 520px; block-size: 520px; background: rgb(var(--brand2-rgb)); opacity: .22;
   bottom: -200px; inset-inline-start: -160px;
   animation: adFloatB 60s ease-in-out infinite;
 }
@@ -94,8 +94,8 @@ button:focus-visible,
 .atmos__grid {
   position: absolute; inset: 0; opacity: .06; mix-blend-mode: overlay;
   background-image:
-    linear-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, .5) 1px, transparent 1px);
+    linear-gradient(rgba(var(--glass-rgb), calc(.5 * var(--glass-k))) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--glass-rgb), calc(.5 * var(--glass-k))) 1px, transparent 1px);
   background-size: 64px 64px;
   -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
@@ -112,17 +112,17 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .g {
   position: relative; isolation: isolate;
   border-radius: var(--radius-xl);
-  background: linear-gradient(135deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .05) 100%);
+  background: linear-gradient(135deg, rgba(var(--glass-rgb), calc(.10 * var(--glass-k))) 0%, rgba(var(--glass-rgb), calc(.05 * var(--glass-k))) 100%);
   backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
   -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
   border: 1px solid var(--border-subtle);
   border-block-start-color: var(--border-strong);
-  border-block-end-color: rgba(255, 255, 255, .06);
-  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, .18);
+  border-block-end-color: rgba(var(--fg-rgb), .06);
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(var(--fg-rgb), .18);
 }
 .g::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .02) 35%, transparent 55%);
+  background: linear-gradient(180deg, rgba(var(--glass-rgb), calc(.10 * var(--glass-k))) 0%, rgba(var(--glass-rgb), calc(.02 * var(--glass-k))) 35%, transparent 55%);
   z-index: 0;
 }
 .g > * { position: relative; z-index: 1; }
@@ -163,14 +163,14 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   display: inline-flex; align-items: center; gap: .45rem;
   min-block-size: 44px; padding: .6rem 1.2rem;
   border-radius: var(--radius-lg);
-  background: rgba(212, 175, 55, .12);
+  background: rgba(var(--brand-rgb), .12);
   border: 1px solid var(--border-gold);
   color: var(--accent-gold);
   text-decoration: none; font-size: .86rem; font-weight: 600;
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 .adm-switch__link:hover {
-  background: rgba(212, 175, 55, .2);
+  background: rgba(var(--brand-rgb), .2);
   color: var(--accent-gold-light);
 }
 
@@ -236,7 +236,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .adm-toolbar select {
   min-block-size: 44px; padding: .5rem .8rem;
   border-radius: var(--radius-lg);
-  background: rgba(0, 0, 0, .28);
+  background: rgba(var(--well-rgb), .28);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
   font-family: inherit;
@@ -263,11 +263,11 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 }
 .adm-table tbody td {
   text-align: start; padding: .65rem .6rem;
-  border-block-end: 1px solid rgba(255, 255, 255, .07);
+  border-block-end: 1px solid rgba(var(--fg-rgb), .07);
   vertical-align: middle;
 }
 .adm-table tbody tr.is-clickable { cursor: pointer; transition: background var(--transition-fast); }
-.adm-table tbody tr.is-clickable:hover { background: rgba(255, 255, 255, .05); }
+.adm-table tbody tr.is-clickable:hover { background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k))); }
 .adm-table tbody tr.is-clickable:focus-visible {
   outline: 2px solid var(--accent-gold); outline-offset: -2px;
 }
@@ -287,12 +287,12 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .adm-pill {
   display: inline-block; padding: .14rem .55rem;
   border-radius: var(--radius-full); font-size: .72rem; font-weight: 600;
-  background: rgba(212, 175, 55, .14);
-  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(var(--brand-rgb), .14);
+  border: 1px solid rgba(var(--brand-rgb), .3);
   color: var(--accent-gold); white-space: nowrap;
 }
 .adm-pill--none {
-  background: rgba(255, 255, 255, .05);
+  background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k)));
   border-color: var(--border-subtle);
   color: var(--text-disabled);
 }
@@ -304,7 +304,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .adm-pill--warn {
   background: rgba(245, 158, 11, .14);
   border-color: rgba(245, 158, 11, .34);
-  color: #F2B23C;
+  color: rgb(var(--brand-rgb));
 }
 .adm-pill--stuck {
   background: rgba(239, 68, 68, .13);
@@ -312,8 +312,8 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   color: #F58585;
 }
 .adm-pill--teal {
-  background: rgba(63, 170, 187, .14);
-  border-color: rgba(63, 170, 187, .32);
+  background: rgba(var(--brand2-rgb), .14);
+  border-color: rgba(var(--brand2-rgb), .32);
   color: var(--accent-teal-bright);
 }
 
@@ -321,7 +321,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
    Progress bar
    ========================================================================== */
 .adm-bar {
-  position: relative; background: rgba(255, 255, 255, .07);
+  position: relative; background: rgba(var(--fg-rgb), .07);
   border-radius: var(--radius-sm); block-size: 8px;
   min-inline-size: 60px; overflow: hidden; flex: 1;
 }
@@ -346,8 +346,8 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .adm-note strong { color: var(--text-secondary); }
 
 .adm-caveat {
-  border: 1px solid rgba(212, 175, 55, .28);
-  background: rgba(212, 175, 55, .07);
+  border: 1px solid rgba(var(--brand-rgb), .28);
+  background: rgba(var(--brand-rgb), .07);
   border-radius: var(--radius-lg);
   padding: .85rem .95rem; font-size: .8rem; line-height: 1.65;
   color: var(--text-secondary);
@@ -405,7 +405,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   border-radius: var(--radius-2xl);
   padding: 1.4rem 1.15rem 1.6rem;
   /* Opaque-ish so the scrolling roster behind it never bleeds into the text. */
-  background: linear-gradient(160deg, rgba(15, 45, 45, .96), rgba(10, 34, 38, .96));
+  background: linear-gradient(160deg, rgba(var(--bg2-rgb), .96), rgba(var(--bg2-rgb), .96));
   border: 1px solid var(--border-default);
   box-shadow: var(--shadow-xl);
 }
@@ -418,13 +418,13 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   position: absolute; top: 1rem; inset-inline-end: 1rem;
   inline-size: 38px; block-size: 38px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, .08);
+  background: rgba(var(--glass-rgb), calc(.08 * var(--glass-k)));
   border: 1px solid var(--border-default);
   color: var(--text-secondary); cursor: pointer;
   display: grid; place-items: center;
   transition: background var(--transition-fast);
 }
-.adm-drawer__close:hover { background: rgba(255, 255, 255, .16); color: var(--text-primary); }
+.adm-drawer__close:hover { background: rgba(var(--glass-rgb), calc(.16 * var(--glass-k))); color: var(--text-primary); }
 
 .adm-drawer__head { padding-inline-end: 3rem; }
 .adm-drawer__name { font-family: var(--font-display); font-size: 1.3rem; line-height: 1.3; }
@@ -439,7 +439,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   gap: .5rem; margin-block: 1.1rem;
 }
 .adm-drawer__stat {
-  background: rgba(255, 255, 255, .05);
+  background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k)));
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg); padding: .65rem .4rem; text-align: center;
 }
@@ -463,7 +463,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 /* --- Onboarding answers --- */
 .adm-qa { list-style: none; display: grid; gap: .45rem; }
 .adm-qa li {
-  background: rgba(255, 255, 255, .04);
+  background: rgba(var(--glass-rgb), calc(.04 * var(--glass-k)));
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg); padding: .55rem .7rem;
 }
@@ -472,7 +472,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 
 .adm-blank {
   color: var(--text-muted); font-size: .85rem; line-height: 1.65;
-  background: rgba(255, 255, 255, .03);
+  background: rgba(var(--glass-rgb), calc(.03 * var(--glass-k)));
   border: 1px dashed var(--border-subtle);
   border-radius: var(--radius-lg); padding: .7rem .8rem;
 }
@@ -481,7 +481,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 .adm-mods { display: grid; gap: .5rem; }
 
 .adm-mod {
-  background: rgba(255, 255, 255, .04);
+  background: rgba(var(--glass-rgb), calc(.04 * var(--glass-k)));
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -494,21 +494,21 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
   background: none; border: none; color: inherit;
   font: inherit; text-align: start; cursor: pointer;
 }
-.adm-mod__btn:hover { background: rgba(255, 255, 255, .04); }
+.adm-mod__btn:hover { background: rgba(var(--glass-rgb), calc(.04 * var(--glass-k))); }
 .adm-mod__btn[disabled] { cursor: default; }
 .adm-mod__btn[disabled]:hover { background: none; }
 
 .adm-mod__idx {
   inline-size: 26px; block-size: 26px; flex-shrink: 0;
   border-radius: var(--radius-md);
-  background: rgba(212, 175, 55, .16);
-  border: 1px solid rgba(212, 175, 55, .3);
+  background: rgba(var(--brand-rgb), .16);
+  border: 1px solid rgba(var(--brand-rgb), .3);
   color: var(--accent-gold);
   display: grid; place-items: center;
   font-size: .74rem; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 .adm-mod--empty .adm-mod__idx {
-  background: rgba(255, 255, 255, .05);
+  background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k)));
   border-color: var(--border-subtle);
   color: var(--text-disabled);
 }
@@ -561,7 +561,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
 }
 .adm-mini td {
   text-align: start; padding: .45rem;
-  border-block-end: 1px solid rgba(255, 255, 255, .06);
+  border-block-end: 1px solid rgba(var(--fg-rgb), .06);
 }
 .adm-mini tr:last-child td { border-block-end: none; }
 .adm-mini__name { color: var(--text-secondary); }
@@ -579,7 +579,7 @@ body > *:not(.atmos):not(.gnav):not(.app-skip-link):not(.bwc-auth-overlay) { pos
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: .75rem .85rem; margin-block-end: .6rem;
-    background: rgba(255, 255, 255, .03);
+    background: rgba(var(--glass-rgb), calc(.03 * var(--glass-k)));
   }
   .adm-table tbody td {
     display: flex; justify-content: space-between; align-items: center;

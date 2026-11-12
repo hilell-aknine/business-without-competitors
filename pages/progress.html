@@ -2,6 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../css/brand.css?v=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#003B46">
     <title>ההתקדמות שלי - עסק ללא מתחרים</title>
@@ -17,7 +19,7 @@
         (function(){var t=localStorage.getItem('bwc-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
     </script>
     <link rel="stylesheet" href="../css/theme.css">
-    <link rel="stylesheet" href="../css/global-nav.css?v=3">
+    <link rel="stylesheet" href="../css/global-nav.css?v=4">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,8 +27,8 @@
             min-height: 100vh;
             font-family: 'Heebo', sans-serif;
             direction: rtl;
-            background: #001e24;
-            color: #e8f1f2;
+            background: rgb(var(--bg2-rgb));
+            color: rgb(var(--fg-rgb));
             -webkit-text-size-adjust: 100%;
         }
 
@@ -42,12 +44,12 @@
         body::before {
             width: 60vw; height: 60vw;
             top: -20vw; right: -10vw;
-            background: radial-gradient(circle, rgba(0,96,107,.35) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(var(--brand2-rgb),.35) 0%, transparent 70%);
         }
         body::after {
             width: 50vw; height: 50vw;
             bottom: -15vw; left: -10vw;
-            background: radial-gradient(circle, rgba(47,133,146,.2) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(var(--brand2-rgb),.2) 0%, transparent 70%);
         }
 
         /* Layout */
@@ -66,11 +68,11 @@
             font-family: 'Frank Ruhl Libre', serif;
             font-size: clamp(1.8rem, 5vw, 2.6rem);
             font-weight: 700;
-            color: #fff;
+            color: rgb(var(--fg-rgb));
             margin-bottom: .3rem;
         }
         .prog-subtitle {
-            color: rgba(232,241,242,.55);
+            color: rgba(var(--fg-rgb), calc(.55 * var(--ink-k)));
             font-size: .95rem;
         }
 
@@ -80,17 +82,17 @@
             align-items: center;
             gap: .4rem;
             font-size: .78rem;
-            color: rgba(212,175,55,.75);
+            color: rgba(var(--brand-rgb),.75);
             margin-top: .55rem;
         }
         .prog-sync.is-hidden { display: none; }
 
         /* Glass card */
         .glass-card {
-            background: rgba(0,59,70,.45);
+            background: rgba(var(--bg3-rgb),.45);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(212,175,55,.15);
+            border: 1px solid rgba(var(--brand-rgb),.15);
             border-radius: 1rem;
             overflow: hidden;
         }
@@ -114,7 +116,7 @@
             font-family: 'Frank Ruhl Libre', serif;
             font-size: 2rem;
             font-weight: 700;
-            color: #D4AF37;
+            color: rgb(var(--brand-rgb));
             line-height: 1.1;
             display: block;
             /* "19 / 132" inside an RTL block renders as "132 / 19" — the spaces
@@ -129,13 +131,13 @@
         }
         .stat-card__sub {
             font-size: .82rem;
-            color: rgba(232,241,242,.5);
+            color: rgba(var(--fg-rgb), calc(.5 * var(--ink-k)));
             display: block;
             margin-top: .15rem;
         }
         .stat-card__label {
             font-size: .78rem;
-            color: rgba(232,241,242,.55);
+            color: rgba(var(--fg-rgb), calc(.55 * var(--ink-k)));
             margin-top: .35rem;
             display: block;
         }
@@ -145,7 +147,7 @@
         .prog-section__title {
             font-size: .82rem;
             font-weight: 700;
-            color: rgba(212,175,55,.8);
+            color: rgba(var(--brand-rgb),.8);
             text-transform: uppercase;
             letter-spacing: .1em;
             margin-bottom: .7rem;
@@ -157,7 +159,7 @@
             content: '';
             flex: 1;
             height: 1px;
-            background: rgba(212,175,55,.15);
+            background: rgba(var(--brand-rgb),.15);
         }
 
         /* Module rows */
@@ -175,7 +177,7 @@
             gap: 1rem;
             transition: border-color .2s;
         }
-        .module-row:hover { border-color: rgba(212,175,55,.3); }
+        .module-row:hover { border-color: rgba(var(--brand-rgb),.3); }
 
         @media (max-width: 500px) {
             .module-row {
@@ -189,7 +191,7 @@
         }
 
         .module-row__icon {
-            color: rgba(212,175,55,.65);
+            color: rgba(var(--brand-rgb),.65);
             font-size: 1rem;
             text-align: center;
             flex-shrink: 0;
@@ -199,7 +201,7 @@
         .module-row__name {
             font-size: .88rem;
             font-weight: 600;
-            color: #e8f1f2;
+            color: rgb(var(--fg-rgb));
             margin-bottom: .45rem;
             white-space: nowrap;
             overflow: hidden;
@@ -209,19 +211,19 @@
         .prog-bar {
             height: 5px;
             border-radius: 3px;
-            background: rgba(255,255,255,.1);
+            background: rgba(var(--fg-rgb), .1);
             overflow: hidden;
         }
         .prog-bar__fill {
             height: 100%;
             border-radius: 3px;
-            background: linear-gradient(90deg, #b8922a, #D4AF37, #f0d060);
+            background: linear-gradient(90deg, rgb(var(--brand-rgb)), rgb(var(--brand-rgb)), rgb(var(--brand-hi-rgb)));
             transition: width .7s cubic-bezier(.4,0,.2,1);
         }
 
         .prog-meta {
             font-size: .72rem;
-            color: rgba(232,241,242,.4);
+            color: rgba(var(--fg-rgb), calc(.4 * var(--ink-k)));
             margin-top: .3rem;
         }
 
@@ -235,9 +237,9 @@
             flex-shrink: 0;
         }
         .quiz-badge--passed {
-            background: rgba(212,175,55,.14);
-            color: #D4AF37;
-            border: 1px solid rgba(212,175,55,.32);
+            background: rgba(var(--brand-rgb),.14);
+            color: rgb(var(--brand-rgb));
+            border: 1px solid rgba(var(--brand-rgb),.32);
         }
         .quiz-badge--failed {
             background: rgba(220,53,69,.1);
@@ -245,9 +247,9 @@
             border: 1px solid rgba(220,53,69,.28);
         }
         .quiz-badge--untried {
-            background: rgba(255,255,255,.05);
-            color: rgba(232,241,242,.35);
-            border: 1px solid rgba(255,255,255,.1);
+            background: rgba(var(--glass-rgb), calc(.05 * var(--glass-k)));
+            color: rgba(var(--fg-rgb), calc(.35 * var(--ink-k)));
+            border: 1px solid rgba(var(--fg-rgb),.1);
         }
 
         /* Practice card */
@@ -266,7 +268,7 @@
             font-family: 'Frank Ruhl Libre', serif;
             font-size: 1.9rem;
             font-weight: 700;
-            color: #D4AF37;
+            color: rgb(var(--brand-rgb));
             display: block;
             line-height: 1.15;
             /* Same bidi isolation as .stat-card__value — this one holds
@@ -276,7 +278,7 @@
         }
         .practice-stat__label {
             font-size: .75rem;
-            color: rgba(232,241,242,.5);
+            color: rgba(var(--fg-rgb), calc(.5 * var(--ink-k)));
             margin-top: .25rem;
         }
 
@@ -288,15 +290,15 @@
             align-items: center;
             gap: .75rem;
             font-size: .875rem;
-            color: rgba(232,241,242,.7);
-            border-right: 3px solid rgba(212,175,55,.4);
+            color: rgba(var(--fg-rgb), calc(.7 * var(--ink-k)));
+            border-right: 3px solid rgba(var(--brand-rgb),.4);
             flex-wrap: wrap;
         }
-        .guest-nudge i { color: rgba(212,175,55,.7); flex-shrink: 0; }
+        .guest-nudge i { color: rgba(var(--brand-rgb),.7); flex-shrink: 0; }
         .guest-nudge button {
             background: none;
             border: none;
-            color: #D4AF37;
+            color: rgb(var(--brand-rgb));
             font: inherit;
             cursor: pointer;
             text-decoration: underline;
@@ -641,7 +643,7 @@
          read from the data file instead of being retyped here. -->
     <script src="../js/practice-data.js" defer></script>
     <script src="../js/progress-source.js" defer></script>
-    <script src="../js/global-nav.js?v=3" defer></script>
+    <script src="../js/global-nav.js?v=4" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
 <!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
 <script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>

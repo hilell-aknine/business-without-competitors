@@ -1,64 +1,28 @@
-// ===== Theme Toggle - עסק ללא מתחרים =====
-// Dark/Light mode with localStorage persistence + OS preference fallback
+// ===== Theme - עסק ללא מתחרים =====
+// 2026-11-12: one rule for the whole portal. Light is the default (Zvika's
+// slides are light); the learner's own choice is remembered in `bwc-theme`.
+// The first paint is handled by a one-line script in each page's <head>; this
+// file only exposes the API. The switch itself lives in the ⋮ menu
+// (js/global-nav.js), which carries the same logic, so pages that never
+// loaded this file still get the toggle.
+(function () {
+    var KEY = 'bwc-theme';
 
-(function() {
-    const STORAGE_KEY = 'bwc-theme';
-
-    function getPreferredTheme() {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) return stored;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    function get() {
+        try { return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'; }
+        catch (e) { return 'light'; }
     }
 
-    function setTheme(theme) {
+    function set(theme) {
+        theme = theme === 'dark' ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem(STORAGE_KEY, theme);
-        updateToggleIcon(theme);
+        try { localStorage.setItem(KEY, theme); } catch (e) {}
+        try { window.dispatchEvent(new CustomEvent('bwc:theme-change', { detail: { theme: theme } })); } catch (e) {}
+        return theme;
     }
 
-    function toggleTheme() {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        setTheme(current === 'dark' ? 'light' : 'dark');
+    if (!window.bwcTheme) {
+        window.bwcTheme = { get: get, set: set, toggle: function () { return set(get() === 'dark' ? 'light' : 'dark'); } };
     }
-
-    function updateToggleIcon(theme) {
-        const btn = document.getElementById('themeToggle');
-        if (!btn) return;
-        const icon = btn.querySelector('i');
-        if (theme === 'dark') {
-            icon.className = 'fa-solid fa-sun';
-        } else {
-            icon.className = 'fa-solid fa-moon';
-        }
-    }
-
-    function injectToggleButton() {
-        const navLeft = document.querySelector('.top-nav-left');
-        if (!navLeft) return;
-        const btn = document.createElement('button');
-        btn.id = 'themeToggle';
-        btn.className = 'theme-toggle';
-        btn.onclick = toggleTheme;
-        btn.setAttribute('aria-label', 'החלף מצב תצוגה');
-        btn.innerHTML = '<i class="fa-solid fa-moon"></i>';
-        navLeft.insertBefore(btn, navLeft.firstChild);
-        updateToggleIcon(getPreferredTheme());
-    }
-
-    // Apply theme immediately to prevent FOUC
-    setTheme(getPreferredTheme());
-
-    // Inject toggle button when DOM is ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', injectToggleButton);
-    } else {
-        injectToggleButton();
-    }
-
-    // Listen for OS theme changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        if (!localStorage.getItem(STORAGE_KEY)) {
-            setTheme(e.matches ? 'dark' : 'light');
-        }
-    });
+    document.documentElement.setAttribute('data-theme', get());
 })();

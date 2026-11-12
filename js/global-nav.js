@@ -100,6 +100,24 @@
     );
   }
 
+  /* ----- Theme (light / dark). 2026-11-12: the switch lives here, in the ⋮ menu,
+     so every page has it without loading another script. Light is the default. ----- */
+  var THEME_KEY = 'bwc-theme';
+  function getTheme() {
+    try { return localStorage.getItem(THEME_KEY) === 'dark' ? 'dark' : 'light'; } catch (e) { return 'light'; }
+  }
+  function setTheme(theme) {
+    theme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', theme);
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent('bwc:theme-change', { detail: { theme: theme } })); } catch (e) {}
+  }
+  function themeButtonInner() {
+    var dark = getTheme() === 'dark';
+    return '<i class="fa-solid ' + (dark ? 'fa-sun' : 'fa-moon') + '" aria-hidden="true"></i>' +
+           '<span>' + (dark ? 'מצב בהיר' : 'מצב כהה') + '</span>';
+  }
+
   function buildHTML(currentPage) {
     // FIX-ENGINE F-015 (2026-07-22): בדף הבית אין פריטי ניווט ראשיים (בית/ספרייה/תרגול/מבחנים)
     // לבקשת הלל — הפורטל עצמו הוא המרכז. בשאר הדפים התפריט נשאר כדי שאפשר יהיה לחזור.
@@ -140,6 +158,9 @@
           '</button>' +
           '<div class="gnav__more-menu" id="gnavMoreMenu" role="menu" aria-label="פעולות נוספות" hidden>' +
             more +
+            '<button type="button" class="gnav__more-item gnav__theme" role="menuitem" data-gnav-theme>' +
+              themeButtonInner() +
+            '</button>' +
           '</div>' +
         '</div>' +
       '</div>'
@@ -421,6 +442,13 @@
     el.setAttribute('aria-label', 'ניווט ראשי');
     el.innerHTML = buildHTML(currentPage);
     wireMoreMenu(el);
+    var themeBtn = el.querySelector('[data-gnav-theme]');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function () {
+        setTheme(getTheme() === 'dark' ? 'light' : 'dark');
+        themeBtn.innerHTML = themeButtonInner();
+      });
+    }
     wireAuth(el);
     return el;
   }
