@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+  <!-- 2026-11-12: the practice game moved to game.html (lesson-by-lesson). This page only forwards. -->
+  <script>location.replace('game.html' + location.search + location.hash);</script>
 <meta charset="UTF-8">
   <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
   <link rel="stylesheet" href="../css/brand.css?v=1">
@@ -318,7 +320,7 @@
 <script src="../js/auth.js" defer></script>
 <script src="../js/auth-modal.js" defer></script>
 <script src="../js/sync-localstorage.js" defer></script>
-<script src="../js/global-nav.js?v=5" defer></script>
+<script src="../js/global-nav.js?v=6" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
 
 <!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->

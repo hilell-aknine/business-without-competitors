@@ -1239,7 +1239,7 @@
 <script src="js/chat-composer.js"></script>
 <script src="js/protocol.js"></script>
 <script src="js/lesson-transcript.js" defer></script>
-<script src="js/lesson-tabs.js" defer></script>
+<script src="js/lesson-tabs.js?v=2" defer></script>
 <script>
 // ===== State =====
 let currentType = null; // 'seminar' | 'module'
@@ -3100,7 +3100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="js/notes-store.js" defer></script>
 <script src="js/notes-ui.js" defer></script>
 <script src="js/lesson-notes.js" defer></script>
-<script src="js/global-nav.js?v=5" defer></script>
+<script src="js/global-nav.js?v=6" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used
      to load before the Supabase chain, back when it was localStorage-only. -->

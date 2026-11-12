@@ -60,14 +60,14 @@
       url: function () {
         var key = opts.getLessonKey();
         if (!key) return null;
-        return 'pages/practice.html?embed=1&lesson=' + encodeURIComponent(key);
+        return 'pages/game.html?embed=1&lesson=' + encodeURIComponent(key);
       },
       blank: function () {
         return blankHtml(
           'fa-solid fa-gamepad',
           'בחרו שיעור כדי לתרגל אותו',
           'התרגול כאן תמיד בהקשר של השיעור שפתוח — האתגרים נשלפים מהתמלול שלו. בחרו שיעור מהתפריט בצד, והתרגול יופיע כאן.',
-          'pages/practice.html',
+          'pages/game.html',
           'למפת התרגול המלאה'
         );
       }

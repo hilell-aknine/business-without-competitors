@@ -452,8 +452,13 @@
                        holds far more than that today, so a learner past 72
                        would have seen a total smaller than their own count.
                        Read the real length from the data file instead. */
-                    var challengesDone  = Object.keys(practice.completed || {}).length;
-                    var challengesTotal = P ? P.getTotalChallenges() : 0;
+                    /* 2026-11-12: the practice game is now lesson-by-lesson (pages/game.html,
+                       save in bwc_game_v1). XP carries over from the old game, so show
+                       whichever is higher; the third stat counts finished game lessons. */
+                    var gameSave = safeJson('bwc_game_v1', null);
+                    if (gameSave && (gameSave.xp || 0) > xp) xp = gameSave.xp;
+                    var challengesDone  = gameSave ? Object.keys(gameSave.completedLessons || {}).length : 0;
+                    var challengesTotal = 0;
                     practiceEl.innerHTML =
                         '<div class="practice-stat">' +
                           '<span class="practice-stat__value">' + xp.toLocaleString('he') + '</span>' +
@@ -465,7 +470,7 @@
                         '</div>' +
                         '<div class="practice-stat">' +
                           '<span class="practice-stat__value">' + challengesDone + (challengesTotal ? ' / ' + challengesTotal : '') + '</span>' +
-                          '<div class="practice-stat__label">אתגרים הושלמו</div>' +
+                          '<div class="practice-stat__label">שיעורי תרגול הושלמו</div>' +
                         '</div>';
                 }
             }
@@ -643,7 +648,7 @@
          read from the data file instead of being retyped here. -->
     <script src="../js/practice-data.js" defer></script>
     <script src="../js/progress-source.js" defer></script>
-    <script src="../js/global-nav.js?v=5" defer></script>
+    <script src="../js/global-nav.js?v=6" defer></script>
 <script src="../js/credit-stamp.js" defer></script>
 <!-- FIX-ENGINE: מנוע תיקונים (פיגום נשלף; מזריק CSS+UI לבד). הסרה = מחיקת שורה זו + js/fix-engine.js + החזרת תגיות data-area/data-src. כיבוי בזמן ריצה: localStorage 'fixEngine.enabled'='false'. -->
 <script src="../js/fix-engine.js?v=3" data-project="business-without-competitors"></script>

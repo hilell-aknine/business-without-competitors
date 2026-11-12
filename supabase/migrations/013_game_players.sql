@@ -77,3 +77,7 @@ CREATE POLICY game_players_admin_select ON public.game_players
 -- No access for anon at all: guests play on localStorage only.
 REVOKE ALL ON TABLE public.game_players FROM anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.game_players TO authenticated;
+
+-- Supabase grants TRUNCATE / REFERENCES / TRIGGER to authenticated by default.
+-- None of them is needed by the client.
+REVOKE TRUNCATE, REFERENCES, TRIGGER ON TABLE public.game_players FROM authenticated;

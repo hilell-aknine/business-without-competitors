@@ -2578,6 +2578,9 @@
                 }
             }
 
+            // The portal has ONE streak (home page, progress page): keep it alive from here too.
+            try { if (!this.isFixture && window.BwcProgress) window.BwcProgress.recordActivityToday(); }
+            catch (e) { console.error('[game] streak update failed', e); }
             this.recordLeague(this.lessonXP);
             this.savePlayerData();
             this.checkAchievements();

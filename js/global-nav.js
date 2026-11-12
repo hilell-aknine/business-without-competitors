@@ -19,7 +19,7 @@
   var PRIMARY_ITEMS = [
     { id: 'home',     label: 'בית',       icon: 'fa-house',         path: 'index.html' },
     { id: 'library',  label: 'ספרייה',    icon: 'fa-book-open',     path: 'pages/library.html' },
-    { id: 'practice', label: 'תרגול',     icon: 'fa-dumbbell',      path: 'pages/practice.html' },
+    { id: 'practice', label: 'תרגול',     icon: 'fa-dumbbell',      path: 'pages/game.html' },
     { id: 'quiz',     label: 'מבחנים',    icon: 'fa-graduation-cap', path: 'pages/quiz.html', accent: true }
   ];
 
