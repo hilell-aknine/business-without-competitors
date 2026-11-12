@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../css/brand.css?v=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#EAF7FC">
+<title>תרגול | עסק ללא מתחרים</title>
+<meta name="description" content="תרגול של שיעורי עסק ללא מתחרים. קוראים קטע קצר, עונים על תרגילים וצוברים XP.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="תרגול | עסק ללא מתחרים">
+<meta property="og:locale" content="he_IL">
+
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="../assets/css/design-tokens.css">
+<link rel="stylesheet" href="../css/global-nav.css?v=4">
+<link rel="stylesheet" href="../css/embed.css">
+<link rel="stylesheet" href="../css/game.css?v=1">
+
+<script>
+  /* Embed mode: inside the lesson page's practice tab the URL carries
+     ?embed=1. The flag hides the full-page chrome (global nav, bottom nav
+     padding) through css/embed.css and css/game.css. Without the parameter
+     this standalone page is unchanged. */
+  (function(){
+    try {
+      if (new URLSearchParams(location.search).has('embed')) {
+        document.documentElement.classList.add('bwc-embed');
+      }
+    } catch (e) { /* old browser: stays a full page */ }
+  })();
+</script>
+
+<!-- Boot order, all deferred: Supabase CDN -> config -> auth -> modal -> sync
+     -> global nav -> league -> game data -> engine. The game runs for guests
+     even if the Supabase CDN fails to load. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="../js/supabase-config.js" defer></script>
+<script src="../js/auth.js" defer></script>
+<script src="../js/auth-modal.js" defer></script>
+<script src="../js/sync-localstorage.js" defer></script>
+<script src="../js/global-nav.js?v=5" defer></script>
+<script src="../js/practice-league.js" defer></script>
+<!-- One tag per module that exists. Add game-data-m2.js ... -m8.js here as
+     they are written; game-data.js collects whichever are present. -->
+<script src="../js/game-data-m1.js?v=1" defer></script>
+<script src="../js/game-data.js?v=1" defer></script>
+<script src="../js/game.js?v=1" defer></script>
+</head>
+<body class="game-page">
+
+<a class="app-skip-link" href="#main-content">דלגו לתוכן הראשי</a>
+
+<!-- ===== Top navigation ===== -->
+<header class="gnav" data-page="practice"></header>
+
+<div class="game-root" id="game-root">
+
+  <!-- Loading -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-spinner-large"></div>
+      <p class="loading-text">טוענים את התרגול...</p>
+    </div>
+  </div>
+
+  <!-- Onboarding (first visit) -->
+  <div id="onboarding-overlay" class="onboarding-overlay" style="display: none;" role="dialog" aria-modal="true" aria-label="היכרות עם התרגול">
+    <div class="onboarding-card">
+      <button type="button" class="onboarding-skip" onclick="game.skipOnboarding()">דלגו</button>
+      <div class="onboarding-step" id="onboarding-step-content"></div>
+      <div class="onboarding-dots" id="onboarding-dots"></div>
+      <button type="button" class="btn btn-primary btn-full" id="onboarding-btn" onclick="game.nextOnboardingStep()">הבא</button>
+    </div>
+  </div>
+
+  <!-- Game header: XP, practice days, hearts, sound -->
+  <div class="header" id="app-header" style="display: none;">
+    <div class="container header-inner">
+      <div class="logo"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>תרגול</span></div>
+      <div class="stats-bar">
+        <div class="stat-item xp" title="נקודות XP">
+          <i class="fa-solid fa-star icon" aria-hidden="true"></i>
+          <span id="xp-value">0</span>
+        </div>
+        <div class="stat-item streak" title="ימי תרגול">
+          <i class="fa-solid fa-calendar-check icon" aria-hidden="true"></i>
+          <span id="streak-value">0</span>
+        </div>
+        <div class="stat-item hearts">
+          <div class="hearts-display" id="hearts-container" role="img" aria-label="לבבות"></div>
+        </div>
+        <button type="button" class="sound-toggle" id="sound-toggle" onclick="game.toggleSound()" aria-pressed="true" aria-label="כיבוי צלילים">
+          <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Heart recovery timer -->
+    <div class="heart-timer-bar" id="heart-timer-bar" style="display: none;">
+      <div class="container">
+        <span class="heart-timer-text" id="heart-timer-text"><i class="fa-solid fa-heart" aria-hidden="true"></i> לב נוסף בעוד <span id="heart-timer-time" dir="ltr">20:00</span></span>
+        <div class="heart-timer-progress">
+          <div class="heart-timer-fill" id="heart-timer-fill" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lesson progress bar -->
+  <div class="container" id="progress-wrapper" style="display: none;">
+    <div class="progress-container" id="progress-container" style="display: none;" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="התקדמות בשיעור">
+      <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main class="container" id="main-content" tabindex="-1" style="display: none;">
+    <div id="game-container"></div>
+  </main>
+
+  <!-- Bottom navigation -->
+  <nav class="bottom-nav" id="bottom-nav" style="display: none;" aria-label="ניווט בתרגול">
+    <button type="button" class="bottom-nav-item active" id="nav-home" onclick="game.navTo('home')">
+      <i class="fa-solid fa-map" aria-hidden="true"></i>
+      <span>מסלול</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="nav-stats" onclick="game.navTo('stats')">
+      <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+      <span>סטטיסטיקה</span>
+    </button>
+    <button type="button" class="bottom-nav-item" id="nav-profile" onclick="game.navTo('profile')">
+      <i class="fa-solid fa-user" aria-hidden="true"></i>
+      <span>פרופיל</span>
+    </button>
+  </nav>
+
+  <!-- Footer actions (during an exercise) -->
+  <div class="footer-actions" id="footer-actions" style="display: none;">
+    <div class="container">
+      <button type="button" class="btn btn-secondary" onclick="game.exitLesson()">יציאה</button>
+      <button type="button" class="btn btn-primary" id="check-btn" disabled onclick="game.checkAnswer()">בדיקה</button>
+    </div>
+  </div>
+
+  <!-- Feedback panel -->
+  <div class="feedback-panel" id="feedback-panel" role="status" aria-live="polite">
+    <div class="feedback-content">
+      <div class="feedback-header">
+        <span class="feedback-icon" id="feedback-icon"></span>
+        <span class="feedback-title" id="feedback-title"></span>
+      </div>
+      <div class="feedback-explanation" id="feedback-explanation"></div>
+      <button type="button" class="feedback-btn" id="feedback-btn" onclick="game.continueToNext()">המשך</button>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <div class="modal-icon" id="modal-icon"></div>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-text" id="modal-text"></div>
+      <div class="modal-buttons" id="modal-buttons"></div>
+    </div>
+  </div>
+
+  <!-- Level up -->
+  <div class="level-up-overlay" id="level-up-overlay" style="display: none;" aria-live="polite">
+    <div class="level-up-text" id="level-up-text"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+</div><!-- /.game-root -->
+
+</body>
+</html>
