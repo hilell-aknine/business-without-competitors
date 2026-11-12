@@ -1181,7 +1181,6 @@
     <div class="v1-side__head">
       <div class="v1-side__head-top">
         <h2 class="v1-side__h1">התקדמות בקורס</h2>
-        <span class="v1-side__count" id="sideCount" aria-live="polite">0/0 שיעורים</span>
         <!-- FIX-ENGINE F-017+F-020 (2026-07-22): כפתור המיזעור יושב בתוך שורת הכותרת (לא צף) כדי לא לדרוך על טקסט, לבקשת הלל. -->
         <button class="v1-side__collapse" id="sidebarCollapse" type="button" aria-label="מזער את הסרגל" title="מזער את הסרגל"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
       </div>
@@ -1204,7 +1203,6 @@
     </button>
 
     <!-- FIX-ENGINE F-002 (2026-07-22): מקרא הנקודות (לא נצפה/נצפה/הושלם) הוסר לבקשת הלל. -->
-    <h3 class="v1-side__h2">תוכן הקורס</h3>
 
     <div class="v1-side__list" id="sideList" tabindex="0" aria-label="רשימת שיעורים, ניתן לגלול">
       <!-- populated by JS -->
@@ -1363,7 +1361,8 @@ function renderSidebar(filter=''){
 
   // Welcome highlight (returns to home view + reopens the onboarding popup)
   // FIX-ENGINE F-013 (2026-07-22): הכפתור פותח מחדש את פופאפ הפתיחה — נקודת הגישה היחידה אליו אחרי הכניסה הראשונה, לבקשת הלל.
-  html += `<button type="button" class="v1-side__hl welcome" onclick="goHome();window.Onboarding&&window.Onboarding.open()" aria-label="חזרה לדף הבית ופתיחת מסך הפתיחה"><i class="fa-solid fa-door-open" aria-hidden="true"></i><span>ברוך הבא לפורטל</span></button>`;
+  // 2026-11-12: "ברוך הבא לפורטל" left the sidebar at Hillel's request (clutter). The welcome
+  // screen is still reachable: More menu -> "מסך הפתיחה" (index.html?welcome=1).
 
   // FIX-ENGINE F-003 (2026-07-22): כרטיס קידום "מבחני הבנה" הוסר מהסיידבר לבקשת הלל (המבחנים נגישים מהאקורדיון ומהתפריט העליון).
   // FIX-ENGINE F-001 (2026-07-22): לינק "תמלולים מלאים" הוסר מהסיידבר לבקשת הלל ("לא רלוונטי"); נשאר זמין בלשונית חומרים.
@@ -1372,10 +1371,7 @@ function renderSidebar(filter=''){
   const allOpen = window.SidebarAccordion
     ? MODULES.every((_, mi) => window.SidebarAccordion.isOpen('module', mi, true))
     : true;
-  html += `<div class="v1-side__nav-row">
-    <a class="v1-side__hl v1-side__hl--sm" href="pages/library.html"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>ספרייה — כל השיעורים</span></a>
-    <button id="sideExpandToggle" type="button" class="v1-side__expand-btn" onclick="window.SidebarAccordion&&window.SidebarAccordion.setAll(!!document.querySelector('.v1-mod:not(.open)'))" aria-label="פתח או סגור את כל המודולים">${allOpen ? '⊖ סגור הכל' : '⊕ פתח הכל'}</button>
-  </div>`;
+  html += `<a class="v1-side__hl v1-side__hl--sm" href="pages/library.html"><i class="fa-solid fa-layer-group" aria-hidden="true"></i><span>כל השיעורים</span></a>`;
 
   // Modules (primary learning track — comes first)
   const moduleMatches = MODULES.map((mod, mi) => ({mod, mi})).filter(({mod}) => {
@@ -1384,7 +1380,6 @@ function renderSidebar(filter=''){
     return mod.weeks.some(w => w.days.some(d => d.title.toLowerCase().includes(q)));
   });
   if (moduleMatches.length) {
-    html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">מודולי ההכשרה</h3>`;
     moduleMatches.forEach(({mod, mi}) => {
       const matchesCurrent = currentType === 'module' && currentMi === mi;
       const isOpen = (window.SidebarAccordion
@@ -1432,7 +1427,6 @@ function renderSidebar(filter=''){
         <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${modListId}">
           <span class="v1-mod__num" aria-hidden="true">${mi+1}</span>
           <span class="v1-mod__title">${mod.title}</span>
-          <span class="v1-mod__count" aria-label="${totalLessons} שיעורים — ${doneCount} הושלמו">${totalLessons} שיעורים</span>
           <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
           ${modProgressHtml}
         </button>
@@ -1455,7 +1449,6 @@ function renderSidebar(filter=''){
   if (trackMatches.length) {
     // The heading is already on screen when modules rendered; only emit it if a
     // search filtered every module out but still matched a track.
-    if (!moduleMatches.length) html += `<h3 class="v1-side__h2" style="padding-top:.6rem;">מודולי ההכשרה</h3>`;
     trackMatches.forEach(({trk, ti}) => {
       const isOpen = !!q;
       const doneCount = trk.lessons.filter(l => completedLessons.includes(l.key)).length;
@@ -1489,7 +1482,6 @@ function renderSidebar(filter=''){
         <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${trkListId}">
           <span class="v1-mod__num" aria-hidden="true">${MODULES.length + ti + 1}</span>
           <span class="v1-mod__title">${trk.title}</span>
-          <span class="v1-mod__count" aria-label="${trk.lessons.length} שיעורים — ${doneCount} הושלמו">${trk.lessons.length} שיעורים</span>
           <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
           ${trkProgressHtml}
         </button>
@@ -1537,7 +1529,6 @@ function renderSidebar(filter=''){
         <button class="v1-mod__hd" type="button" onclick="toggleMod(this)" aria-expanded="${isOpen?'true':'false'}" aria-controls="${semListId}">
           <span class="v1-mod__num seminar" aria-hidden="true"><i class="fa-solid ${sem.icon||'fa-video'}"></i></span>
           <span class="v1-mod__title">${sem.title}</span>
-          <span class="v1-mod__count" aria-label="${sem.parts.length} שיעורים">${sem.parts.length}</span>
           <i class="fa-solid fa-chevron-down v1-mod__chev" aria-hidden="true"></i>
         </button>
         <div class="v1-mod__list" id="${semListId}">${partsHtml}${presentation}</div>
@@ -2771,6 +2762,15 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ===== ?welcome=1 (More menu -> "מסך הפתיחה") reopens the welcome screen =====
+window.addEventListener('load', function () {
+  try {
+    if (new URLSearchParams(location.search).get('welcome') !== '1') return;
+    history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(function () { if (window.Onboarding && window.Onboarding.open) window.Onboarding.open(); }, 400);
+  } catch (e) { console.error('[welcome]', e); }
+});
+
 // ===== Auth-aware welcome banner =====
 // Shows a "ברוך השב" greeting + link to /pages/progress.html when user is logged in.
 // Hidden for guests. Auth state may resolve AFTER DOMContentLoaded (deferred scripts),
@@ -3100,7 +3100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="js/notes-store.js" defer></script>
 <script src="js/notes-ui.js" defer></script>
 <script src="js/lesson-notes.js" defer></script>
-<script src="js/global-nav.js?v=4" defer></script>
+<script src="js/global-nav.js?v=5" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used
      to load before the Supabase chain, back when it was localStorage-only. -->
