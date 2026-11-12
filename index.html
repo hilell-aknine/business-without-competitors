@@ -911,20 +911,16 @@
   <main class="v1-main" id="main" tabindex="-1" data-area="home" data-src="index.html">
 
     <!-- MEMBER WELCOME — shown only when user is logged in. Hidden by default; populated + revealed by renderHero(). -->
-    <section class="v1-welcome g" id="memberWelcome" hidden aria-label="ברוך הבא">
-      <div class="v1-welcome__txt">
-        <span class="v1-welcome__hi">ברוך השב <span aria-hidden="true">👋</span></span>
-        <span class="v1-welcome__name" id="memberWelcomeName">—</span>
-      </div>
-      <!-- FIX-ENGINE F-011 (2026-07-22): רצועת רצף יומי + התקדמות + מיקום במודול הנוכחי, לבקשת הלל. מאוכלס ע"י renderStats(). -->
-      <div class="v1-welcome__stats" id="welcomeStats" aria-label="סיכום התקדמות">
+    <!-- 2026-11-12, לבקשת הלל: הסרגל היה עמוס בכפילויות. הוסרו הברכה + שם המשתמש (מופיע בתפריט
+         החשבון), שורת המודול (מופיעה בהירו), והכפתור הנפרד "ההתקדמות שלי" (קיים בתפריט ⋮).
+         נשארו רצף + התקדמות כוללת, וההתקדמות עצמה היא הקישור לדף ההתקדמות. מאוכלס ע"י renderStats(). -->
+    <section class="v1-welcome g" id="memberWelcome" hidden aria-label="סיכום התקדמות">
+      <div class="v1-welcome__stats" id="welcomeStats">
         <span class="v1-welcome__stat" id="welcomeStreak"><i class="fa-solid fa-fire" aria-hidden="true"></i> <span>—</span></span>
-        <span class="v1-welcome__stat" id="welcomeModule"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span>—</span></span>
-        <span class="v1-welcome__stat" id="welcomeProgress"><i class="fa-solid fa-chart-line" aria-hidden="true"></i> <span>—</span></span>
       </div>
-      <a class="v1-welcome__link" href="pages/progress.html">
+      <a class="v1-welcome__link" id="welcomeProgress" href="pages/progress.html" title="ההתקדמות שלי">
         <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-        <span>ההתקדמות שלי</span>
+        <span>—</span>
         <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
       </a>
     </section>
