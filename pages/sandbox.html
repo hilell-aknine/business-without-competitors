@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+    <link rel="stylesheet" href="../css/brand.css?v=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חדר האימון - עסק ללא מתחרים</title>
+    <meta name="description" content="חמישה תרגילים קצרים בסוף המודול, סביב העסק שלך: להסביר, ליישם, לשכנע לקוח ספקן, לבדוק מה יכול להיכשל, ולהתחייב לצעד אחד.">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@700;900&family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="../assets/css/design-tokens.css">
+    <link rel="stylesheet" href="../css/global-nav.css?v=4">
+    <link rel="stylesheet" href="../css/auth-modal.css">
+    <link rel="stylesheet" href="../css/chat-composer.css?v=2">
+    <link rel="stylesheet" href="../css/sandbox.css?v=1">
+</head>
+<body>
+    <header class="gnav" data-page="practice"></header>
+
+    <main class="sbx" id="sbx">
+        <div class="sbx-hero">
+            <p class="sbx-hero__module" id="sbxModule"></p>
+            <h1>חדר האימון</h1>
+            <p class="sbx-hero__sub">חמישה תרגילים קצרים סביב העסק שלך. המאמן לא כותב בשבילך תשובות: הוא שואל, מאתגר ומראה מה השיעור אומר.</p>
+        </div>
+
+        <!-- Stepper: visible during a session -->
+        <ol class="sbx-steps" id="sbxSteps" hidden aria-label="התקדמות בחדר האימון"></ol>
+
+        <div id="sbxView" aria-live="polite"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="../js/supabase-config.js" defer></script>
+    <script src="../js/auth.js" defer></script>
+    <script src="../js/auth-modal.js" defer></script>
+    <script src="../js/sync-localstorage.js" defer></script>
+    <script src="../js/course-data.js" defer></script>
+    <script src="../js/global-nav.js?v=6" defer></script>
+    <script src="../js/api-host.js" defer></script>
+    <script src="../js/chat-composer.js?v=2" defer></script>
+    <script src="../js/game-data-m2.js" defer></script>
+    <script src="../js/sandbox.js?v=1" defer></script>
+    <script src="../js/credit-stamp.js" defer></script>
+</body>
+</html>

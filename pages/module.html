@@ -32,6 +32,7 @@
     <!-- Feature sheet, tokens only — same pattern as admin.css / track.css.
          Deliberately NOT a fourth CSS system. -->
     <link rel="stylesheet" href="../css/module-feed.css">
+    <link rel="stylesheet" href="../css/sandbox-entry.css?v=1">
 </head>
 <body>
 
@@ -51,6 +52,9 @@
     <div id="weeksContent">
         <!-- Populated by JS -->
     </div>
+
+    <!-- Atomic sandbox entry (pilot modules only) — js/sandbox-entry.js -->
+    <div id="sandboxEntry" class="sandbox-entry-wrap"></div>
 
     <!-- Module discussion wall — populated by js/module-feed.js.
          Sits after the lessons and before the module navigation: you read the
@@ -81,6 +85,7 @@
     <!-- module-feed.js MUST load after auth.js + supabase-config.js: it reads
          the session to decide between the wall and the login prompt. -->
     <script src="../js/module-feed.js" defer></script>
+    <script src="../js/sandbox-entry.js?v=1" defer></script>
     <script src="../js/course-data.js"></script>
     <script>
     const params = new URLSearchParams(window.location.search);
@@ -230,6 +235,8 @@
     // module-feed.js is deferred, so mounting waits for DOMContentLoaded —
     // deferred scripts have all executed by then.
     document.addEventListener('DOMContentLoaded', () => {
+        const sbx = document.getElementById('sandboxEntry');
+        if (sbx && window.bwcSandboxEntry) sbx.innerHTML = window.bwcSandboxEntry.html(moduleId, '');
         if (window.BwcModuleFeed) {
             window.BwcModuleFeed.mount(document.getElementById('moduleFeed'), moduleId);
         }

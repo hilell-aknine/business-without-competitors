@@ -55,8 +55,14 @@ function toOpenAiMessages(system, user) {
   return msgs;
 }
 
-async function callAnthropic(system, user, timeoutMs) {
+// opts (2026-11-16, sandbox): { model, maxTokens } override the defaults for
+// one call, so a feature can pin a cheap model regardless of ANTHROPIC_MODEL.
+// The result also carries usage + stopReason, for cost logging and for
+// detecting an answer cut by max_tokens.
+async function callAnthropic(system, user, timeoutMs, opts = {}) {
   if (!ANTHROPIC_KEY) return null;
+  const model = opts.model || ANTHROPIC_MODEL;
+  const isHaiku45 = model.startsWith('claude-haiku-4');
   const messages = Array.isArray(user)
     ? user.map(m => ({ role: m.role, content: m.content }))
     : [{ role: 'user', content: user }];
@@ -68,11 +74,18 @@ async function callAnthropic(system, user, timeoutMs) {
       'anthropic-version': '2023-06-01',
     },
     body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      system,
+      model,
+      // opts.cachePrefix: a large block identical across turns (course
+      // passages), sent first with cache_control so repeat turns read it at a
+      // tenth of the input price.
+      system: opts.cachePrefix
+        ? [{ type: 'text', text: opts.cachePrefix, cache_control: { type: 'ephemeral' } }, { type: 'text', text: system }]
+        : system,
       messages,
-      max_tokens: 4096,
-      ...(ANTHROPIC_IS_HAIKU ? { temperature: 0.7 } : { thinking: { type: 'disabled' } }),
+      max_tokens: opts.maxTokens || 4096,
+      ...(opts.model
+        ? (isHaiku45 ? { temperature: 0.7 } : model.startsWith('claude-haiku-5') ? { thinking: { type: 'disabled' } } : {})
+        : (ANTHROPIC_IS_HAIKU ? { temperature: 0.7 } : { thinking: { type: 'disabled' } })),
     }),
   }, timeoutMs);
   if (!res.ok) {
@@ -83,7 +96,18 @@ async function callAnthropic(system, user, timeoutMs) {
   const text = Array.isArray(data?.content)
     ? data.content.filter(b => b.type === 'text').map(b => b.text).join('')
     : null;
-  return text ? { text, providerUsed: 'anthropic' } : null;
+  return text ? {
+    text,
+    providerUsed: 'anthropic',
+    model,
+    stopReason: data.stop_reason || null,
+    usage: {
+      input: Number(data?.usage?.input_tokens) || 0,
+      cacheWrite: Number(data?.usage?.cache_creation_input_tokens) || 0,
+      cacheRead: Number(data?.usage?.cache_read_input_tokens) || 0,
+      output: Number(data?.usage?.output_tokens) || 0,
+    },
+  } : null;
 }
 
 async function callGemini(system, user, timeoutMs) {
@@ -161,7 +185,7 @@ async function callOpenRouter(system, user, timeoutMs) {
   return text ? { text, providerUsed: 'openrouter' } : null;
 }
 
-export async function callAI(systemPrompt, userPrompt, { budgetMs = DEFAULT_BUDGET_MS } = {}) {
+export async function callAI(systemPrompt, userPrompt, { budgetMs = DEFAULT_BUDGET_MS, model, maxTokens, cachePrefix } = {}) {
   const deadline = Date.now() + budgetMs;
   const providers = [
     ['anthropic', callAnthropic],
@@ -173,7 +197,9 @@ export async function callAI(systemPrompt, userPrompt, { budgetMs = DEFAULT_BUDG
     const left = deadline - Date.now();
     if (left < MIN_PROVIDER_MS) break;
     try {
-      const result = await provider(systemPrompt, userPrompt, Math.min(PROVIDER_CAP_MS[name], left));
+      // Only Anthropic gets the split system prompt; the others get it joined.
+      const sys = cachePrefix && name !== 'anthropic' ? `${cachePrefix}\n\n${systemPrompt}` : systemPrompt;
+      const result = await provider(sys, userPrompt, Math.min(PROVIDER_CAP_MS[name], left), { model, maxTokens, cachePrefix });
       if (result && result.text) return result;
     } catch (err) {
       console.error(`[Provider] ${name} error: ${err.message}`);

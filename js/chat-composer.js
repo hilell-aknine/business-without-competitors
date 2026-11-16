@@ -16,6 +16,13 @@
        by accident). The send button still works everywhere, incl. phones.
      * counter appears only near the limit (80%+)
 
+     opts.voice         default true: a microphone button next to the box
+                        (2026-11-16). Records with MediaRecorder, sends the
+                        audio to /api/transcribe (Groq Whisper, Hebrew) and
+                        APPENDS the text to the box for editing. Never sends.
+                        Hidden on the GitHub Pages mirror (no /api there) and
+                        in browsers without MediaRecorder.
+
    window.bwcComposer.fullscreen
      .bind(button, panel, { onChange(open), opener })  toggle button for a
         panel; `opener` = a container (e.g. composer.foot) that gets a second
@@ -141,7 +148,11 @@
       // Plain Enter / Shift+Enter: default behaviour, a new line.
     });
 
+    var voice = null;
+    if (opts.voice !== false) voice = attachVoice(ta, row, foot, function () { grow(); updateCount(); saveDraft(); });
+
     var api = {
+      voice: voice,
       grow: grow,
       clearDraft: clearDraft,
       loadDraft: loadDraft,
@@ -151,6 +162,232 @@
     ta._bwcComposer = api;
     requestAnimationFrame(function () { grow(); updateCount(); });
     return api;
+  }
+
+  /* --------------------------------------------------------------- voice */
+
+  var VOICE_MAX_SEC = 120;
+  var VOICE_MIN_SEC = 1.2;
+
+  function voiceSupported() {
+    if (window.bwcApi && !window.bwcApi.available) return false;   // static mirror
+    return !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  }
+
+  // Chrome/Android/Firefox record webm (opus); Safari on iPhone and Mac
+  // records mp4 (aac). The server needs the real type to name the file.
+  function pickMime() {
+    var prefs = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'];
+    for (var i = 0; i < prefs.length; i++) {
+      try { if (MediaRecorder.isTypeSupported(prefs[i])) return prefs[i]; } catch (_) {}
+    }
+    return '';
+  }
+
+  function fmtTime(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    return Math.floor(sec / 60) + ':' + ('0' + (sec % 60)).slice(-2);
+  }
+
+  async function authToken() {
+    try {
+      var r = await window.bwcSupabase.auth.getSession();
+      return (r && r.data && r.data.session && r.data.session.access_token) || null;
+    } catch (_) { return null; }
+  }
+
+  function permissionHelp() {
+    var ios = /iPhone|iPad|iPod/.test(navigator.userAgent || '');
+    return ios
+      ? 'הדפדפן לא קיבל גישה למיקרופון. באייפון: הגדרות, Safari, מיקרופון, ולבחור "שאל" או "אפשר". אחר כך לרענן את הדף ולנסות שוב.'
+      : 'הדפדפן לא קיבל גישה למיקרופון. לחצו על סמל המנעול שליד כתובת האתר, אפשרו "מיקרופון", ונסו שוב.';
+  }
+
+  function attachVoice(ta, row, foot, onText) {
+    if (!voiceSupported() || !row) return null;
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bwc-mic';
+    btn.setAttribute('aria-label', 'הקלטה קולית: לדבר במקום להקליד');
+    btn.title = 'הקלטה קולית';
+    btn.innerHTML = '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+    if (ta.nextSibling) row.insertBefore(btn, ta.nextSibling); else row.appendChild(btn);
+
+    // Status strip under the box: recording timer, progress, errors, retry.
+    var bar = document.createElement('div');
+    bar.className = 'bwc-voice';
+    bar.hidden = true;
+    bar.setAttribute('role', 'status');
+    bar.setAttribute('aria-live', 'polite');
+    foot.parentNode.insertBefore(bar, foot);
+
+    var st = { rec: null, stream: null, chunks: [], mime: '', started: 0, timer: null, blob: null, cancelled: false, busy: false };
+
+    function paint(html, kind) {
+      bar.className = 'bwc-voice' + (kind ? ' is-' + kind : '');
+      bar.innerHTML = html;
+      bar.hidden = !html;
+    }
+    function clear() { paint('', ''); }
+
+    function stopTracks() {
+      if (st.stream) { st.stream.getTracks().forEach(function (t) { try { t.stop(); } catch (_) {} }); }
+      st.stream = null;
+    }
+
+    function tick() {
+      var sec = (Date.now() - st.started) / 1000;
+      var t = bar.querySelector('[data-v-time]');
+      if (t) t.textContent = fmtTime(sec) + ' / ' + fmtTime(VOICE_MAX_SEC);
+      if (sec >= VOICE_MAX_SEC) finish();
+    }
+
+    function recordingUi() {
+      paint(
+        '<span class="bwc-voice__dot" aria-hidden="true"></span>' +
+        '<span class="bwc-voice__label">מקליט</span>' +
+        '<span class="bwc-voice__time" data-v-time>0:00 / ' + fmtTime(VOICE_MAX_SEC) + '</span>' +
+        '<button type="button" class="bwc-voice__btn bwc-voice__btn--main" data-v="stop"><i class="fa-solid fa-stop" aria-hidden="true"></i> סיום</button>' +
+        '<button type="button" class="bwc-voice__btn" data-v="cancel">ביטול</button>',
+        'rec'
+      );
+    }
+
+    async function start() {
+      if (st.rec || st.busy) return;
+      st.blob = null;
+      try {
+        st.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (err) {
+        var name = err && err.name;
+        if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+          paint('<span>לא נמצא מיקרופון במכשיר הזה. אפשר להמשיך בהקלדה.</span>', 'err');
+        } else {
+          paint('<span>' + permissionHelp() + '</span>', 'err');
+        }
+        return;
+      }
+      st.mime = pickMime();
+      try {
+        st.rec = st.mime ? new MediaRecorder(st.stream, { mimeType: st.mime }) : new MediaRecorder(st.stream);
+      } catch (_) {
+        st.rec = new MediaRecorder(st.stream);
+      }
+      st.mime = st.rec.mimeType || st.mime || 'audio/webm';
+      st.chunks = [];
+      st.cancelled = false;
+      st.rec.ondataavailable = function (e) { if (e.data && e.data.size) st.chunks.push(e.data); };
+      st.rec.onstop = onStopped;
+      st.rec.start(1000);
+      st.started = Date.now();
+      btn.classList.add('is-recording');
+      btn.hidden = true;
+      recordingUi();
+      st.timer = setInterval(tick, 250);
+    }
+
+    function finish() {
+      if (st.rec && st.rec.state !== 'inactive') st.rec.stop();
+    }
+    function cancel() {
+      st.cancelled = true;
+      finish();
+    }
+
+    function onStopped() {
+      clearInterval(st.timer);
+      var dur = (Date.now() - st.started) / 1000;
+      stopTracks();
+      st.rec = null;
+      btn.hidden = false;
+      btn.classList.remove('is-recording');
+      if (st.cancelled) { clear(); try { btn.focus({ preventScroll: true }); } catch (_) {} return; }
+      if (dur < VOICE_MIN_SEC || !st.chunks.length) {
+        paint('<span>ההקלטה קצרה מדי. לחצו על המיקרופון, דברו כמה שניות, ואז "סיום".</span>', 'err');
+        return;
+      }
+      st.blob = new Blob(st.chunks, { type: st.mime.split(';')[0] });
+      send();
+    }
+
+    function insertText(text) {
+      var cur = ta.value;
+      var sep = !cur ? '' : (/\s$/.test(cur) ? '' : (/[.!?׃:]$/.test(cur.trim()) ? '\n' : ' '));
+      var max = ta.maxLength > 0 ? ta.maxLength : 100000;
+      ta.value = (cur + sep + text).slice(0, max);
+      if (onText) onText();
+      try { ta.focus({ preventScroll: true }); } catch (_) { ta.focus(); }
+      try { ta.setSelectionRange(ta.value.length, ta.value.length); } catch (_) {}
+    }
+
+    function failUi(msg) {
+      paint(
+        '<span>' + msg + '</span>' +
+        '<button type="button" class="bwc-voice__btn bwc-voice__btn--main" data-v="retry"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> לנסות שוב</button>' +
+        '<button type="button" class="bwc-voice__btn" data-v="discard">לוותר על ההקלטה</button>',
+        'err'
+      );
+    }
+
+    async function send() {
+      if (!st.blob || st.busy) return;
+      st.busy = true;
+      btn.disabled = true;
+      paint('<span class="bwc-voice__spin" aria-hidden="true"></span><span>הופך את ההקלטה לטקסט...</span>', 'busy');
+      try {
+        var token = await authToken();
+        if (!token) {
+          failUi('צריך להתחבר כדי להשתמש בהקלטה. ההקלטה שמורה: התחברו ולחצו "לנסות שוב".');
+          if (window.openLoginModal) { try { window.openLoginModal(); } catch (_) {} }
+          return;
+        }
+        var res = await fetch('/api/transcribe', {
+          method: 'POST',
+          headers: { 'Content-Type': st.blob.type || st.mime.split(';')[0], Authorization: 'Bearer ' + token },
+          body: st.blob,
+        });
+        var data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (res.ok && data.ok && data.text) {
+          st.blob = null;
+          clear();
+          insertText(data.text);
+          return;
+        }
+        var reason = data && data.reason;
+        if (reason === 'no_speech') failUi('לא שמעתי דיבור בהקלטה. אפשר לנסות שוב, או להקליט מחדש קרוב יותר למיקרופון.');
+        else if (reason === 'daily_cap') { st.blob = null; paint('<span>הגעתם למכסת ההקלטות של היום. מחר יש עוד, ובינתיים אפשר להקליד.</span>', 'err'); }
+        else if (res.status === 429) failUi('היו הרבה בקשות בדקה האחרונה. ההקלטה שמורה, חכו רגע ולחצו "לנסות שוב".');
+        else if (res.status === 401) failUi('החיבור לחשבון פג. התחברו מחדש, ההקלטה שמורה.');
+        else if (res.status === 413) { st.blob = null; paint('<span>ההקלטה ארוכה מדי לשליחה. נסו קטע קצר יותר, עד שתי דקות.</span>', 'err'); }
+        else if (res.status === 503) { st.blob = null; paint('<span>ההקלטה הקולית לא זמינה כרגע. אפשר להמשיך בהקלדה.</span>', 'err'); }
+        else failUi('התמלול לא הצליח הפעם. ההקלטה לא אבדה, אפשר לנסות שוב.');
+      } catch (_) {
+        failUi('נראה שהחיבור לאינטרנט נפל. ההקלטה לא אבדה, אפשר לנסות שוב.');
+      } finally {
+        st.busy = false;
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener('click', function (e) { e.preventDefault(); start(); });
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-v]');
+      if (!b) return;
+      e.preventDefault();
+      var a = b.getAttribute('data-v');
+      if (a === 'stop') finish();
+      else if (a === 'cancel') cancel();
+      else if (a === 'retry') send();
+      else if (a === 'discard') { st.blob = null; clear(); }
+    });
+
+    return {
+      button: btn,
+      isRecording: function () { return !!st.rec; },
+      cancel: function () { if (st.rec) cancel(); },
+    };
   }
 
   /* ---------------------------------------------------------- fullscreen */

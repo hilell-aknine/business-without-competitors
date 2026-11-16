@@ -30,7 +30,8 @@
 <link rel="stylesheet" href="assets/css/design-tokens.css">
 <link rel="stylesheet" href="assets/css/components.css">
 <link rel="stylesheet" href="css/protocol.css">
-<link rel="stylesheet" href="css/chat-composer.css">
+<link rel="stylesheet" href="css/chat-composer.css?v=2">
+<link rel="stylesheet" href="css/sandbox-entry.css?v=1">
 <link rel="stylesheet" href="css/button-hierarchy.css">
 <link rel="stylesheet" href="css/onboarding.css">
 <link rel="stylesheet" href="css/sidebar-accordion.css">
@@ -1117,6 +1118,8 @@
           <h3 class="v1-h3" id="aboutTitle"></h3>
           <p class="v1-p" id="aboutDesc"></p>
           <div class="v1-about__meta" id="aboutMeta"></div>
+          <!-- 2026-11-16: entry card to the module's sandbox (pilot modules only) -->
+          <div id="aboutSandbox"></div>
         </div>
       </div>
 
@@ -1230,13 +1233,14 @@
 </div>
 
 <script src="js/course-data.js"></script>
+<script src="js/sandbox-entry.js?v=1"></script>
 <!-- Single source of truth for totals, percentage and streak. Must come after
      course-data.js: every number it returns is derived from MODULES/SEMINARS. -->
 <script src="js/progress-source.js"></script>
 <script src="js/quiz-data.js"></script>
 <script src="js/sidebar-accordion.js"></script>
 <script src="js/api-host.js"></script>
-<script src="js/chat-composer.js"></script>
+<script src="js/chat-composer.js?v=2"></script>
 <script src="js/protocol.js"></script>
 <script src="js/lesson-transcript.js" defer></script>
 <script src="js/lesson-tabs.js?v=2" defer></script>
@@ -2050,6 +2054,8 @@ function updateAboutTab(){
     const sem = SEMINARS[currentSi];
     titleEl.textContent = `${sem.title} · ${sem.parts[currentPi].title}`;
     descEl.textContent = sem.description || sem.shortDescription || '';
+    const sbxS = document.getElementById('aboutSandbox');
+    if (sbxS) sbxS.innerHTML = '';
     metaEl.innerHTML = `
       <span class="v1-about__meta-tag"><i class="fa-solid fa-users"></i> סמינר חי</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-video"></i> ${sem.parts.length} חלקים</span>`;
@@ -2066,6 +2072,8 @@ function updateAboutTab(){
       <span class="v1-about__meta-tag"><i class="fa-solid fa-layer-group"></i> מודול ${currentMi+1}: ${mod.title}</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-calendar-week"></i> ${week.title}</span>
       <span class="v1-about__meta-tag"><i class="fa-solid fa-video"></i> ${total} שיעורים במודול</span>`;
+    const sbx = document.getElementById('aboutSandbox');
+    if (sbx) sbx.innerHTML = window.bwcSandboxEntry ? window.bwcSandboxEntry.html(currentMi, 'pages/') : '';
   } else {
     // No lesson selected → show inviting empty state
     renderAboutEmptyState();

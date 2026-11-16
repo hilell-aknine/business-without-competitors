@@ -526,6 +526,10 @@
                 streakBase: null,     // { count, lastDate } carried from before the ledger
                 weekly: null,         // game XP of the current league week
                 ownerId: null,        // user id this save was merged with, null for a guest
+                // Exercises answered wrong at least once, { lessonKey: [exerciseIndex] }.
+                // Read by the sandbox (js/sandbox.js) to start from the learner's
+                // own gaps. Local only, added 2026-11-16.
+                missed: {},
                 savedAt: null
             };
         }
@@ -544,6 +548,7 @@
             if (!Array.isArray(d.perfectLessonsList)) d.perfectLessonsList = [];
             if (!d.weeklyActivity || typeof d.weeklyActivity !== 'object') d.weeklyActivity = {};
             if (!d.moduleAccuracy || typeof d.moduleAccuracy !== 'object') d.moduleAccuracy = {};
+            if (!d.missed || typeof d.missed !== 'object' || Array.isArray(d.missed)) d.missed = {};
             return d;
         }
 
@@ -2313,6 +2318,7 @@
                 // still counts for accuracy and rules out a "perfect lesson".
                 this.playerData.totalWrongAnswers = (this.playerData.totalWrongAnswers || 0) + 1;
                 this.lessonMistakes++;
+                this.recordMiss();
                 this.updateExerciseStats(false, this.currentModule.id);
                 this.savePlayerData();
                 this.showSecondChanceUI(exercise);
@@ -2357,6 +2363,7 @@
                 this.playerData.totalWrongAnswers = (this.playerData.totalWrongAnswers || 0) + 1;
                 this.comboCount = 0;
                 this.lessonMistakes++;
+                this.recordMiss();
                 this.loseHeart();
                 if (navigator.vibrate) navigator.vibrate([100, 30, 100]);
             }
@@ -2364,6 +2371,19 @@
             this.updateExerciseStats(isCorrect, this.currentModule.id);
             this.showFeedback(isCorrect, exercise);
             this.savePlayerData();
+        }
+
+        // Remember which exercise was missed, for the sandbox. Bounded so the
+        // save cannot grow without limit.
+        recordMiss() {
+            try {
+                if (this.isFixture || !this.currentModule || !this.currentLesson) return;
+                const key = this.lk(this.currentModule, this.currentLesson);
+                const m = this.playerData.missed || (this.playerData.missed = {});
+                const list = Array.isArray(m[key]) ? m[key] : [];
+                if (!list.includes(this.currentExerciseIndex)) list.push(this.currentExerciseIndex);
+                m[key] = list.slice(-10);
+            } catch (e) { console.error('[game] recordMiss failed', e); }
         }
 
         checkOrderAnswer(exercise) {

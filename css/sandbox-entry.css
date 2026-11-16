@@ -1,0 +1,18 @@
+/* sandbox-entry.css — the "חדר האימון" entry card shown at the end of a
+   module page and in the lesson's about tab. Paired with js/sandbox-entry.js. */
+.sbx-entry {
+  display: flex; gap: .9rem; align-items: center; flex-wrap: wrap;
+  margin: 1.2rem 0; padding: 1rem 1.1rem; border-radius: 16px; text-decoration: none; color: inherit;
+  background: linear-gradient(135deg, rgba(var(--brand-rgb), .1), rgba(var(--brand2-rgb), .1));
+  border: 1px solid rgba(var(--brand-rgb), .3);
+}
+.sbx-entry__icon { flex: 0 0 auto; inline-size: 46px; block-size: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.2rem; background: rgb(var(--brand-rgb)); color: rgb(var(--on-brand-rgb)); }
+.sbx-entry__text { flex: 1 1 14rem; min-inline-size: 0; }
+.sbx-entry__title { display: block; margin: 0; font-weight: 700; font-size: 1rem; }
+.sbx-entry__sub { display: block; margin: .2rem 0 0; font-size: .86rem; line-height: 1.5; color: rgba(var(--fg-rgb), calc(.72 * var(--ink-k))); }
+.sbx-entry__go { flex: 0 0 auto; font-weight: 700; color: rgb(var(--brand-rgb)); white-space: nowrap; }
+/* module page wrapper: same column as .week-section */
+.sandbox-entry-wrap { max-inline-size: 1000px; margin: 0 auto 2rem; padding-inline: 2rem; }
+.sandbox-entry-wrap:empty { display: none; }
+@media (max-width: 768px) { .sandbox-entry-wrap { padding-inline: 16px; } }
+#aboutSandbox:empty { display: none; }
