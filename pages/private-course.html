@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <script>(function(){var t='light';try{if(localStorage.getItem('bwc-theme')==='dark')t='dark'}catch(e){}document.documentElement.setAttribute('data-theme',t)})()</script>
+  <link rel="stylesheet" href="../css/brand.css?v=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>קורס אישי - עסק ללא מתחרים</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;700;900&family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/design-tokens.css">
+  <link rel="stylesheet" href="../css/shared.css">
+  <link rel="stylesheet" href="../css/global-nav.css?v=4">
+  <link rel="stylesheet" href="../css/chat-composer.css">
+  <link rel="stylesheet" href="../css/private-course.css">
+</head>
+<body>
+  <header class="gnav" data-page="private-course"></header>
+
+  <main class="pc" id="pcMain">
+    <!-- Shown until the database answers. Course content never ships in this file. -->
+    <div class="pc-state" id="pcState" role="status" aria-live="polite">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      <span>טוען…</span>
+    </div>
+
+    <div id="pcCourse" hidden>
+      <section class="pc-hero">
+        <div class="pc-hero__badge"><i class="fa-solid fa-lock" aria-hidden="true"></i> קורס אישי, רק לחשבון שלך</div>
+        <h1 class="pc-hero__title" id="pcTitle"></h1>
+        <p class="pc-hero__sub" id="pcSub"></p>
+        <div class="pc-progress">
+          <div class="pc-progress__row">
+            <span id="pcCount"></span>
+            <span class="pc-progress__pct" id="pcPct">0%</span>
+          </div>
+          <div class="pc-progress__bar" role="progressbar" aria-label="התקדמות בקורס" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="pcBar">
+            <div class="pc-progress__fill" id="pcFill"></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="pc-layout">
+        <section class="pc-lesson" id="pcLesson" aria-live="polite">
+          <div class="pc-video" id="pcVideo"></div>
+          <div class="pc-lesson__head">
+            <div class="pc-lesson__crumbs" id="pcCrumbs"></div>
+            <h2 class="pc-lesson__title" id="pcLessonTitle"></h2>
+            <div class="pc-lesson__actions">
+              <button type="button" class="pc-btn" id="pcPrev"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> הקודם</button>
+              <button type="button" class="pc-btn pc-btn--primary" id="pcDone"></button>
+              <button type="button" class="pc-btn" id="pcNext">הבא <i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+            </div>
+          </div>
+          <div class="pc-tabs" role="tablist" aria-label="חומרי השיעור" id="pcTabs"></div>
+          <div class="pc-panel" id="pcPanel" role="tabpanel"></div>
+        </section>
+
+        <aside class="pc-side" aria-label="תוכן הקורס">
+          <label class="pc-search">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <input type="search" id="pcSearch" placeholder="חיפוש שיעור" autocomplete="off">
+          </label>
+          <div id="pcToc"></div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <script src="../js/api-host.js"></script>
+  <script src="../js/chat-composer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="../js/supabase-config.js" defer></script>
+  <script src="../js/auth.js" defer></script>
+  <script src="../js/auth-modal.js" defer></script>
+  <script src="../js/global-nav.js?v=6" defer></script>
+  <script src="../js/private-course.js" defer></script>
+</body>
+</html>

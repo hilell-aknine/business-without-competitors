@@ -1494,6 +1494,13 @@ function renderSidebar(filter=''){
     });
   }
 
+  // Private courses (2026-11-23) — filled by js/private-course-entry.js only
+  // for an account that holds a grant in the database (migration 015). The
+  // content itself is never in this file; this is just the door.
+  if (window.bwcPrivateCourses && typeof window.bwcPrivateCourses.sidebarHtml === 'function') {
+    html += window.bwcPrivateCourses.sidebarHtml(q, MODULES.length + TRACK_LIST.length);
+  }
+
   // Seminars (companion track — comes after modules)
   const seminarMatches = SEMINARS.map((sem, si) => ({sem, si})).filter(({sem, si}) => {
     if (!q) return true;
@@ -3109,6 +3116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="js/notes-ui.js" defer></script>
 <script src="js/lesson-notes.js" defer></script>
 <script src="js/global-nav.js?v=6" defer></script>
+<script src="js/private-course-entry.js" defer></script>
 <!-- onboarding.js MUST come after auth.js — it now saves answers to Supabase,
      so it needs window.bwcSupabase + window.bwcAuth to already exist. It used
      to load before the Supabase chain, back when it was localStorage-only. -->
