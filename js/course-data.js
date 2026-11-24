@@ -94,27 +94,27 @@ const MODULES = [
             {
                 title: 'סרטון פתיחה',
                 days: [
-                    { title: 'פתיחה לתוכנית ההכשרה', videoId: 'CR72nLX20bI' }
+                    { title: 'פתיחה לתוכנית ההכשרה', videoId: '4_JROnhBF-A', origVideoId: 'CR72nLX20bI' }
                 ]
             },
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'להגדיר זמן פריצה יומי', seq: 'יום 1', videoId: 'Pm7HfmdWziU' },
-                    { title: 'לבנות משפך שיווקי אטומי', seq: 'יום 2', videoId: 'eCaUBdsb3Co' },
-                    { title: 'לכתוב את הוירוס הפנימי', seq: 'יום 3', videoId: 'Kny7pRefdOY' },
-                    { title: 'ליצור רגש חדש ללקוח', seq: 'יום 4', videoId: 'Le3GbdccnfQ' },
-                    { title: 'לכתוב חזון אישי ללא מתחרים', seq: 'יום 5', videoId: 'JsXXqEb1UVU' }
+                    { title: 'להגדיר זמן פריצה יומי', seq: 'יום 1', videoId: 'g-26rOCZNJg', origVideoId: 'Pm7HfmdWziU' },
+                    { title: 'לבנות משפך שיווקי אטומי', seq: 'יום 2', videoId: '_SVxrNdZFMs', origVideoId: 'eCaUBdsb3Co' },
+                    { title: 'לכתוב את הוירוס הפנימי', seq: 'יום 3', videoId: '5UqKaC3mQRQ', origVideoId: 'Kny7pRefdOY' },
+                    { title: 'ליצור רגש חדש ללקוח', seq: 'יום 4', videoId: 'Fm0GKsGjX-U', origVideoId: 'Le3GbdccnfQ' },
+                    { title: 'לכתוב חזון אישי ללא מתחרים', seq: 'יום 5', videoId: '09oa8aYGXJc', origVideoId: 'JsXXqEb1UVU' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'לבנות תוכנית אימוני צמיחה', seq: 'יום 1', videoId: 'BvQUBidILYU' },
-                    { title: 'לשדרג את המיומנויות באמצעות אימון', seq: 'יום 2', videoId: '6MWTRPyQhsM' },
-                    { title: 'לזהות פציעות קטנות בתהליך השינוי', seq: 'יום 3', videoId: 'YCzMHzLoc9w' },
-                    { title: 'לחלום על העסק הבא שלך', seq: 'יום 4', videoId: '1yEjtL3ROVY' },
-                    { title: 'לזהות את הווירוס שמנצח את העסק שלך', seq: 'יום 5', videoId: 'HQXQhpVKXuM' }
+                    { title: 'לבנות תוכנית אימוני צמיחה', seq: 'יום 1', videoId: 'BzOH56g4JLA', origVideoId: 'BvQUBidILYU' },
+                    { title: 'לשדרג את המיומנויות באמצעות אימון', seq: 'יום 2', videoId: 'uZ55fUHX8TA', origVideoId: '6MWTRPyQhsM' },
+                    { title: 'לזהות פציעות קטנות בתהליך השינוי', seq: 'יום 3', videoId: 'xho3sVoLbmg', origVideoId: 'YCzMHzLoc9w' },
+                    { title: 'לחלום על העסק הבא שלך', seq: 'יום 4', videoId: 'MILggXlmo4U', origVideoId: '1yEjtL3ROVY' },
+                    { title: 'לזהות את הווירוס שמנצח את העסק שלך', seq: 'יום 5', videoId: 'q4_DaWTGWbc', origVideoId: 'HQXQhpVKXuM' }
                 ]
             }
         ]
@@ -133,17 +133,17 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'לבנות מוטיבציה אטומית לצוות', seq: 'יום 1', videoId: 'FaSkvCTJz04' },
-                    { title: 'לזהות את החזון הגדול של האנשים סביבך', seq: 'יום 2', videoId: 'I34D3SoygaE' },
-                    { title: 'לצטט את הקול הפנימי שמכשיל אותך', seq: 'יום 3', videoId: 'GIUW676Zl4M' },
-                    { title: 'למצוא את הצרכים שמניעים את הצוות', seq: 'יום 4', videoId: 'ji7ekKoo20M' },
-                    { title: 'להפוך עובדים לשותפים פנימיים', seq: 'יום 5', videoId: '0ANOF3g1ww8' }
+                    { title: 'לבנות מוטיבציה אטומית לצוות', seq: 'יום 1', videoId: 'JYHcEK3FzH0', origVideoId: 'FaSkvCTJz04' },
+                    { title: 'לזהות את החזון הגדול של האנשים סביבך', seq: 'יום 2', videoId: 'O9MebtP_T6Q', origVideoId: 'I34D3SoygaE' },
+                    { title: 'לצטט את הקול הפנימי שמכשיל אותך', seq: 'יום 3', videoId: 'QwDQMNpkFZo', origVideoId: 'GIUW676Zl4M' },
+                    { title: 'למצוא את הצרכים שמניעים את הצוות', seq: 'יום 4', videoId: 'm-8Ju6GpFl0', origVideoId: 'ji7ekKoo20M' },
+                    { title: 'להפוך עובדים לשותפים פנימיים', seq: 'יום 5', videoId: 'ecC9uLqBEpg', origVideoId: '0ANOF3g1ww8' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'לנסח חזון עסקי שמעורר מוטיבציה', seq: 'יום 1', videoId: 'lSJe09pT0uo' },
+                    { title: 'לנסח חזון עסקי שמעורר מוטיבציה', seq: 'יום 1', videoId: 'aUIfp224dwY', origVideoId: 'lSJe09pT0uo' },
                     { title: 'לתמצת את החזון הגדול שלך', seq: 'יום 2', videoId: 'lqx_YCBIAas' },
                     { title: 'לזהות את הצורך הפנימי של הקול המתנגד', seq: 'יום 3', videoId: 'ZhUjAWj99fk' },
                     { title: 'לצייר יומן הרגלים עם תגמולים אישיים', seq: 'יום 4', videoId: 'bP6whiZ0PcY' },
@@ -253,10 +253,10 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'לתפוס את אמונות העל שמובילות אותך', seq: 'יום 1', videoId: 'R7s0xuu7zOY' },
-                    { title: 'להפוך קורבנות למנהיגים באמצעות אמונות', seq: 'יום 2', videoId: 'k97S5RTgeao' },
-                    { title: 'להפוך את החלק המתנגד לחלק שרוצה', seq: 'יום 3', videoId: 'DO_YqMtyvWY' },
-                    { title: 'לזהות את שלושת הקונפליקטים הפנימיים של הלקוח', seq: 'יום 4', videoId: 'zYIOk6_jO1U' },
+                    { title: 'לתפוס את אמונות העל שמובילות אותך', seq: 'יום 1', videoId: 'iaf-mewqHg0', origVideoId: 'R7s0xuu7zOY' },
+                    { title: 'להפוך קורבנות למנהיגים באמצעות אמונות', seq: 'יום 2', videoId: 'Lg2Js1d7HFQ', origVideoId: 'k97S5RTgeao' },
+                    { title: 'להפוך את החלק המתנגד לחלק שרוצה', seq: 'יום 3', videoId: '_XpNiXeOg3Y', origVideoId: 'DO_YqMtyvWY' },
+                    { title: 'לזהות את שלושת הקונפליקטים הפנימיים של הלקוח', seq: 'יום 4', videoId: 'te8OSTWwCQQ', origVideoId: 'zYIOk6_jO1U' },
                     { title: 'לכתיבת טבלת CPB של קונפליקטי הלקוח', seq: 'יום 5', videoId: 'tu9ZK0cnr24' }
                 ]
             },
@@ -437,9 +437,9 @@ const TRACKS = [
         shortDescription: 'המסלול הרגשי של התוכנית — כל מפגשי יום שלישי עם תמר, מהשיעור הראשון ועד האחרון',
         description: 'לאורך כל שמונת חודשי ההכשרה, כל יום שלישי הוקדש לצד הרגשי: זיהוי ללא שיפוטיות, פרוטוקול הזהב, הווירוסים הפנימיים ושיח המנהיגות. כאן הם אספו למסלול אחד רציף, בסדר הכרונולוגי, כך שאפשר ללמוד את השיטה הרגשית כקורס עומד בפני עצמו ולא כפיזור בין שמונה מודולים.',
         lessons: [
-            { key: 'm0-1-2', mi: 0, wi: 1, di: 2, videoId: 'Kny7pRefdOY', title: 'למה תוכנית עסקית צריכה מטפלת רגשית', context: 'מודול 1 · שבוע 1' },
-            { key: 'm0-2-2', mi: 0, wi: 2, di: 2, videoId: 'YCzMHzLoc9w', title: 'פציעות — מה באמת עוצר אותנו מלבצע', context: 'מודול 1 · שבוע 2' },
-            { key: 'm1-0-2', mi: 1, wi: 0, di: 2, videoId: 'GIUW676Zl4M', title: 'עדכון הגרסה הראשון במקום אנטי־וירוס', context: 'מודול 2 · שבוע 1' },
+            { key: 'm0-1-2', mi: 0, wi: 1, di: 2, videoId: '5UqKaC3mQRQ', origVideoId: 'Kny7pRefdOY', title: 'למה תוכנית עסקית צריכה מטפלת רגשית', context: 'מודול 1 · שבוע 1' },
+            { key: 'm0-2-2', mi: 0, wi: 2, di: 2, videoId: 'xho3sVoLbmg', origVideoId: 'YCzMHzLoc9w', title: 'פציעות — מה באמת עוצר אותנו מלבצע', context: 'מודול 1 · שבוע 2' },
+            { key: 'm1-0-2', mi: 1, wi: 0, di: 2, videoId: 'QwDQMNpkFZo', origVideoId: 'GIUW676Zl4M', title: 'עדכון הגרסה הראשון במקום אנטי־וירוס', context: 'מודול 2 · שבוע 1' },
             { key: 'm1-1-2', mi: 1, wi: 1, di: 2, videoId: 'ZhUjAWj99fk', title: 'הקולות שעולים מול החזון הגדול', context: 'מודול 2 · שבוע 2' },
             { key: 'm1-2-2', mi: 1, wi: 2, di: 2, videoId: 'kjOaIHwRBDc', title: 'פרוטוקול הזהב — לגייס את החלק שמתנגד', context: 'מודול 2 · שבוע 3' },
             { key: 'm2-0-2', mi: 2, wi: 0, di: 2, videoId: 'KPChQLVaTNo', title: 'לעשות משהו אחר עם הווירוסים', context: 'מודול 3 · שבוע 1' },
@@ -447,7 +447,7 @@ const TRACKS = [
             { key: 'm2-2-2', mi: 2, wi: 2, di: 2, videoId: 'nnRYt-ISNQE', title: 'המכתב ללקוח והמשימה של השבוע', context: 'מודול 3 · שבוע 3' },
             { key: 'm3-0-2', mi: 3, wi: 0, di: 2, videoId: 'OpiNVVxPpfU', title: 'עדכוני גרסה בדרך למוצר משנה חיים', context: 'מודול 4 · שבוע 1' },
             { key: 'm3-1-2', mi: 3, wi: 1, di: 2, videoId: 'vuarz_Ych-M', variantIndex: 1, title: 'מוצר משנה חיים — הגרסה של תמר', context: 'מודול 4 · שבוע 2', note: 'לשיעור הזה שתי גרסאות בקורס. המסלול פותח את הגרסה של תמר.' },
-            { key: 'm4-0-2', mi: 4, wi: 0, di: 2, videoId: 'DO_YqMtyvWY', title: 'שיח מנהיגות בפתח הפיצוח האטומי', context: 'מודול 5 · שבוע 1' },
+            { key: 'm4-0-2', mi: 4, wi: 0, di: 2, videoId: '_XpNiXeOg3Y', origVideoId: 'DO_YqMtyvWY', title: 'שיח מנהיגות בפתח הפיצוח האטומי', context: 'מודול 5 · שבוע 1' },
             { key: 'm4-2-2', mi: 4, wi: 2, di: 2, videoId: 'S5K4bFR4-LI', title: 'קולות הזהב — אמפתיה עם החלק שמתנגד', context: 'מודול 5 · שבוע 3' },
             { key: 'm5-0-2', mi: 5, wi: 0, di: 2, videoId: '-rb6xNj06pk', title: 'להיכנס לנעליים של משפיען', context: 'מודול 6 · שבוע 1' },
             { key: 'm5-1-2', mi: 5, wi: 1, di: 2, videoId: 'p0e6e2AUyuU', title: 'רגע לפני כתיבת מסע הלקוח', context: 'מודול 6 · שבוע 2' },
