@@ -257,16 +257,16 @@ const MODULES = [
                     { title: 'להפוך קורבנות למנהיגים באמצעות אמונות', seq: 'יום 2', videoId: 'Lg2Js1d7HFQ', origVideoId: 'k97S5RTgeao' },
                     { title: 'להפוך את החלק המתנגד לחלק שרוצה', seq: 'יום 3', videoId: '_XpNiXeOg3Y', origVideoId: 'DO_YqMtyvWY' },
                     { title: 'לזהות את שלושת הקונפליקטים הפנימיים של הלקוח', seq: 'יום 4', videoId: 'te8OSTWwCQQ', origVideoId: 'zYIOk6_jO1U' },
-                    { title: 'לכתיבת טבלת CPB של קונפליקטי הלקוח', seq: 'יום 5', videoId: 'tu9ZK0cnr24' }
+                    { title: 'לכתיבת טבלת CPB של קונפליקטי הלקוח', seq: 'יום 5', videoId: '1Uz2lAkAOh0', origVideoId: 'tu9ZK0cnr24' }
                 ]
             },
             {
                 title: 'שבוע 2',
                 days: [
-                    { title: 'לזהות את החפיפה בין הצרכים שלכם', seq: 'יום 1', videoId: 'X0yEBnG-t2U' },
-                    { title: 'לזהות את התיוגים שמנעים ממך', seq: 'יום 2', videoId: 'cCAu5yxAy5k' },
-                    { title: 'לכתוב את שני הקולות הפנימיים', seq: 'יום 3', videoId: 'vrtdccnt9Zs' },
-                    { title: 'לכתוב שלושה קונפליקטים פנימיים של הלקוח', seq: 'יום 4', videoId: 'T06CoW6evnA' },
+                    { title: 'לזהות את החפיפה בין הצרכים שלכם', seq: 'יום 1', videoId: 'f1vAkHTFVaQ', origVideoId: 'X0yEBnG-t2U' },
+                    { title: 'לזהות את התיוגים שמנעים ממך', seq: 'יום 2', videoId: 'BUalzyiv3bk', origVideoId: 'cCAu5yxAy5k' },
+                    { title: 'לכתוב את שני הקולות הפנימיים', seq: 'יום 3', videoId: '_FgnQS-NsiE', origVideoId: 'vrtdccnt9Zs' },
+                    { title: 'לכתוב שלושה קונפליקטים פנימיים של הלקוח', seq: 'יום 4', videoId: 'GcJb2Ou3C7w', origVideoId: 'T06CoW6evnA' },
                     { title: 'לשקף את המצב ולבנות אמון', seq: 'יום 5', videoId: 'Mv5cpiNYxlM' }
                 ]
             },
