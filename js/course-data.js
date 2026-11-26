@@ -267,17 +267,17 @@ const MODULES = [
                     { title: 'לזהות את התיוגים שמנעים ממך', seq: 'יום 2', videoId: 'BUalzyiv3bk', origVideoId: 'cCAu5yxAy5k' },
                     { title: 'לכתוב את שני הקולות הפנימיים', seq: 'יום 3', videoId: '_FgnQS-NsiE', origVideoId: 'vrtdccnt9Zs' },
                     { title: 'לכתוב שלושה קונפליקטים פנימיים של הלקוח', seq: 'יום 4', videoId: 'GcJb2Ou3C7w', origVideoId: 'T06CoW6evnA' },
-                    { title: 'לשקף את המצב ולבנות אמון', seq: 'יום 5', videoId: 'Mv5cpiNYxlM' }
+                    { title: 'לשקף את המצב ולבנות אמון', seq: 'יום 5', videoId: 'IBmeWv-gxEw', origVideoId: 'Mv5cpiNYxlM' }
                 ]
             },
             {
                 title: 'שבוע 3',
                 days: [
-                    { title: 'לזהות אמונות נוגדות שינוי בלקוח', seq: 'יום 1', videoId: 'V-fy0QO-dzM' },
-                    { title: 'לבנות מפת פיצוח אמונות ללקוח', seq: 'יום 2', videoId: 'Zzk-b8mBlH8' },
-                    { title: 'לקביעת תאריך מפגש חירום עם המסטר מיינד', seq: 'יום 3', videoId: 'S5K4bFR4-LI' },
-                    { title: 'לסדר אמונות חדשות בסדר עולה', seq: 'יום 4', videoId: 'r0IJ73PT2Ac' },
-                    { title: 'יום 5 - משימת הטמעה', videoId: 'h_RTLzPF1no' }
+                    { title: 'לזהות אמונות נוגדות שינוי בלקוח', seq: 'יום 1', videoId: '16BLWWjqSkA', origVideoId: 'V-fy0QO-dzM' },
+                    { title: 'לבנות מפת פיצוח אמונות ללקוח', seq: 'יום 2', videoId: '8fvFcMrb02s', origVideoId: 'Zzk-b8mBlH8' },
+                    { title: 'לקביעת תאריך מפגש חירום עם המסטר מיינד', seq: 'יום 3', videoId: 'mGDhy22jnX4', origVideoId: 'S5K4bFR4-LI' },
+                    { title: 'לסדר אמונות חדשות בסדר עולה', seq: 'יום 4', videoId: 'znNoPNf3Hp8', origVideoId: 'r0IJ73PT2Ac' },
+                    { title: 'יום 5 - משימת הטמעה', videoId: 'xCJboJQPNz4', origVideoId: 'h_RTLzPF1no' }
                 ]
             }
         ]
@@ -297,9 +297,9 @@ const MODULES = [
             {
                 title: 'שבוע 1',
                 days: [
-                    { title: 'להפוך תוכן להשפעה משכנעת', seq: 'יום 1', videoId: '1TqLVPgWzUY' },
-                    { title: 'לבנות חווייה שיוצרת מעבר טבעי של אמונות', seq: 'יום 2', videoId: 'DFfhc3xWzNk' },
-                    { title: 'לעצב חווייה שמכבדת את שני הקולות', seq: 'יום 3', videoId: '-rb6xNj06pk' },
+                    { title: 'להפוך תוכן להשפעה משכנעת', seq: 'יום 1', videoId: '1hHkLHXVWWM', origVideoId: '1TqLVPgWzUY' },
+                    { title: 'לבנות חווייה שיוצרת מעבר טבעי של אמונות', seq: 'יום 2', videoId: 'ssTEN8tXRWU', origVideoId: 'DFfhc3xWzNk' },
+                    { title: 'לעצב חווייה שמכבדת את שני הקולות', seq: 'יום 3', videoId: 'rvnoKPzUABk', origVideoId: '-rb6xNj06pk' },
                     { title: 'לסדר את הידע ולהנגיש אותו בלי הצפה', seq: 'יום 4', videoId: '72-A93-KVSE' },
                     { title: 'לבנות חווייה משנה זהות לקוח', seq: 'יום 5', videoId: '1RDdiaTmvUg' }
                 ]
@@ -448,8 +448,8 @@ const TRACKS = [
             { key: 'm3-0-2', mi: 3, wi: 0, di: 2, videoId: 'OpiNVVxPpfU', title: 'עדכוני גרסה בדרך למוצר משנה חיים', context: 'מודול 4 · שבוע 1' },
             { key: 'm3-1-2', mi: 3, wi: 1, di: 2, videoId: 'vuarz_Ych-M', variantIndex: 1, title: 'מוצר משנה חיים — הגרסה של תמר', context: 'מודול 4 · שבוע 2', note: 'לשיעור הזה שתי גרסאות בקורס. המסלול פותח את הגרסה של תמר.' },
             { key: 'm4-0-2', mi: 4, wi: 0, di: 2, videoId: '_XpNiXeOg3Y', origVideoId: 'DO_YqMtyvWY', title: 'שיח מנהיגות בפתח הפיצוח האטומי', context: 'מודול 5 · שבוע 1' },
-            { key: 'm4-2-2', mi: 4, wi: 2, di: 2, videoId: 'S5K4bFR4-LI', title: 'קולות הזהב — אמפתיה עם החלק שמתנגד', context: 'מודול 5 · שבוע 3' },
-            { key: 'm5-0-2', mi: 5, wi: 0, di: 2, videoId: '-rb6xNj06pk', title: 'להיכנס לנעליים של משפיען', context: 'מודול 6 · שבוע 1' },
+            { key: 'm4-2-2', mi: 4, wi: 2, di: 2, videoId: 'mGDhy22jnX4', origVideoId: 'S5K4bFR4-LI', title: 'קולות הזהב — אמפתיה עם החלק שמתנגד', context: 'מודול 5 · שבוע 3' },
+            { key: 'm5-0-2', mi: 5, wi: 0, di: 2, videoId: 'rvnoKPzUABk', origVideoId: '-rb6xNj06pk', title: 'להיכנס לנעליים של משפיען', context: 'מודול 6 · שבוע 1' },
             { key: 'm5-1-2', mi: 5, wi: 1, di: 2, videoId: 'p0e6e2AUyuU', title: 'רגע לפני כתיבת מסע הלקוח', context: 'מודול 6 · שבוע 2' },
             { key: 'm5-2-2', mi: 5, wi: 2, di: 2, videoId: 'krW4Nmi3mjY', title: 'הכלי לניתוח מודעות', context: 'מודול 6 · שבוע 3' },
             { key: 'm6-0-2', mi: 6, wi: 0, di: 2, videoId: 'JF6T2reo99w', title: 'שיח מנהיגות בחודש ההמראה', context: 'מודול 7 · שבוע 1' },
