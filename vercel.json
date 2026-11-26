@@ -4,7 +4,7 @@
   "installCommand": null,
   "outputDirectory": ".",
   "functions": {
-    "api/**/*.js": { "maxDuration": 90, "includeFiles": "api/_kb/**" }
+    "api/**/*.js": { "maxDuration": 90, "includeFiles": "api/{_kb,_game}/**" }
   },
   "headers": [
     {

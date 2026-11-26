@@ -2,7 +2,8 @@
    game.js — practice game engine for "עסק ללא מתחרים" (pages/game.html).
 
    Reads window.GAME_MODULES (built by js/game-data.js) and runs the whole
-   loop: map, reading screen, seven exercise types, feedback, XP, levels,
+   loop: map, reading screen, exercise types (a registry), three levels per
+   lesson, feedback, XP, player ranks,
    hearts, streak, achievements, stats.
 
    Storage
@@ -14,7 +15,9 @@
    overwrite a row that already holds progress. If the table does not exist
    the engine goes local-only without telling the learner anything.
 
-   No AI and no network calls other than Supabase.
+   The engine itself makes no AI calls. The Joker (level 3, hints, surprise
+   rounds) lives in js/game-joker.js and talks to /api/game-coach; without
+   that file the game is levels 1 and 2 only.
    ========================================================================== */
 (function () {
     'use strict';
@@ -44,6 +47,38 @@
         'order':           { label: 'סידור לפי סדר', icon: 'fa-arrow-down-1-9', tip: 'סדרו לפי ההיגיון. מה בא קודם ומה אחר כך?' },
         'match':           { label: 'התאמה', icon: 'fa-link', tip: 'חפשו את הקשר בין שתי הקבוצות. טעיתם? הקישו על זוג כדי לשחרר אותו.' }
     };
+
+    // Three levels per lesson. Level 1 is the lesson's own `exercises`; level 2
+    // and 3 come from js/game-data-l2-m<n>.js / -l3-m<n>.js, loaded on demand.
+    const LEVELS = {
+        1: { name: 'הכרה', desc: 'ששת התרגילים של השיעור', icon: 'fa-seedling' },
+        2: { name: 'יישום', desc: 'משחקים חדשים על מצבים מהעסק', icon: 'fa-hammer' },
+        3: { name: 'שליטה', desc: 'שלוש משימות פתוחות מול הג\'וקר', icon: 'fa-crown' }
+    };
+
+    // Exercise type registry. One entry per type:
+    //   { render(g, container, ex), check(g, ex) -> true | false | null (not answered yet),
+    //     feedback(g, isCorrect, ex), secondChance: bool,
+    //     detail(g, ex, isCorrect) -> html for the feedback panel (optional) }
+    // The seven built-in types are registered below; js/game-types-l2.js adds
+    // more by writing to window.BwcGameTypes (with a `meta` of its own) before
+    // this file runs.
+    const TYPES = {};
+    const picked = (g, ex) => (g.selectedAnswer === null ? null : g.selectedAnswer === ex.correct);
+    const choiceFeedback = (g, ok, ex) => g.showMultipleChoiceFeedback(ok, ex);
+    TYPES['multiple-choice'] = { render: (g, c, ex) => g.renderMultipleChoice(c, ex), check: picked, feedback: choiceFeedback, secondChance: true };
+    TYPES['scenario'] = { render: (g, c, ex) => g.renderScenario(c, ex), check: picked, feedback: choiceFeedback, secondChance: true };
+    TYPES['improve'] = { render: (g, c, ex) => g.renderImprove(c, ex), check: picked, feedback: choiceFeedback, secondChance: true };
+    TYPES['fill-blank'] = { render: (g, c, ex) => g.renderFillBlank(c, ex), check: picked, feedback: (g, ok, ex) => g.showFillBlankFeedback(ok, ex) };
+    TYPES['compare'] = { render: (g, c, ex) => g.renderCompare(c, ex), check: picked, feedback: (g, ok, ex) => g.showCompareFeedback(ok, ex), secondChance: true };
+    TYPES['order'] = { render: (g, c, ex) => g.renderOrder(c, ex), check: (g, ex) => g.checkOrderAnswer(ex), feedback: (g, ok) => g.showOrderFeedback(ok) };
+    TYPES['match'] = { render: (g, c, ex) => g.renderMatch(c, ex), check: (g, ex) => g.checkMatchAnswer(ex), feedback: (g, ok) => g.showMatchFeedback(ok) };
+    Object.keys(window.BwcGameTypes || {}).forEach((name) => {
+        const t = window.BwcGameTypes[name];
+        if (!t || typeof t.render !== 'function' || typeof t.check !== 'function') return;
+        TYPES[name] = t;
+        if (t.meta) EXERCISE_META[name] = t.meta;
+    });
 
     function esc(s) {
         if (s === null || s === undefined) return '';
@@ -156,6 +191,9 @@
             this.currentScreen = 'home';
             this.currentModule = null;
             this.currentLesson = null;
+            this.currentLevel = 1;          // 1 | 2 | 3
+            this.surpriseRound = null;      // exercises of a Joker "surprise round", or null
+            this.levelData = {};            // moduleId -> { l2, l3, promise }
             this.currentExerciseIndex = 0;
             this.selectedAnswer = null;
             this.exerciseAnswered = false;
@@ -255,6 +293,7 @@
             navEl.classList.add('nav-visible');
 
             this.updateSoundToggle();
+            this.initFullscreen();
 
             try {
                 this.playerData.level = this.calculateLevel();
@@ -310,7 +349,8 @@
         // that lesson. Returns true if it navigated.
         tryDeepLink() {
             try {
-                const key = new URLSearchParams(window.location.search).get('lesson');
+                const params = new URLSearchParams(window.location.search);
+                const key = params.get('lesson');
                 if (!key) return false;
                 const hit = this.lessonIndex[key];
                 if (!hit) {
@@ -318,7 +358,10 @@
                     return false;
                 }
                 this.openModule(hit.module.id);
-                this.startLesson(hit.lesson.id);
+                // &level=2 / &level=3 opens that level if the learner has reached it.
+                const want = parseInt(params.get('level'), 10);
+                if ((want === 2 || want === 3) && this.isLevelOpen(key, want)) this.startLesson(hit.lesson.id, want);
+                else this.startLesson(hit.lesson.id);
                 return true;
             } catch (e) {
                 console.error('[game] deep link failed', e);
@@ -463,6 +506,80 @@
             return !!this.playerData.completedLessons[this.lk(mod, lesson)];
         }
 
+        // ═══════════════════════════════════════
+        // Levels
+        // ═══════════════════════════════════════
+        // The exercises on screen: a surprise round, level 2, or the lesson's own.
+        exList() {
+            if (this.surpriseRound) return this.surpriseRound;
+            if (this.currentLevel === 2 && this.currentModule && this.currentLesson) {
+                const list = this.levelList(this.currentModule.id, this.lk(this.currentModule, this.currentLesson), 2);
+                if (list) return list;
+            }
+            return (this.currentLesson && this.currentLesson.exercises) || [];
+        }
+
+        // Level 1 is "done" through completedLessons, so a learner who finished a
+        // lesson before levels existed already holds its first star.
+        levelDone(key, level) {
+            if (level === 1) return !!this.playerData.completedLessons[key];
+            const rec = (this.playerData.levels || {})[key];
+            return !!(rec && rec[level]);
+        }
+
+        isLevelOpen(key, level) {
+            return level === 1 || this.levelDone(key, level - 1);
+        }
+
+        starsOf(key) {
+            return [1, 2, 3].filter(l => this.levelDone(key, l)).length;
+        }
+
+        markLevelDone(key, level) {
+            if (level === 1) { this.playerData.completedLessons[key] = true; return; }
+            const all = this.playerData.levels || (this.playerData.levels = {});
+            const rec = all[key] || (all[key] = {});
+            rec[level] = true;
+        }
+
+        levelList(moduleId, key, level) {
+            const d = this.levelData[moduleId];
+            const set = d && (level === 2 ? d.l2 : d.l3);
+            const list = set && set.lessons && set.lessons[key];
+            return Array.isArray(list) && list.length ? list : null;
+        }
+
+        // Loads the level 2 + level 3 files of one module. Resolves either way:
+        // a module whose files are not written yet simply has no extra levels.
+        loadLevelData(moduleId) {
+            const have = this.levelData[moduleId];
+            if (have) return have.promise;
+            const entry = { l2: null, l3: null, settled: false, promise: null };
+            this.levelData[moduleId] = entry;
+            if (this.isFixture) { entry.settled = true; entry.promise = Promise.resolve(entry); return entry.promise; }
+            const load = (kind, global) => new Promise((resolve) => {
+                if (window[global]) { resolve(window[global]); return; }
+                const s = document.createElement('script');
+                s.src = `../js/game-data-${kind}-m${moduleId}.js?v=1`;
+                s.onload = () => resolve(window[global] || null);
+                s.onerror = () => resolve(null);
+                document.head.appendChild(s);
+            });
+            entry.promise = Promise.all([load('l2', 'GAME_L2_' + moduleId), load('l3', 'GAME_L3_' + moduleId)])
+                .then(([l2, l3]) => {
+                    entry.l2 = l2; entry.l3 = l3; entry.settled = true;
+                    // An unknown type would crash a level 2 lesson: drop that list.
+                    if (l2 && l2.lessons) Object.keys(l2.lessons).forEach((k) => {
+                        if (!Array.isArray(l2.lessons[k]) || l2.lessons[k].some(ex => !ex || !TYPES[ex.type])) {
+                            console.error('[game] level 2 data for', k, 'has an unknown exercise type and was skipped.');
+                            delete l2.lessons[k];
+                        }
+                    });
+                    return entry;
+                });
+            return entry.promise;
+        }
+
         totalLessons() {
             return this.modules.reduce((n, m) => n + m.lessons.length, 0);
         }
@@ -513,6 +630,9 @@
                 lastPlayDate: null,
                 lastHeartLost: null,
                 completedLessons: {},
+                // Levels 2 and 3 per lesson, { lessonKey: { 2: true, 3: true } }.
+                // Level 1 stays in completedLessons. Column `levels` (migration 016).
+                levels: {},
                 achievements: [],
                 totalCorrectAnswers: 0,
                 totalWrongAnswers: 0,
@@ -544,6 +664,7 @@
             d.maxHearts = MAX_HEARTS;
             d.hearts = Number.isFinite(d.hearts) ? Math.max(0, Math.min(MAX_HEARTS, d.hearts)) : MAX_HEARTS;
             if (!d.completedLessons || typeof d.completedLessons !== 'object' || Array.isArray(d.completedLessons)) d.completedLessons = {};
+            if (!d.levels || typeof d.levels !== 'object' || Array.isArray(d.levels)) d.levels = {};
             if (!Array.isArray(d.achievements)) d.achievements = [];
             if (!Array.isArray(d.perfectLessonsList)) d.perfectLessonsList = [];
             if (!d.weeklyActivity || typeof d.weeklyActivity !== 'object') d.weeklyActivity = {};
@@ -693,7 +814,8 @@
                 || Object.keys(remote.completed_lessons || {}).length !== this.completedCount(d)
                 || (remote.achievements || []).length !== d.achievements.length
                 || (remote.total_correct || 0) !== d.totalCorrectAnswers
-                || (remote.total_wrong || 0) !== d.totalWrongAnswers;
+                || (remote.total_wrong || 0) !== d.totalWrongAnswers
+                || JSON.stringify(remote.levels || {}) !== JSON.stringify(d.levels || {});
         }
 
         fromRow(row) {
@@ -706,6 +828,7 @@
                 totalCorrectAnswers: row.total_correct || 0,
                 totalWrongAnswers: row.total_wrong || 0,
                 completedLessons: (row.completed_lessons && typeof row.completed_lessons === 'object' && !Array.isArray(row.completed_lessons)) ? row.completed_lessons : {},
+                levels: (row.levels && typeof row.levels === 'object' && !Array.isArray(row.levels)) ? row.levels : {},
                 achievements: Array.isArray(row.achievements) ? row.achievements : [],
                 perfectLessons: row.perfect_lessons || 0,
                 perfectLessonsList: Array.isArray(row.perfect_lessons_list) ? row.perfect_lessons_list : [],
@@ -737,6 +860,12 @@
                 m.longestStreak = Math.max(m.longestStreak || 0, r.longestStreak);
 
                 m.completedLessons = Object.assign({}, r.completedLessons, m.completedLessons);
+                // Levels: union per lesson and per level, like completed lessons.
+                const lv = {};
+                [r.levels || {}, m.levels || {}].forEach((src) => Object.keys(src).forEach((k) => {
+                    if (src[k] && typeof src[k] === 'object') lv[k] = Object.assign(lv[k] || {}, src[k]);
+                }));
+                m.levels = lv;
                 m.achievements = Array.from(new Set([...(m.achievements || []), ...r.achievements]));
                 m.perfectLessonsList = Array.from(new Set([...(m.perfectLessonsList || []), ...r.perfectLessonsList]));
                 m.perfectLessons = Math.max(m.perfectLessons || 0, r.perfectLessons, m.perfectLessonsList.length);
@@ -811,8 +940,18 @@
                 weekly_activity: d.weeklyActivity || {},
                 module_accuracy: d.moduleAccuracy || {},
                 last_play_date: d.lastPlayDate || null,
-                last_heart_lost: d.lastHeartLost || null
+                last_heart_lost: d.lastHeartLost || null,
+                levels: d.levels || {}
             };
+        }
+
+        // Before migration 016 the table has no `levels` column and an upsert
+        // that names it fails. That must not switch the whole cloud save off:
+        // the row is sent without the column for the rest of the session.
+        isMissingLevelsColumn(error) {
+            if (!error) return false;
+            const msg = String(error.message || '') + ' ' + String(error.details || '') + ' ' + String(error.hint || '');
+            return /levels/i.test(msg) && (String(error.code) === 'PGRST204' || String(error.code) === '42703' || /column/i.test(msg));
         }
 
         queueCloudSave() {
@@ -837,7 +976,14 @@
 
             const attempt = async () => {
                 const row = Object.assign({ user_id: user.id }, this.cloudRow(), { updated_at: new Date().toISOString() });
-                const { error } = await sb.from(CLOUD_TABLE).upsert(row, { onConflict: 'user_id' });
+                if (this.cloud.noLevelsColumn) delete row.levels;
+                let { error } = await sb.from(CLOUD_TABLE).upsert(row, { onConflict: 'user_id' });
+                if (error && !this.cloud.noLevelsColumn && this.isMissingLevelsColumn(error)) {
+                    this.cloud.noLevelsColumn = true;
+                    console.info('[game] game_players has no levels column yet (migration 016). Levels stay on this device.');
+                    delete row.levels;
+                    ({ error } = await sb.from(CLOUD_TABLE).upsert(row, { onConflict: 'user_id' }));
+                }
                 if (error) throw error;
             };
             // game_players references profiles(id). An account without a profiles
@@ -1029,6 +1175,37 @@
             if (this.currentScreen === 'profile') this.renderProfileScreen();
         }
 
+        // The portal navbar (and its theme switch) is not on this page any more.
+        toggleTheme() {
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('bwc-theme', next); } catch (e) { /* storage blocked */ }
+            if (this.currentScreen === 'profile') this.renderProfileScreen();
+        }
+
+        // Browser full screen. iPhone Safari has no Fullscreen API for pages,
+        // so the button only appears where the browser supports it.
+        initFullscreen() {
+            const btn = byId('fullscreen-toggle');
+            const root = document.documentElement;
+            const can = !!(document.fullscreenEnabled && root.requestFullscreen) && !this.isEmbed;
+            if (!btn || !can) return;
+            btn.hidden = false;
+            document.addEventListener('fullscreenchange', () => {
+                const on = !!document.fullscreenElement;
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                btn.setAttribute('aria-label', on ? 'יציאה ממסך מלא' : 'מסך מלא');
+                btn.innerHTML = icon(on ? 'fa-compress' : 'fa-expand');
+            });
+        }
+
+        toggleFullscreen() {
+            try {
+                if (document.fullscreenElement) document.exitFullscreen();
+                else document.documentElement.requestFullscreen().catch(() => this.showToast('הדפדפן לא אישר מסך מלא.', 3000));
+            } catch (e) { /* not supported */ }
+        }
+
         navTo(tab) {
             switch (tab) {
                 case 'home': this.transitionTo(() => this.renderHomeScreen()); break;
@@ -1071,7 +1248,7 @@
                     <div class="profile-card">
                         <div class="profile-avatar">${this.art(`levels/level-${level}.webp`, 'profile-level-art', 'fa-user')}</div>
                         <div class="profile-email" dir="auto">${esc(who)}</div>
-                        <div class="profile-role">${esc(this.getLevelName(level))} · רמה ${level}</div>
+                        <div class="profile-role">${esc(this.getLevelName(level))} · דרגה ${level}</div>
                         ${this.isGuest ? '<div class="profile-note">ההתקדמות נשמרת במכשיר הזה בלבד. התחברו כדי לשמור אותה גם בחשבון.</div>' : ''}
                     </div>
 
@@ -1081,6 +1258,9 @@
                         </button>
                         <button class="profile-action-btn" onclick="game.toggleSound()">
                             ${icon(this.sound.enabled ? 'fa-volume-high' : 'fa-volume-xmark')} <span>צלילים: ${this.sound.enabled ? 'פעילים' : 'כבויים'}</span>
+                        </button>
+                        <button class="profile-action-btn" onclick="game.toggleTheme()">
+                            ${icon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'fa-sun' : 'fa-moon')} <span>${document.documentElement.getAttribute('data-theme') === 'dark' ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'}</span>
                         </button>
                         <a class="profile-action-btn" href="../index.html"${top}>
                             ${icon('fa-circle-play')} <span>חזרה לשיעורים</span>
@@ -1322,6 +1502,8 @@
         renderHomeScreen() {
             this.currentScreen = 'home';
             this.inLesson = false;
+            this.currentLevel = 1;
+            this.surpriseRound = null;
             document.body.classList.remove('game-fullscreen');
             this.updateBottomNav('home');
             const container = byId('game-container');
@@ -1448,10 +1630,10 @@
                     <div class="level-info">
                         <div class="level-current">
                             <span class="level-art-wrap">${this.art(`levels/level-${level}.webp`, 'level-art', 'fa-ranking-star')}</span>
-                            <span class="level-badge">רמה ${level}</span>
+                            <span class="level-badge">דרגה ${level}</span>
                             <span class="level-name">${esc(this.getLevelName(level))}</span>
                         </div>
-                        <span class="level-next">${levelInfo.isMax ? 'הרמה הגבוהה ביותר' : `עוד ${levelInfo.xpToNext} XP לרמה הבאה`}</span>
+                        <span class="level-next">${levelInfo.isMax ? 'הדרגה הגבוהה ביותר' : `עוד ${levelInfo.xpToNext} XP לדרגה הבאה`}</span>
                     </div>
                     <div class="level-progress-bar">
                         <div class="level-progress-fill" style="width: ${levelInfo.progress}%"></div>
@@ -1544,7 +1726,10 @@
             this.currentModule = mod;
             this.currentScreen = 'module';
             this.inLesson = false;
+            this.currentLevel = 1;
+            this.surpriseRound = null;
             document.body.classList.add('game-fullscreen');
+            this.loadLevelData(mod.id);     // warm the level 2/3 files for this module
             const perfectList = this.playerData.perfectLessonsList || [];
 
             const completedCount = mod.lessons.filter(l => this.isLessonDone(mod, l)).length;
@@ -1562,9 +1747,16 @@
                 let stateLabel = 'נעול';
                 let onclick = `game.showLockedHint('lesson')`;
 
-                if (isPerfect) { stateClass = 'perfect'; nodeIcon = 'fa-star'; stateLabel = 'הושלם בלי טעויות'; onclick = `game.startLesson(${lesson.id})`; }
-                else if (isCompleted) { stateClass = 'completed'; nodeIcon = 'fa-check'; stateLabel = 'הושלם'; onclick = `game.startLesson(${lesson.id})`; }
+                // A finished lesson opens the level picker; an unfinished one goes
+                // straight into level 1, exactly as before levels existed.
+                if (isPerfect) { stateClass = 'perfect'; nodeIcon = 'fa-star'; stateLabel = 'הושלם בלי טעויות'; onclick = `game.openLesson(${lesson.id})`; }
+                else if (isCompleted) { stateClass = 'completed'; nodeIcon = 'fa-check'; stateLabel = 'הושלם'; onclick = `game.openLesson(${lesson.id})`; }
                 else if (!isLocked) { stateClass = 'available'; nodeIcon = 'fa-play'; stateLabel = 'זמין'; onclick = `game.startLesson(${lesson.id})`; }
+
+                const stars = this.starsOf(key);
+                const starsHtml = isCompleted
+                    ? `<div class="path-node-stars" role="img" aria-label="${stars} מתוך 3 רמות">${[1, 2, 3].map(l => icon('fa-star', l <= stars ? 'on' : 'off')).join('')}</div>`
+                    : '';
 
                 return `
                     <div class="path-node-row">
@@ -1576,6 +1768,7 @@
                                 <div class="path-node-number">שיעור ${index + 1}</div>
                                 <div class="path-node-title">${esc(lesson.title)}</div>
                             </div>
+                            ${starsHtml}
                         </button>
                     </div>
                 `;
@@ -1611,7 +1804,87 @@
         // ═══════════════════════════════════════
         // Lesson
         // ═══════════════════════════════════════
-        startLesson(lessonId) {
+        // The level picker of one lesson: three levels and the surprise round.
+        openLesson(lessonId) {
+            const mod = this.currentModule;
+            const lesson = mod && mod.lessons.find(l => l.id === lessonId);
+            if (!lesson) { this.showError('השיעור לא נמצא.'); return; }
+            const key = this.lk(mod, lesson);
+            if (!this.levelDone(key, 1)) { this.startLesson(lessonId); return; }
+            this.currentLesson = lesson;
+            this.currentLevel = 1;
+            this.surpriseRound = null;
+            this.currentScreen = 'levels';
+            this.inLesson = false;
+            this.transitionTo(() => this.renderLevelScreen());
+            // The files may still be on their way: redraw once they land.
+            this.loadLevelData(mod.id).then(() => {
+                if (this.currentScreen === 'levels' && this.currentLesson === lesson) this.renderLevelScreen();
+            });
+        }
+
+        renderLevelScreen() {
+            const mod = this.currentModule, lesson = this.currentLesson;
+            if (!mod || !lesson) return;
+            const key = this.lk(mod, lesson);
+            const loaded = !!(this.levelData[mod.id] && this.levelData[mod.id].settled);
+            const joker = window.BwcJoker;
+
+            const card = (level) => {
+                const L = LEVELS[level];
+                const done = this.levelDone(key, level);
+                const open = this.isLevelOpen(key, level);
+                const has = level === 1 || !!this.levelList(mod.id, key, level);
+                let state = 'available', note = '', action = `game.startLesson(${lesson.id}, ${level})`;
+                if (!has) { state = 'soon'; note = loaded ? 'בקרוב' : 'טוען...'; action = ''; }
+                else if (!open) { state = 'locked'; note = `נפתח אחרי רמה ${level - 1}`; action = `game.showToast('השלימו קודם את רמה ${level - 1}.', 3000)`; }
+                else if (done) { state = 'done'; note = 'הושלם. אפשר לשחק שוב'; }
+                if (level === 3 && has && open && this.isGuest) note = 'נדרשת התחברות';
+                return `
+                    <button type="button" class="level-card ${state}" ${action ? `onclick="${action}"` : 'disabled'}
+                            aria-label="רמה ${level}: ${L.name}${note ? ', ' + note : ''}">
+                        <span class="level-card-num">${done ? icon('fa-star') : level}</span>
+                        <span class="level-card-body">
+                            <span class="level-card-name">${icon(L.icon)} ${L.name}</span>
+                            <span class="level-card-desc">${L.desc}</span>
+                            ${note ? `<span class="level-card-note">${note}</span>` : ''}
+                        </span>
+                        <span class="level-card-arrow">${state === 'locked' ? icon('fa-lock') : (action ? icon('fa-chevron-left') : '')}</span>
+                    </button>`;
+            };
+
+            const surprise = joker && typeof joker.startSurprise === 'function' ? `
+                    <button type="button" class="level-card surprise" onclick="BwcJoker.startSurprise(game)">
+                        <span class="level-card-num">${icon('fa-wand-magic-sparkles')}</span>
+                        <span class="level-card-body">
+                            <span class="level-card-name">סיבוב הפתעה</span>
+                            <span class="level-card-desc">הג'וקר מרכיב שישה תרגילים חדשים מהשיעור הזה</span>
+                            ${this.isGuest ? '<span class="level-card-note">נדרשת התחברות</span>' : ''}
+                        </span>
+                        <span class="level-card-arrow">${icon('fa-chevron-left')}</span>
+                    </button>` : '';
+
+            byId('game-container').innerHTML = `
+                <button class="back-btn" onclick="game.transitionTo(function() { game.openModule(${mod.id}) })">
+                    ${icon('fa-arrow-right')} חזרה
+                </button>
+                <div class="levels-screen">
+                    <div class="levels-kicker">${esc(mod.title)} · שיעור ${lesson.id}</div>
+                    <h2 class="levels-title">${esc(lesson.title)}</h2>
+                    <div class="levels-stars" role="img" aria-label="${this.starsOf(key)} מתוך 3 רמות">
+                        ${[1, 2, 3].map(l => icon('fa-star', this.levelDone(key, l) ? 'on' : 'off')).join('')}
+                    </div>
+                    <div class="levels-list">
+                        ${card(1)}${card(2)}${card(3)}
+                    </div>
+                    ${surprise}
+                </div>
+            `;
+            this.hideProgressBar();
+            this.hideFooter();
+        }
+
+        startLesson(lessonId, level) {
             if (!this.currentModule || !this.currentModule.lessons) {
                 this.showError('שגיאה בטעינת המודול. נסו לרענן את הדף.');
                 return;
@@ -1622,6 +1895,43 @@
                 return;
             }
             this.currentLesson = lesson;
+            this.surpriseRound = null;
+            this.currentLevel = (level === 2 || level === 3) ? level : 1;
+            const lessonKey = this.lk(this.currentModule, lesson);
+
+            // Levels 2 and 3 need the module's level files. They are normally
+            // already loaded; if not, wait for them and come back here.
+            if (this.currentLevel > 1 && !this.levelList(this.currentModule.id, lessonKey, this.currentLevel)) {
+                const entry = this.levelData[this.currentModule.id];
+                const settled = entry && entry.settled;
+                if (settled) {
+                    this.currentLevel = 1;
+                    this.showToast('הרמה הזאת עוד לא מוכנה לשיעור הזה.', 3500);
+                    this.transitionTo(() => this.renderLevelScreen());
+                    return;
+                }
+                const want = this.currentLevel;
+                this.loadLevelData(this.currentModule.id).then((d) => {
+                    if (this.currentLesson !== lesson) return;
+                    this.startLesson(lessonId, want);
+                });
+                return;
+            }
+
+            // Level 3 is a conversation with the Joker, not an exercise list.
+            if (this.currentLevel === 3) {
+                const tasks = this.levelList(this.currentModule.id, lessonKey, 3);
+                const joker = window.BwcJoker;
+                this.currentLevel = 1;
+                if (!joker || typeof joker.startLevel3 !== 'function') {
+                    this.showToast('רמה 3 לא זמינה כרגע.', 3500);
+                    return;
+                }
+                document.body.classList.add('game-fullscreen');
+                joker.startLevel3(this, this.currentModule, lesson, tasks);
+                return;
+            }
+
             document.body.classList.add('game-fullscreen');
             this._reinforceCount = 0;
 
@@ -1643,7 +1953,8 @@
             // A malformed lesson must never be a silent dead click: show the
             // failure, log it, and fall back to the module screen.
             try {
-                if (lesson.reading && Array.isArray(lesson.reading.paragraphs) && lesson.reading.paragraphs.length) {
+                // The reading screen belongs to level 1. Level 2 starts playing at once.
+                if (this.currentLevel === 1 && lesson.reading && Array.isArray(lesson.reading.paragraphs) && lesson.reading.paragraphs.length) {
                     this.currentScreen = 'reading';
                     this.updateProgressBar();
                     this.renderReading();
@@ -1784,7 +2095,7 @@
                 this.renderCrash('שגיאה בטעינת התרגיל.', new Error('renderExercise without currentLesson.exercises'));
                 return;
             }
-            const exercise = this.currentLesson.exercises[this.currentExerciseIndex];
+            const exercise = this.exList()[this.currentExerciseIndex];
             if (!exercise) {
                 this.completeLesson();
                 return;
@@ -1798,19 +2109,12 @@
             this.updateProgressBar();
 
             const container = byId('game-container');
-            const total = this.currentLesson.exercises.length;
+            const total = this.exList().length;
 
             try {
-                switch (exercise.type) {
-                    case 'multiple-choice': this.renderMultipleChoice(container, exercise); break;
-                    case 'scenario': this.renderScenario(container, exercise); break;
-                    case 'improve': this.renderImprove(container, exercise); break;
-                    case 'fill-blank': this.renderFillBlank(container, exercise); break;
-                    case 'compare': this.renderCompare(container, exercise); break;
-                    case 'order': this.renderOrder(container, exercise); break;
-                    case 'match': this.renderMatch(container, exercise); break;
-                    default: throw new Error('unknown exercise type: ' + exercise.type);
-                }
+                const type = TYPES[exercise.type];
+                if (!type) throw new Error('unknown exercise type: ' + exercise.type);
+                type.render(this, container, exercise);
             } catch (e) {
                 // One bad exercise must not trap the learner. Say it on screen,
                 // log it, and let them move past it without losing a heart.
@@ -1830,8 +2134,19 @@
 
             const backBtn = container.querySelector('.back-btn');
             if (backBtn) {
+                const where = this.surpriseRound ? 'סיבוב הפתעה' : `רמה ${this.currentLevel}: ${LEVELS[this.currentLevel].name}`;
                 backBtn.insertAdjacentHTML('afterend',
-                    `<div class="exercise-breadcrumb">${esc(this.currentModule.title)} · שיעור ${this.currentLesson.id} · תרגיל ${this.currentExerciseIndex + 1}/${total}</div>`);
+                    `<div class="exercise-breadcrumb">${esc(this.currentModule.title)} · שיעור ${this.currentLesson.id} · ${where} · תרגיל ${this.currentExerciseIndex + 1}/${total}</div>`);
+            }
+
+            // The Joker's hint: levels 1 and 2 only (a surprise round is made by
+            // the Joker itself). The button is added by js/game-joker.js.
+            const joker = window.BwcJoker;
+            if (joker && typeof joker.hintButton === 'function' && !this.surpriseRound && !this.isFixture) {
+                // Right under the question, where it is seen without scrolling and
+                // never sits behind the fixed check/exit bar.
+                const q = container.querySelector('.exercise-container .exercise-question');
+                if (q) q.insertAdjacentHTML('afterend', joker.hintButton(this, this.lk(this.currentModule, this.currentLesson), this.currentLevel, this.currentExerciseIndex));
             }
 
             this.showFooter();
@@ -2287,31 +2602,18 @@
         // ═══════════════════════════════════════
         checkAnswer() {
             if (this.exerciseAnswered) return;
-            const exercise = this.currentLesson.exercises[this.currentExerciseIndex];
+            const exercise = this.exList()[this.currentExerciseIndex];
             if (!exercise) return;
-            let isCorrect = false;
+            const type = TYPES[exercise.type];
+            if (!type) return;
 
-            // Step 1: correctness
-            switch (exercise.type) {
-                case 'multiple-choice':
-                case 'scenario':
-                case 'improve':
-                case 'fill-blank':
-                case 'compare':
-                    if (this.selectedAnswer === null) return;
-                    isCorrect = this.selectedAnswer === exercise.correct;
-                    break;
-                case 'order':
-                    isCorrect = this.checkOrderAnswer(exercise);
-                    break;
-                case 'match':
-                    isCorrect = this.checkMatchAnswer(exercise);
-                    break;
-            }
+            // Step 1: correctness. null means "nothing to check yet".
+            const verdict = type.check(this, exercise);
+            if (verdict === null || verdict === undefined) return;
+            const isCorrect = verdict === true;
 
             // Step 2: second chance (choice-type questions only, first wrong attempt)
-            const secondChanceTypes = ['multiple-choice', 'scenario', 'improve', 'compare'];
-            if (!isCorrect && !this.secondChanceUsed && secondChanceTypes.includes(exercise.type)) {
+            if (!isCorrect && !this.secondChanceUsed && type.secondChance) {
                 this.secondChanceUsed = true;
                 this.comboCount = 0;    // a combo breaks on any mistake
                 // A second chance forgives the heart, not the record: the miss
@@ -2326,16 +2628,9 @@
             }
 
             // Step 3: visual feedback on the exercise itself
-            switch (exercise.type) {
-                case 'multiple-choice':
-                case 'scenario':
-                case 'improve':
-                    this.showMultipleChoiceFeedback(isCorrect, exercise);
-                    break;
-                case 'fill-blank': this.showFillBlankFeedback(isCorrect, exercise); break;
-                case 'compare': this.showCompareFeedback(isCorrect, exercise); break;
-                case 'order': this.showOrderFeedback(isCorrect); break;
-                case 'match': this.showMatchFeedback(isCorrect); break;
+            if (typeof type.feedback === 'function') {
+                try { type.feedback(this, isCorrect, exercise); }
+                catch (e) { console.error('[game] exercise feedback failed', e); }
             }
 
             this.exerciseAnswered = true;
@@ -2378,6 +2673,9 @@
         recordMiss() {
             try {
                 if (this.isFixture || !this.currentModule || !this.currentLesson) return;
+                // The index points into the lesson's level 1 exercises, which is
+                // what the sandbox reads. Other levels are not recorded here.
+                if (this.currentLevel !== 1 || this.surpriseRound) return;
                 const key = this.lk(this.currentModule, this.currentLesson);
                 const m = this.playerData.missed || (this.playerData.missed = {});
                 const list = Array.isArray(m[key]) ? m[key] : [];
@@ -2452,6 +2750,11 @@
             const explanation = exercise.explanation ? esc(exercise.explanation) : '';
             let html = '';
 
+            // A type with its own answer shape writes its own detail block.
+            const custom = TYPES[exercise.type] && TYPES[exercise.type].detail;
+            if (typeof custom === 'function') {
+                html = (custom(this, exercise, isCorrect) || '') + (explanation ? `<div class="feedback-general">${explanation}</div>` : '');
+            } else
             // A wrong pick gets its own explanation, next to the correct answer.
             if (!isCorrect && Array.isArray(exercise.wrongExplanations) && this.selectedAnswer !== null) {
                 const wrongExp = exercise.wrongExplanations[this.selectedAnswer];
@@ -2522,7 +2825,7 @@
 
             // Every 4 exercises: a short reinforcement popup built from real numbers.
             this._reinforceCount = (this._reinforceCount || 0) + 1;
-            const moreExercises = this.currentLesson && this.currentExerciseIndex < this.currentLesson.exercises.length;
+            const moreExercises = this.currentLesson && this.currentExerciseIndex < this.exList().length;
             if (moreExercises && this._reinforceCount % 4 === 0) {
                 this.showReinforcementPopup(() => setTimeout(() => this.renderExerciseSafe(), 100));
             } else {
@@ -2547,12 +2850,12 @@
             const lessonsDone = this.completedCount(pd);
             const msgs = [];
             if (totalAns >= 5) msgs.push({ icon: 'fa-bullseye', title: 'דיוק', text: `דייקתם ב-${this.accuracyPct(pd)}% מהתשובות עד עכשיו.` });
-            if ((pd.xp || 0) > 0) msgs.push({ icon: 'fa-star', title: 'צוברים נקודות', text: `כבר ${pd.xp} XP. כל תרגיל מקרב לרמה הבאה.` });
+            if ((pd.xp || 0) > 0) msgs.push({ icon: 'fa-star', title: 'צוברים נקודות', text: `כבר ${pd.xp} XP. כל תרגיל מקרב לדרגה הבאה.` });
             if ((pd.streak || 0) >= 2) msgs.push({ icon: 'fa-fire', title: 'רצף פעיל', text: `${pd.streak} ימים ברצף.` });
             if (lessonsDone >= 1) msgs.push({ icon: 'fa-book-open', title: 'מתקדמים', text: `${lessonsDone} שיעורים כבר הושלמו.` });
             if ((pd.perfectLessons || 0) >= 1) msgs.push({ icon: 'fa-gem', title: 'שיעורים מושלמים', text: `${pd.perfectLessons} שיעורים בלי אף טעות.` });
             if ((pd.longestStreak || 0) > (pd.streak || 0) && (pd.longestStreak || 0) >= 3) msgs.push({ icon: 'fa-trophy', title: 'שיא אישי', text: `השיא שלכם: ${pd.longestStreak} ימים ברצף.` });
-            if ((pd.level || 1) >= 2) msgs.push({ icon: 'fa-rocket', title: 'הרמה עולה', text: `רמה ${pd.level}, ${this.getLevelName(pd.level)}. ההתמדה משתלמת.` });
+            if ((pd.level || 1) >= 2) msgs.push({ icon: 'fa-rocket', title: 'הדרגה עולה', text: `דרגה ${pd.level}, ${this.getLevelName(pd.level)}. ההתמדה משתלמת.` });
             if (msgs.length === 0) msgs.push({ icon: 'fa-dumbbell', title: 'ממשיכים', text: 'עוד תרגיל מאחוריכם.' });
             return msgs;
         }
@@ -2585,14 +2888,17 @@
         // ═══════════════════════════════════════
         completeLesson() {
             const key = this.lk(this.currentModule, this.currentLesson);
-            const firstTime = !this.playerData.completedLessons[key];
+            const level = this.currentLevel;
+            // A surprise round gives XP for its answers and no star.
+            const firstTime = !this.surpriseRound && !this.levelDone(key, level);
             this.inLesson = false;
 
             if (firstTime) {
-                this.playerData.completedLessons[key] = true;
+                this.markLevelDone(key, level);
                 this.addXP(50);
 
-                if (this.lessonMistakes === 0) {
+                // "Perfect lesson" is a level 1 record, as it always was.
+                if (level === 1 && this.lessonMistakes === 0) {
                     this.playerData.perfectLessons = (this.playerData.perfectLessons || 0) + 1;
                     if (!this.playerData.perfectLessonsList.includes(key)) this.playerData.perfectLessonsList.push(key);
                 }
@@ -2667,15 +2973,33 @@
                     </button>`;
             }
 
+            // After level 1 or 2 the natural next step is the next level of the
+            // same lesson, when its data exists.
+            const doneKey = this.lk(this.currentModule, this.currentLesson);
+            const nextLevel = this.surpriseRound ? 0 : this.currentLevel + 1;
+            const hasNextLevel = (nextLevel === 2 || nextLevel === 3)
+                && !!this.levelList(this.currentModule.id, doneKey, nextLevel)
+                && !this.levelDone(doneKey, nextLevel);
+            if (hasNextLevel) {
+                const lessonCta = primaryCta.replace('btn-primary', 'btn-secondary').replace('id="completion-next"', 'id="completion-lesson"');
+                primaryCta = `<button class="btn btn-primary btn-full" id="completion-next" onclick="game.transitionTo(function() { game.startLesson(${this.currentLesson.id}, ${nextLevel}) })">
+                        רמה ${nextLevel}: ${LEVELS[nextLevel].name} ${icon('fa-arrow-left')}
+                    </button>${lessonCta}`;
+            }
+
             // Finishing a whole module is a bigger moment than finishing a lesson.
-            const moduleDone = !nextLesson;
-            const total = this.currentLesson.exercises.length;
+            const moduleDone = !nextLesson && this.currentLevel === 1 && !this.surpriseRound;
+            const total = this.exList().length;
             const completionArt = moduleDone
                 ? this.art('screens/module-complete.webp', 'completion-icon-img', 'fa-trophy')
                 : this.art('screens/lesson-complete.webp', 'completion-icon-img', 'fa-circle-check');
-            const subtitle = moduleDone
-                ? `השלמתם את המודול "${esc(this.currentModule.title)}"`
-                : `השלמתם את השיעור "${esc(this.currentLesson.title)}"`;
+            const subtitle = this.surpriseRound
+                ? `סיימתם סיבוב הפתעה על "${esc(this.currentLesson.title)}"`
+                : moduleDone
+                    ? `השלמתם את המודול "${esc(this.currentModule.title)}"`
+                    : this.currentLevel === 1
+                        ? `השלמתם את השיעור "${esc(this.currentLesson.title)}"`
+                        : `השלמתם את רמה ${this.currentLevel} (${LEVELS[this.currentLevel].name}) בשיעור "${esc(this.currentLesson.title)}"`;
             const top = this.isEmbed ? ' target="_top"' : '';
             const key = this.currentLesson.lessonKey;
 
@@ -2983,7 +3307,7 @@
 
             const accuracyPct = this.accuracyPct(pd);
             const levelInfo = this.getLevelProgressInfo();
-            const xpHint = levelInfo.isMax ? 'הרמה הגבוהה ביותר' : `עוד ${levelInfo.xpToNext} XP לרמה ${(pd.level || 1) + 1}`;
+            const xpHint = levelInfo.isMax ? 'הדרגה הגבוהה ביותר' : `עוד ${levelInfo.xpToNext} XP לדרגה ${(pd.level || 1) + 1}`;
             const practiceDays = this.practiceDays();
             const practiceHint = practiceDays === 0 ? 'התרגיל הראשון פותח את המונה'
                 : practiceDays === 1 ? 'יום אחד על הלוח. השני הוא הקשה ביותר'
@@ -3088,7 +3412,7 @@
             if (!overlay || !text) return;
             text.innerHTML = `
                 <div class="level-up-art-wrap">${this.art(`levels/level-${level}.webp`, 'level-up-img', 'fa-ranking-star')}</div>
-                <div class="level-up-heading">עליתם לרמה ${level}</div>
+                <div class="level-up-heading">עליתם לדרגה ${level}</div>
                 <div class="level-up-name">${esc(this.getLevelName(level))}</div>
             `;
             overlay.style.display = 'flex';
@@ -3146,10 +3470,58 @@
         showProgressBar() { byId('progress-container').style.display = 'block'; }
         hideProgressBar() { byId('progress-container').style.display = 'none'; }
 
+        // ═══════════════════════════════════════
+        // Hooks for js/game-joker.js
+        // ═══════════════════════════════════════
+        // Plays a list of exercises made by the Joker for the current lesson.
+        // Same loop as a level: hearts, XP, feedback. No star at the end.
+        playSurpriseRound(exercises) {
+            const list = (Array.isArray(exercises) ? exercises : []).filter(ex => ex && TYPES[ex.type]);
+            if (!list.length || !this.currentModule || !this.currentLesson) return false;
+            if (this.playerData.hearts <= 0) { this.showNoHeartsModal(); return false; }
+            this.surpriseRound = list;
+            this.currentLevel = 1;
+            this.currentExerciseIndex = 0;
+            this.lessonMistakes = 0;
+            this.lessonXP = 0;
+            this.comboCount = 0;
+            this.maxCombo = 0;
+            this._reinforceCount = 0;
+            this.inLesson = true;
+            this.currentScreen = 'exercise';
+            document.body.classList.add('game-fullscreen');
+            this.showProgressBar();
+            this.transitionTo(() => this.renderExercise());
+            return true;
+        }
+
+        // Level 3 was passed in the Joker's room. `xp` is what the tasks earned.
+        // Returns true when this was the first time (the star is new).
+        completeLevel3(lessonKey, xp) {
+            const first = !this.levelDone(lessonKey, 3);
+            this.lessonXP = 0;
+            // XP once: replaying a finished level 3 must not be an XP tap.
+            if (first) {
+                this.addXP(Math.max(0, Math.round(xp || 0)) + 50);
+                this.markLevelDone(lessonKey, 3);
+            }
+            try { if (!this.isFixture && window.BwcProgress) window.BwcProgress.recordActivityToday(); }
+            catch (e) { console.error('[game] streak update failed', e); }
+            // A finished Joker level earns the day in the practice ledger too.
+            const today = this.ilDay();
+            if (!this.playerData.weeklyActivity) this.playerData.weeklyActivity = {};
+            this.playerData.weeklyActivity[today] = (this.playerData.weeklyActivity[today] || 0) + 1;
+            this.recomputeStreak({ silent: true });
+            this.recordLeague(this.lessonXP);
+            this.savePlayerData();
+            this.checkAchievements();
+            return first;
+        }
+
         updateProgressBar() {
             if (!this.currentLesson) return;
-            const hasReading = this.currentLesson.reading ? 1 : 0;
-            const total = this.currentLesson.exercises.length + hasReading;
+            const hasReading = (this.currentLevel === 1 && !this.surpriseRound && this.currentLesson.reading) ? 1 : 0;
+            const total = this.exList().length + hasReading;
             const current = this.currentExerciseIndex + (this.currentScreen !== 'reading' ? hasReading : 0);
             const pct = total > 0 ? (current / total) * 100 : 0;
             byId('progress-bar').style.width = pct + '%';
@@ -3173,6 +3545,8 @@
     function start() {
         if (window.game) return;
         const game = new BwcGame();
+        // Small toolkit for the files that extend the game (types, Joker).
+        game.ui = { esc, icon, byId, LEVELS, LETTERS, MATCH_CHANNELS };
         window.game = game;
         game.boot().catch((e) => {
             console.error('[game] boot failed', e);

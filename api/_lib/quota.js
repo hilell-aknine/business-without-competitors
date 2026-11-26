@@ -18,7 +18,14 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY ||
 export const CAPS = {
   sandbox: Number(process.env.SANDBOX_DAILY_CAP) || 40,
   transcribe: Number(process.env.TRANSCRIBE_DAILY_CAP) || 20,
+  // Practice game, levels 2-3 (api/game-coach.js, migration 016).
+  game_judge: Number(process.env.GAME_JUDGE_DAILY_CAP) || 30,
+  game_hint: Number(process.env.GAME_HINT_DAILY_CAP) || 3,
 };
+
+// The game kinds are counted by their own RPC (016), so the game does not
+// depend on which of 014 / 016 was run last. Same table, same rules.
+const RPC = { game_judge: 'game_consume', game_hint: 'game_consume' };
 
 const memory = new Map(); // `${day}|${userId}|${kind}` -> count
 
@@ -51,7 +58,7 @@ export async function consume(req, userId, kind) {
     try {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 4000);
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/sandbox_consume`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${RPC[kind] || 'sandbox_consume'}`, {
         method: 'POST',
         signal: ctl.signal,
         headers: {

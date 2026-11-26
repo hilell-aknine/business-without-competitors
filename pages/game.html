@@ -21,6 +21,10 @@
 <link rel="stylesheet" href="../css/global-nav.css?v=4">
 <link rel="stylesheet" href="../css/embed.css">
 <link rel="stylesheet" href="../css/game.css?v=1">
+<link rel="stylesheet" href="../css/game-shell.css?v=1">
+<link rel="stylesheet" href="../css/game-l2.css?v=1">
+<link rel="stylesheet" href="../css/chat-composer.css">
+<link rel="stylesheet" href="../css/game-joker.css?v=1">
 
 <script>
   /* Embed mode: inside the lesson page's practice tab the URL carries
@@ -37,14 +41,14 @@
 </script>
 
 <!-- Boot order, all deferred: Supabase CDN -> config -> auth -> modal -> sync
-     -> global nav -> league -> game data -> engine. The game runs for guests
+     -> league -> game data -> level 2 types -> engine -> Joker. This page is a
+     standalone full-screen app: it does not load the portal navbar. The game runs for guests
      even if the Supabase CDN fails to load. -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="../js/supabase-config.js" defer></script>
 <script src="../js/auth.js" defer></script>
 <script src="../js/auth-modal.js" defer></script>
 <script src="../js/sync-localstorage.js" defer></script>
-<script src="../js/global-nav.js?v=6" defer></script>
 <script src="../js/progress-source.js" defer></script>
 <script src="../js/practice-league.js" defer></script>
 <!-- One tag per module that exists. Add game-data-m2.js ... -m8.js here as
@@ -58,14 +62,16 @@
 <script src="../js/game-data-m7.js?v=1" defer></script>
 <script src="../js/game-data-m8.js?v=1" defer></script>
 <script src="../js/game-data.js?v=1" defer></script>
-<script src="../js/game.js?v=1" defer></script>
+<!-- Level 2 exercise types register themselves before the engine reads the registry. -->
+<script src="../js/game-types-l2.js?v=1" defer></script>
+<script src="../js/game.js?v=2" defer></script>
+<!-- The Joker (level 3, hints, surprise rounds). The game runs without it. -->
+<script src="../js/chat-composer.js" defer></script>
+<script src="../js/game-joker.js?v=1" defer></script>
 </head>
 <body class="game-page">
 
 <a class="app-skip-link" href="#main-content">דלגו לתוכן הראשי</a>
-
-<!-- ===== Top navigation ===== -->
-<header class="gnav" data-page="practice"></header>
 
 <div class="game-root" id="game-root">
 
@@ -90,7 +96,10 @@
   <!-- Game header: XP, practice days, hearts, sound -->
   <div class="header" id="app-header" style="display: none;">
     <div class="container header-inner">
-      <div class="logo"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>תרגול</span></div>
+      <div class="header-start">
+        <a class="shell-exit" href="../index.html" aria-label="יציאה לפורטל"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i><span>לפורטל</span></a>
+        <div class="logo"><i class="fa-solid fa-dumbbell" aria-hidden="true"></i><span>תרגול</span></div>
+      </div>
       <div class="stats-bar">
         <div class="stat-item xp" title="נקודות XP">
           <i class="fa-solid fa-star icon" aria-hidden="true"></i>
@@ -105,6 +114,9 @@
         </div>
         <button type="button" class="sound-toggle" id="sound-toggle" onclick="game.toggleSound()" aria-pressed="true" aria-label="כיבוי צלילים">
           <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="shell-fs" id="fullscreen-toggle" hidden onclick="game.toggleFullscreen()" aria-pressed="false" aria-label="מסך מלא">
+          <i class="fa-solid fa-expand" aria-hidden="true"></i>
         </button>
       </div>
     </div>
